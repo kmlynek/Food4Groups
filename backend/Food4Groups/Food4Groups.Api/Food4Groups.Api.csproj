@@ -17,4 +17,9 @@
       <ProjectReference Include="..\Food4Groups.Infrastructure\Food4Groups.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Controllers\" />
+      <Folder Include="Extensions\" />
+    </ItemGroup>
+
 </Project>

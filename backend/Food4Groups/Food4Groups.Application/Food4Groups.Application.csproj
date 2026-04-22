@@ -10,4 +10,10 @@
       <ProjectReference Include="..\Food4Groups.Domain\Food4Groups.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="DTOs\" />
+      <Folder Include="Interfaces\" />
+      <Folder Include="Services\" />
+    </ItemGroup>
+
 </Project>
