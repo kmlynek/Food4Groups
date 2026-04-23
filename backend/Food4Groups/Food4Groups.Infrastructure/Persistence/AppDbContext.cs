@@ -1,6 +1,4 @@
 using Food4Groups.Domain.Entities;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Food4Groups.Infrastructure.Persistence;
@@ -16,8 +14,9 @@ public class ApplicationDbContext : DbContext
     }
     
     //Informuje EF Core, które encje (klasy domenowe) mają być mapowane w tabele
-    //oraz daje dostęp do danych w kodzie - Dependency Injection, (np. _context.Dishes)
+    //oraz daje dostęp do danych w kodzie - Dependency Injection, LINQ (np. context.Dishes.Where)
     
+    //Właściwość (property), która udostępnia zestaw danych (DbSet) dla jednostek typu Dish
     public DbSet<Dish> Dishes => Set<Dish>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<FoodPackage> FoodPackages => Set<FoodPackage>();
