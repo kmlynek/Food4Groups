@@ -22,8 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Configurations\" />
-      <Folder Include="Persistence\" />
       <Folder Include="Repositories\" />
     </ItemGroup>
 
