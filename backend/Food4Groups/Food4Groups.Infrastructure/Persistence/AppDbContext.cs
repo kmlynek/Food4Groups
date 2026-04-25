@@ -1,9 +1,11 @@
 using Food4Groups.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Food4Groups.Infrastructure.Persistence;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext rozszerzony o Identity
 {
     //Setup - sesja połączenia z bazą danych
     //ustawienia dla konkretnego DbContext <ApplicationDbContext> (może być więcej)

@@ -1,4 +1,5 @@
 using Food4Groups.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,13 +14,19 @@ var connectionString =
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+//Konfiguracja Identity
+builder.Services
+    .AddIdentityCore<IdentityUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 
-//Powyżej konfiguracja startowa, teraz start aplikacji
+//Wszystko powyżej to konfiguracja startowa, teraz start aplikacji
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
