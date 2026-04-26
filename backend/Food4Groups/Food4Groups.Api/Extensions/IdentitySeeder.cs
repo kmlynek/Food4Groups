@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Food4Groups.Api.Extensions;
 
+//Inicjalne wypełnienie danych IDentity wywoływane przy starcie aplikacji
 public static class IdentitySeeder
 {
     private static readonly string[] Roles =
@@ -13,8 +14,10 @@ public static class IdentitySeeder
         "User"
     ];
     
+    //Tworzy role oraz konto admina
     public static async Task SeedIdentityAsync(this IServiceProvider services)
     {
+        //Tworzy scope aby pobrać zależności z DI  (w nim DI jest dostępne)
         using var scope = services.CreateScope();
         
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -29,24 +32,26 @@ public static class IdentitySeeder
             }
         }
         
-        //2 Seed konta admina
+        //Seed konta admina
         const string adminEmail = "admin@food4groups.pl";
-        const string adminPassword = "admin123";
+        const string adminPassword = "Admin123!";
         
-        var admin  = await userManager.FindByNameAsync("adminEmail");
+        var admin  = await userManager.FindByNameAsync(adminEmail);
         if (admin == null)
         {
+            //Tworzy konto admina
             admin = new IdentityUser
             {
-                UserName = "adminEmail",
+                UserName = adminEmail,
                 Email = adminEmail,
                 EmailConfirmed = true,
             };
             
             var createResult = await userManager.CreateAsync(admin, adminPassword);
+            //Jesli utworzenie sie powiodlo, przypisuje rolę Admin
             if (createResult.Succeeded)
             {
-                await userManager.AddToRoleAsync(admin, "Administrator");
+                await userManager.AddToRoleAsync(admin, "Admin");
             }
         }
         
