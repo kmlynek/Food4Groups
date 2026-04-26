@@ -1,3 +1,4 @@
+using Food4Groups.Api.Extensions;
 using Food4Groups.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,8 @@ builder.Services.AddOpenApi();
 
 //Wszystko powyżej to konfiguracja startowa, teraz start aplikacji
 var app = builder.Build();
+
+await app.Services.SeedIdentityAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
