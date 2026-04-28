@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Food4Groups.Infrastructure.Configurations;
 
-//Konfiguracja mapowania encji do bazy danych - okeśla strukturę, ograniczenia, właściwości
+//Konfiguracja EF mapowania encji do bazy danych (modelu bazy danych)- okeśla strukturę, ograniczenia, właściwości
 public class DishConfiguration : IEntityTypeConfiguration<Dish>
 {
     public void Configure(EntityTypeBuilder<Dish> builder)
