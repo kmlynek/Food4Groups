@@ -21,8 +21,4 @@
       <ProjectReference Include="..\Food4Groups.Infrastructure\Food4Groups.Infrastructure.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Controllers\" />
-    </ItemGroup>
-
 </Project>

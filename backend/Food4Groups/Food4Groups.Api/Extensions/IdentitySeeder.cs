@@ -33,7 +33,7 @@ public static class IdentitySeeder
         }
         
         //Seed konta admina
-        const string adminEmail = "admin@food4groups.pl";
+        const string adminEmail = "admin@food4groups.com";
         const string adminPassword = "Admin123!";
         
         var admin  = await userManager.FindByNameAsync(adminEmail);

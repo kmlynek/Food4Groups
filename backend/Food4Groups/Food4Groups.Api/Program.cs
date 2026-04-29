@@ -1,5 +1,7 @@
 using Food4Groups.Api.Extensions;
+using Food4Groups.Application.Interfaces;
 using Food4Groups.Infrastructure.Persistence;
+using Food4Groups.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +28,9 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+//Rejestracja serwisu JWT w DI(gdy potrzeba IJwtTokenService, użyj JwtTokenService 
+// lifetime Scoped: 1 instancja na request HTTP)
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 //Wszystko powyżej to konfiguracja startowa, teraz start aplikacji
 var app = builder.Build();
