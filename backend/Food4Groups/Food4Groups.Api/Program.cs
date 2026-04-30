@@ -1,9 +1,13 @@
+using System.Text;
 using Food4Groups.Api.Extensions;
 using Food4Groups.Application.Interfaces;
 using Food4Groups.Infrastructure.Persistence;
 using Food4Groups.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +36,36 @@ builder.Services.AddOpenApi();
 // lifetime Scoped: 1 instancja na request HTTP)
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
+var jwtKey = builder.Configuration["Jwt:Key"]!;
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+
+//konfiguracja w celu użycia JWT do autentykacji i określenie walidacji tokena
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; //jak sprawdzic kim jest user
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; //co zrobic, gdy user nie jest zalogowany
+    })
+    //konfiguracja tokenu dostepu, co musi spełniać 
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)) //sprawdza klucz, którym jest podpisywany token
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+
+
 //Wszystko powyżej to konfiguracja startowa, teraz start aplikacji
 var app = builder.Build();
 
@@ -45,6 +79,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
