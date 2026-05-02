@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Food4Groups.Api.Controllers;
 
-//Dodawanie endpointow, autentykacja 401(bledne uwierzytelnianie)/ autoryzacja 403(brak uprawnien)
+//Dodawanie endpointow, autentykacja, autoryzacja
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -35,7 +35,7 @@ public class AuthController : ControllerBase
             EmailConfirmed = true
         };
         
-        //Domylsna rola uzytkownika 
+        //Domylsna rola uzytkownika - User
         var result = await _userManager.CreateAsync(user, request.Password);
         
         if (!result.Succeeded)

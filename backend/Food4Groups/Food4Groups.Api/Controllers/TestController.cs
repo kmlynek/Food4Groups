@@ -9,10 +9,10 @@ public class TestController : ControllerBase
 {
     [HttpGet("user")]
     [Authorize(Roles = "User")]
-    public IActionResult UserOnly() => Ok("Authorization default User role - successful");
+    public IActionResult UserOnly() => Ok("Authorization User role - successful");
     
-    [HttpGet("dietician")]
-    [Authorize(Roles = "Dietician")]
-    public IActionResult DieticianOnly() => Ok("Authorization Successful");
+    [HttpGet("admin")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult DietitianOnly() => Ok("Authorization Admin role - Successful");
 
 }

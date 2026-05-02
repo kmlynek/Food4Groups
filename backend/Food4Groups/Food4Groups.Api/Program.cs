@@ -40,6 +40,7 @@ var jwtKey = builder.Configuration["Jwt:Key"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
+//Rejestracja mechanizmu autentykacji
 //konfiguracja w celu użycia JWT do autentykacji i określenie walidacji tokena
 builder.Services
     .AddAuthentication(options =>
@@ -61,7 +62,7 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)) //sprawdza klucz, którym jest podpisywany token
         };
     });
-
+//włącza autoryzację
 builder.Services.AddAuthorization();
 
 
@@ -79,9 +80,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
+app.UseAuthentication(); //1. Sorawdza czy jest token i czy jest poprawny
+app.UseAuthorization(); //2. Sprawdza [Authorize] role
+app.MapControllers(); //3. Działanie controllera 
 
 app.Run();
