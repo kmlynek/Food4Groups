@@ -22,6 +22,15 @@ public class DishesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
+        if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
+        {
+            var activeDishes = await _context.Dishes
+                .Where(x => x.IsActive)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
+
+            return Ok(activeDishes);
+        }
         var allDishes = await _context.Dishes
             .OrderBy(x => x.Name)
             .ToListAsync();
@@ -33,6 +42,13 @@ public class DishesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(Guid id)
     {
+        if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
+        {
+            var activeDish = await _context.Dishes
+                .FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
+    
+            return activeDish is null ? NotFound() : Ok(activeDish);
+        }
         
         var dish = await _context.Dishes.FirstOrDefaultAsync(x => x.Id == id);
         if (dish is null)
