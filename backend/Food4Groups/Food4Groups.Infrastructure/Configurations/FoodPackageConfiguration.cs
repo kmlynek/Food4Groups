@@ -13,10 +13,17 @@ public class FoodPackageConfiguration : IEntityTypeConfiguration<FoodPackage>
         builder.HasKey(x=>x.Id);
 
         builder.Property(x => x.Name)
+            .HasMaxLength(120)
             .IsRequired();
         
         builder.Property(x=>x.MaxDishesPerDay)
-            .HasMaxLength(100)
+            .IsRequired();
+        
+        builder.Property(x => x.PricePerPerson)
+            .HasPrecision(10, 2)
+            .IsRequired();
+        
+        builder.Property(x => x.IsActive)
             .IsRequired();
     }
 }

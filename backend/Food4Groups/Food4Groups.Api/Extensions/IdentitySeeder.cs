@@ -14,10 +14,10 @@ public static class IdentitySeeder
         "User"
     ];
     
-    //Tworzy role oraz konto admina
+    //Tworzy role oraz konto admina, IServiceProvider - interfejs odpowiedzialny za pobieranie instancji  
     public static async Task SeedIdentityAsync(this IServiceProvider services)
     {
-        //Tworzy scope aby pobrać zależności z DI  (w nim DI jest dostępne)
+        //Tworzy scope aby pobrać zależności z DI  (w nim DI jest dostępne), 'using' - po zakończeniu pracy cała szuflada (scope) zostanie zamknięta, a obiekty usuniete z pamieci 
         using var scope = services.CreateScope();
         
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
