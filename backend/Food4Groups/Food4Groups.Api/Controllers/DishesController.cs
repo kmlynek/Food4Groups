@@ -64,7 +64,7 @@ public class DishesController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateDishRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
-            return BadRequest("Name is required.");
+            return BadRequest("Name is required");
 
         // object initializer
         var dish = new Dish

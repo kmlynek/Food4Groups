@@ -20,7 +20,7 @@ public class FoodPackageConfiguration : IEntityTypeConfiguration<FoodPackage>
             .IsRequired();
         
         builder.Property(x => x.PricePerPerson)
-            .HasPrecision(10, 2)
+            .HasPrecision(10, 2) // 10 cyfr do 2 po przecinku
             .IsRequired();
         
         builder.Property(x => x.IsActive)
