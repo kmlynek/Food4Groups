@@ -23,7 +23,7 @@ public static class IdentitySeeder
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
         
-        //Seed ról
+        // Seed ról
         foreach (var role in Roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
