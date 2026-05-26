@@ -21,8 +21,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
 
     //Właściwość (property), która udostępnia zestaw danych (DbSet) dla jednostek typu Dish
     public DbSet<Dish> Dishes => Set<Dish>();
+    public DbSet<Addon> Addons => Set<Addon>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<FoodPackage> FoodPackages => Set<FoodPackage>();
+    
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
