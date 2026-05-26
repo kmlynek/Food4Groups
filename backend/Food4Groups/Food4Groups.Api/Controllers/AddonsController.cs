@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Food4Groups.Api.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
 public class AddonsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
