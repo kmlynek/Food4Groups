@@ -25,7 +25,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     public DbSet<Addon> Addons => Set<Addon>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
-    public DbSet<FoodPackage> FoodPackages => Set<FoodPackage>();
+    public DbSet<Package> Packages => Set<Package>();
     
 
     protected override void OnModelCreating(ModelBuilder builder)

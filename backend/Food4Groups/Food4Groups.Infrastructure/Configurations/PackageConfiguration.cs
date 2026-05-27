@@ -4,19 +4,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Food4Groups.Infrastructure.Configurations;
 
-public class FoodPackageConfiguration : IEntityTypeConfiguration<FoodPackage>
+public class PackageConfiguration : IEntityTypeConfiguration<Package>
 {
-    public void Configure(EntityTypeBuilder<FoodPackage> builder)
+    public void Configure(EntityTypeBuilder<Package> builder)
     {
-        builder.ToTable("FoodPackages");
+        builder.ToTable("Packages");
         
         builder.HasKey(x=>x.Id);
 
         builder.Property(x => x.Name)
             .HasMaxLength(120)
-            .IsRequired();
-        
-        builder.Property(x=>x.MaxDishesPerDay)
             .IsRequired();
         
         builder.Property(x => x.PricePerPerson)
