@@ -20,9 +20,11 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     //oraz daje dostęp do danych w kodzie - Dependency Injection, LINQ (np. context.Dishes.Where)
 
     //Właściwość (property), która udostępnia zestaw danych (DbSet) dla jednostek typu Dish
+    //DbSet - rejestracja encji w modelu EF Core
     public DbSet<Dish> Dishes => Set<Dish>();
     public DbSet<Addon> Addons => Set<Addon>();
     public DbSet<Group> Groups => Set<Group>();
+    public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
     public DbSet<FoodPackage> FoodPackages => Set<FoodPackage>();
     
 
