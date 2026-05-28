@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,24 @@ builder.Services
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+// builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token"
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+});
+
 
 //Rejestracja serwisu JWT w DI(gdy potrzeba IJwtTokenService, użyj JwtTokenService 
 // lifetime Scoped: 1 instancja na request HTTP)
@@ -65,9 +84,7 @@ builder.Services
 //włącza autoryzację
 builder.Services.AddAuthorization();
 
-
-
-//Wszystko powyżej to konfiguracja startowa, teraz start aplikacji
+// Wszystko powyżej to konfiguracja startowa, teraz start aplikacji
 var app = builder.Build();
 
 await app.Services.SeedIdentityAsync();
@@ -77,6 +94,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Food4Groups.Api.Extensions;
 
-// Inicjalne wypełnienie danych IDentity wywoływane przy starcie aplikacji
+// Dodanie danych Identity wywoływane przy starcie aplikacji
 public static class IdentitySeeder
 {
     private static readonly string[] Roles =
