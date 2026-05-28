@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Food4Groups.Api.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class GroupMembersController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
