@@ -81,19 +81,21 @@ public class AdminUserController : ControllerBase
         var roleRemove = roleName.Trim();
         
         if (!await _roleManager.RoleExistsAsync(roleRemove))
-            return NotFound($"Role '{roleRemove}' does not exist.");
+            return NotFound($"Role '{roleRemove}' does not exist");
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null)
-            return NotFound("User not found.");
+            return NotFound("User not found");
 
         if (!await _userManager.IsInRoleAsync(user, roleRemove))
-            return Conflict($"User does not have role '{roleRemove}'.");
+            return Conflict($"User does not have role '{roleRemove}'");
 
         var removeResult = await _userManager.RemoveFromRoleAsync(user, roleRemove);
         if (!removeResult.Succeeded)
             return BadRequest(removeResult.Errors);
 
-        return NoContent();    }
+        return NoContent();
+        
+    }
     
 }
