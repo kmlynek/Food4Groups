@@ -26,7 +26,7 @@ public class MenuDayConfiguration : IEntityTypeConfiguration<MenuDay>
             .HasForeignKey(x => x.MenuPeriodId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex((x => new { x.MenuPeriodId, x.MenuDate }));
+        builder.HasIndex(x => new { x.MenuPeriodId, x.MenuDate })
+            .IsUnique();;
     }
-    
 }
