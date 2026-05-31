@@ -36,6 +36,6 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => new { x.GroupMemberId, x.MenuDayId })
-            .IsUnique();
+            .IsUnique(); // 1 zamówienie group memebra na dzień 
     }
 }
