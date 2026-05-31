@@ -23,6 +23,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     //DbSet - rejestracja encji w modelu EF Core
     public DbSet<Dish> Dishes => Set<Dish>();
     public DbSet<Addon> Addons => Set<Addon>();
+    public DbSet<CateringCompany> CateringCompanies => Set<CateringCompany>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
     public DbSet<Package> Packages => Set<Package>();
