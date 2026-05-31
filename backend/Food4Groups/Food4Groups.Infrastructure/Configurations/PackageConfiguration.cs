@@ -22,5 +22,14 @@ public class PackageConfiguration : IEntityTypeConfiguration<Package>
         
         builder.Property(x => x.IsActive)
             .IsRequired();
+        
+        builder.Property(x => x.CreatedAt)
+            .IsRequired();
+        
+        // Opis relacji
+        builder.HasOne(x => x.CateringCompany)
+            .WithMany()
+            .HasForeignKey(x => x.CateringCompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

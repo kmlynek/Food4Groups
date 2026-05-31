@@ -7,7 +7,7 @@ public class Package
     public Guid CateringCompanyId { get; set; }
     public decimal PricePerPerson { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime Created { get; set; }
+    public DateTime CreatedAt { get; set; }
     
     public CateringCompany? CateringCompany { get; set; }
 }
