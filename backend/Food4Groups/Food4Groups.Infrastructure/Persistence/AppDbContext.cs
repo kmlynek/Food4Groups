@@ -26,6 +26,14 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
     public DbSet<Package> Packages => Set<Package>();
+    public DbSet<GroupPackageAssignment> GroupPackageAssignments => Set<GroupPackageAssignment>();
+    public DbSet<MenuPeriod> MenuPeriods => Set<MenuPeriod>();
+    public DbSet<MenuDay> Menus => Set<MenuDay>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+    public DbSet<MenuDayAddon> MenuDayAddons => Set<MenuDayAddon>();
+    public DbSet<PackageDish> PackageDishes => Set<PackageDish>();
+    public DbSet<PackageAddon> PackageAddons => Set<PackageAddon>();
+    
     
 
     protected override void OnModelCreating(ModelBuilder builder)
