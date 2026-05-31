@@ -11,5 +11,5 @@ public class GroupPackageAssignment
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public Group? Group { get; set; }
-    public CateringCompany? CateringCompany { get; set; }
+    public Package? Package { get; set; }
 }
