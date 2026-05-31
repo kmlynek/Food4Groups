@@ -34,7 +34,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     public DbSet<MenuDayAddon> MenuDayAddons => Set<MenuDayAddon>();
     public DbSet<PackageDish> PackageDishes => Set<PackageDish>();
     public DbSet<PackageAddon> PackageAddons => Set<PackageAddon>();
-    
+    public DbSet<OrderStatus> OrderStatuses => Set<OrderStatus>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderAddon> OrderAddons => Set<OrderAddon>();
+    public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
     
 
     protected override void OnModelCreating(ModelBuilder builder)
