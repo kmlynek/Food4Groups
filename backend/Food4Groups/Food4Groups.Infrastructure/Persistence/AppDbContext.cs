@@ -38,6 +38,9 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderAddon> OrderAddons => Set<OrderAddon>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
+    public DbSet<SettlementPeriod> SettlementPeriods => Set<SettlementPeriod>();
+    public DbSet<GroupSettlement> GroupSettlements => Set<GroupSettlement>();
+    public DbSet<SettlementLine> SettlementLines => Set<SettlementLine>();
     
 
     protected override void OnModelCreating(ModelBuilder builder)
