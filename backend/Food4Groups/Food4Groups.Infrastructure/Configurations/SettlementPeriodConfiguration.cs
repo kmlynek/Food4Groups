@@ -8,7 +8,7 @@ public class SettlementPeriodConfiguration : IEntityTypeConfiguration<Settlement
 {
     public void Configure(EntityTypeBuilder<SettlementPeriod> builder)
     {
-        builder.ToTable("SettlementPeriod");
+        builder.ToTable("SettlementPeriods");
         
         builder.HasKey(x  => x.Id);
         
