@@ -13,8 +13,7 @@ using Microsoft.OpenApi;
 var builder = WebApplication.CreateBuilder(args);
 
 
-//Pobiera connection string z pliku konfiguracyjnego .json i dodaje DbContext do aplikacji
-//konfiguruje połączenie z bazą
+// Konfiguracja połączenia z bazą danych PostgreSQL / Pobiera connection string z pliku konfiguracyjnego .json i dodaje DbContext do aplikacji
 var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string" + "'DefaultConnection' not found.");
@@ -22,7 +21,7 @@ var connectionString =
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-//Konfiguracja Identity
+//Konfiguracja Identity z obsługą ról i zapisem danych w EF Core
 builder.Services
     .AddIdentityCore<IdentityUser>()
     .AddRoles<IdentityRole>()
@@ -30,9 +29,9 @@ builder.Services
 
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-// builder.Services.AddSwaggerGen();
+
+// Konfiguracja Swaggera
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -50,8 +49,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
-//Rejestracja serwisu JWT w DI(gdy potrzeba IJwtTokenService, użyj JwtTokenService 
+// Rejestracja serwisu odpowiedzialnego za generowanie tokenów JWT
 // lifetime Scoped: 1 instancja na request HTTP)
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
@@ -59,8 +57,7 @@ var jwtKey = builder.Configuration["Jwt:Key"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
-//Rejestracja mechanizmu autentykacji
-//konfiguracja w celu użycia JWT do autentykacji i określenie walidacji tokena
+// Konfiguracja mechanizmu uwierzytelniania z wykorzystaniem tokenów JWT
 builder.Services
     .AddAuthentication(options =>
     {
@@ -78,18 +75,19 @@ builder.Services
             ValidateLifetime = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)) //sprawdza klucz, którym jest podpisywany token
+            // Klucz używany do weryfikacji podpisu tokenu JWT
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
-//włącza autoryzację
+//Aktywuje autoryzację
 builder.Services.AddAuthorization();
 
-// Wszystko powyżej to konfiguracja startowa, teraz start aplikacji
+// Powyżej konfiguracja startowa, teraz tworzy builder (obiekt) aplikacji
 var app = builder.Build();
 
+// Inicjalizacja podstawowych ról i kont testowych przy starcie aplikacji
 await app.Services.SeedIdentityAsync();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -99,8 +97,9 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); //1. Sorawdza czy jest token i czy jest poprawny
-app.UseAuthorization(); //2. Sprawdza [Authorize] role
-app.MapControllers(); //3. Działanie controllera 
+// Middleware
+app.UseAuthentication(); //1. Identyfikacja użytkownika na podstawie tokenu
+app.UseAuthorization(); //2. Sprawdzenie uprawnień
+app.MapControllers(); //3. Działanie kontrolerów 
 
 app.Run();

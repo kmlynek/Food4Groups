@@ -1,5 +1,4 @@
 using Food4Groups.Domain.Entities;
-using Food4Groups.Infrastructure.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     }
 
     //Informuje EF Core, które encje (klasy domenowe) mają być mapowane w tabele
-    //oraz daje dostęp do danych w kodzie - Dependency Injection, LINQ (np. context.Dishes.Where)
+    //oraz daje dostęp do danych w kodzie - DI, LINQ (np. context.Dishes.Where)
 
     //Właściwość (property), która udostępnia zestaw danych (DbSet) dla jednostek typu Dish
     //DbSet - rejestracja encji w modelu EF Core
@@ -47,7 +46,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     {
         base.OnModelCreating(builder);
         
-        // Automatycznie laduje wszystkie konfiguracje IEntityTypeConfiguration
+        // Automatycznie ładuje wszystkie konfiguracje IEntityTypeConfiguration
         // z assembly projektu Infrastructure.
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
