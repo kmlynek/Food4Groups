@@ -52,9 +52,19 @@ public class GroupsController : ControllerBase
         if (request.MemberCount < 0)
             return BadRequest("Member count cannot be negative");
 
+        if (request.CateringCompanyId == Guid.Empty)
+            return BadRequest("CateringCompanyId is required");
+
+        var cateringCompanyExists = await _context.CateringCompanies
+            .AnyAsync(x => x.Id == request.CateringCompanyId);
+
+        if (!cateringCompanyExists)
+            return NotFound("Catering company not found");
+
         var group = new Group
         {
             Id = Guid.NewGuid(),
+            CateringCompanyId = request.CateringCompanyId,
             Name = request.Name.Trim(),
             MemberCount = request.MemberCount,
             CreatedAt = DateTime.UtcNow
@@ -79,7 +89,17 @@ public class GroupsController : ControllerBase
         
         if (request.MemberCount < 0)
             return BadRequest("Member count cannot be negative");
+
+        if (request.CateringCompanyId == Guid.Empty)
+            return BadRequest("CateringCompanyId is required");
+
+        var cateringCompanyExists = await _context.CateringCompanies
+            .AnyAsync(x => x.Id == request.CateringCompanyId);
+
+        if (!cateringCompanyExists)
+            return NotFound("Catering company not found");
         
+        group.CateringCompanyId = request.CateringCompanyId;
         group.Name = request.Name.Trim();
         group.MemberCount = request.MemberCount;
         

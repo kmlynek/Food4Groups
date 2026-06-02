@@ -6,6 +6,7 @@ namespace Food4Groups.Infrastructure.Configurations;
 
 public class GroupConfiguration : IEntityTypeConfiguration<Group>
 {
+
     public void Configure(EntityTypeBuilder<Group> builder)
     {
         builder.ToTable("Groups");
@@ -21,6 +22,11 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         
         builder.Property(x=>x.CreatedAt)
             .IsRequired();
-        
+
+        builder.HasOne(x => x.CateringCompany)
+            .WithMany()
+            .HasForeignKey(x => x.CateringCompanyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
     }
 }
