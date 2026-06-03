@@ -1,7 +1,9 @@
+using Food4Groups.Application.DTOs.Admin;
 using Food4Groups.Application.DTOs.GroupMembers;
 using Food4Groups.Domain.Entities;
 using Food4Groups.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,14 +15,16 @@ namespace Food4Groups.Api.Controllers;
 public class GroupMembersController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<IdentityUser> _userManager;
     
-    public GroupMembersController(ApplicationDbContext context)
+    public GroupMembersController(ApplicationDbContext context,  UserManager<IdentityUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin, GroupCoordinator, CateringEmployee")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetAll()
     {
         var members = await _context.GroupMembers
@@ -29,9 +33,27 @@ public class GroupMembersController : ControllerBase
         
         return Ok(members);
     }
+    
+    [HttpGet("users")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
+    public async Task<ActionResult<List<AvailableGroupMemberResponse>>> GetUsers()
+    {
+        var users = await _userManager.GetUsersInRoleAsync("User");
+
+        var result = users
+            .OrderBy(x => x.Email)
+            .Select(x => new AvailableGroupMemberResponse
+            {
+                Id = x.Id,
+                Email = x.Email
+            })
+            .ToList();
+
+        return Ok(result);
+    }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "Admin, GroupCoordinator, CateringEmployee")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var member = await _context.GroupMembers
@@ -41,7 +63,7 @@ public class GroupMembersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin, GroupCoordinator")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Create([FromBody] CreateGroupMemberRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.UserId))
@@ -81,7 +103,7 @@ public class GroupMembersController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin, GroupCoordinator")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateGroupMemberRequest request)
     {
         var member = await _context.GroupMembers.FirstOrDefaultAsync(x => x.Id == id);
@@ -127,7 +149,7 @@ public class GroupMembersController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin, GroupCoordinator")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var member = await _context.GroupMembers.FirstOrDefaultAsync(x => x.Id == id);
