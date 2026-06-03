@@ -1,4 +1,3 @@
-using Food4Groups.Application.DTOs.Admin;
 using Food4Groups.Application.DTOs.GroupMembers;
 using Food4Groups.Domain.Entities;
 using Food4Groups.Infrastructure.Persistence;
@@ -38,6 +37,7 @@ public class GroupMembersController : ControllerBase
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<ActionResult<List<AvailableGroupMemberResponse>>> GetUsers()
     {
+        // Do grup mogą być przypisywani wyłącznie użytkownicy końcowi, stąd rola User dla listy pobranych użytkowników 
         var users = await _userManager.GetUsersInRoleAsync("User");
 
         var result = users
@@ -70,11 +70,13 @@ public class GroupMembersController : ControllerBase
             return BadRequest("UserId is required");
         
         var userId = request.UserId.Trim();
-
+        
+        // Członek grupy może zostać dodany tylko do istniejącej grupy
         var groupExists = await _context.Groups.AnyAsync(x => x.Id == request.GroupId);
         if (!groupExists)
             return NotFound("Group not found");
 
+        // Przypisywany użytkownik musi istnieć w systemie Identity
         var userExists = await _context.Users.AnyAsync(x=> x.Id == userId);
         if (!userExists)
             return NotFound("User not found");
@@ -82,6 +84,7 @@ public class GroupMembersController : ControllerBase
         var alreadyExists =  await _context.GroupMembers
             .AnyAsync(x=> x.GroupId == request.GroupId && x.UserId == userId);
         
+        // Jeden użytkownik nie powinien być przypisany wielokrotnie do tej samej grupy
         if (alreadyExists)
             return Conflict("This user already belongs to the selected group");
 
@@ -96,6 +99,8 @@ public class GroupMembersController : ControllerBase
         
         _context.GroupMembers.Add(member);
         await _context.SaveChangesAsync();
+        
+        // Po dodaniu członka aktualizowana jest liczba osób w grupie
         await RecalculateMemberCountAsync(request.GroupId);
         await _context.SaveChangesAsync();
         
@@ -124,6 +129,7 @@ public class GroupMembersController : ControllerBase
         if (!userExists)
             return NotFound("User not found");
         
+        // Sprawdzenie zapobiega utworzeniu duplikatu członkostwa
         var duplicate = await _context.GroupMembers.AnyAsync(x =>
             x.Id != id &&
             x.GroupId == request.GroupId &&
@@ -140,6 +146,7 @@ public class GroupMembersController : ControllerBase
 
         await _context.SaveChangesAsync();
         
+        // Jeżeli użytkownik został przeniesiony do innej grupy, liczba członków zostaje ponownie przeliczona w obu grupach
         await RecalculateMemberCountAsync(previousGroupId);
         if (previousGroupId != request.GroupId)
             await RecalculateMemberCountAsync(request.GroupId);
@@ -160,6 +167,8 @@ public class GroupMembersController : ControllerBase
         
         _context.GroupMembers.Remove(member);
         await _context.SaveChangesAsync();
+        
+        // Po usunięciu członka ponownie przeliczana jest liczba osób w grupie
         await RecalculateMemberCountAsync(groupId);
         await  _context.SaveChangesAsync();
         
@@ -172,6 +181,7 @@ public class GroupMembersController : ControllerBase
         if (group is null)
             return;
         
+        // MemberCount jest wartością wyliczaną na podstawie aktualnych powiązań w tabeli GroupMembers
         group.MemberCount = await _context.GroupMembers
             .CountAsync(x => x.GroupId == groupId);
     }

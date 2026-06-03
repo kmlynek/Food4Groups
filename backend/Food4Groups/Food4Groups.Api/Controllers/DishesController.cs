@@ -24,6 +24,7 @@ public class DishesController : ControllerBase
     {
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
+            // Użytkownicy końcowi oraz koordynatorzy grup mogą przeglądać wyłącznie aktywne dania dostępne do zamówienia
             var activeDishes = await _context.Dishes
                 .Where(x => x.IsActive)
                 .OrderBy(x => x.Name)
@@ -42,6 +43,7 @@ public class DishesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(Guid id)
     {
+        // Dostęp do szczegółów dania dla użytkowników końcowych ograniczony jest wyłącznie do aktywnych pozycji
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
             var activeDish = await _context.Dishes
@@ -66,7 +68,8 @@ public class DishesController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Name))
             return BadRequest("Name is required");
 
-        // object initializer
+        // Nowo utworzone danie jest domyślnie oznaczane jako aktywne
+        // inicjator obiektu
         var dish = new Dish
         {
             Id = Guid.NewGuid(),
@@ -94,6 +97,7 @@ public class DishesController : ControllerBase
         
         dish.Name = request.Name.Trim();
         dish.Description = request.Description?.Trim();
+        // Status aktywności pozwala ukryć danie przed użytkownikami bez konieczności jego usuwania z bazy danych
         dish.IsActive = request.IsActive;
         
         await _context.SaveChangesAsync();

@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
         if (!result.Succeeded)
             return BadRequest(result.Errors);
                 
-        // Domyślna rola User dla każ∂ego nowego użytkownika
+        // Domyślna rola User dla każdego nowego użytkownika
         await _userManager.AddToRoleAsync(user, "User");
         
         return Ok();

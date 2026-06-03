@@ -23,6 +23,7 @@ public class AddonsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
+        // Użytkownicy końcowi oraz koordynatorzy grup mogą przeglądać wyłącznie aktywne dodatki
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
             var activeAddons = await _context.Addons
@@ -44,6 +45,7 @@ public class AddonsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(Guid id)
     {
+        // Dostęp do szczegółów dodatku dla użytkowników końcowych ograniczony jest wyłącznie do aktywnych pozycji
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
             var activeAddon = await _context.Addons
@@ -65,6 +67,7 @@ public class AddonsController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Name))
             return BadRequest("Name is required");
 
+        // Nowo utworzony dodatek jest domyślnie oznaczany jako aktywny
         var addon = new Addon()
         {
             Id = Guid.NewGuid(),
@@ -95,6 +98,7 @@ public class AddonsController : ControllerBase
 
         addon.Name = request.Name.Trim();
         addon.Description = request.Description?.Trim();
+        // Status aktywności pozwala ukryć dodatek przed użytkownikami bez konieczności usuwania go z bazy danych
         addon.IsActive = request.IsActive;
         
         await _context.SaveChangesAsync();

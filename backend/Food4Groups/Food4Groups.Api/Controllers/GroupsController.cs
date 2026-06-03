@@ -23,6 +23,7 @@ public class GroupsController : ControllerBase
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetAll()
     {
+        // Lista wszystkich grup jest dostępna dla administratora oraz pracownika obsługującego grupy 
         var groups = await _context.Groups
             .OrderBy(x => x.Name)
             .ToListAsync();
@@ -48,13 +49,15 @@ public class GroupsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.Name))
             return BadRequest("Name is required");
-
+        
+        // Liczba członków grupy nie może być ujemna - reprezentuje rzeczywistą liczbę przypisanych do grupy osób
         if (request.MemberCount < 0)
             return BadRequest("Member count cannot be negative");
 
         if (request.CateringCompanyId == Guid.Empty)
             return BadRequest("CateringCompanyId is required");
 
+        // Grupa musi być powiązana z istniejącą firmą cateringową - zapobiega utwrozenia rekordu z niepoprawnym FK
         var cateringCompanyExists = await _context.CateringCompanies
             .AnyAsync(x => x.Id == request.CateringCompanyId);
 
@@ -78,7 +81,7 @@ public class GroupsController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin, CateringEmployee")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateGroupRequest request)
+    public async Task<IActionResult> Update (Guid id, [FromBody] UpdateGroupRequest request)
     {
         var group = await _context.Groups.FirstOrDefaultAsync(x=>x.Id == id);
         if (group is null)
@@ -93,6 +96,7 @@ public class GroupsController : ControllerBase
         if (request.CateringCompanyId == Guid.Empty)
             return BadRequest("CateringCompanyId is required");
 
+        // Przy aktualizacji również weryfikowane jest istnienie firmy cateringowej
         var cateringCompanyExists = await _context.CateringCompanies
             .AnyAsync(x => x.Id == request.CateringCompanyId);
 
@@ -108,7 +112,7 @@ public class GroupsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var group = await _context.Groups.FirstOrDefaultAsync(x=>x.Id == id);
