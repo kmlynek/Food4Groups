@@ -20,7 +20,7 @@ public class GroupsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetAll()
     {
         var groups = await _context.Groups
@@ -43,7 +43,7 @@ public class GroupsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin, GroupCoordinator")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Create([FromBody] CreateGroupRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
@@ -77,7 +77,7 @@ public class GroupsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin, GroupCoordinator")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateGroupRequest request)
     {
         var group = await _context.Groups.FirstOrDefaultAsync(x=>x.Id == id);
