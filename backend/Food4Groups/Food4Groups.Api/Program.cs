@@ -1,8 +1,10 @@
 using System.Text;
 using Food4Groups.Api.Extensions;
 using Food4Groups.Application.Interfaces;
+using Food4Groups.Application.Interfaces.Dishes;
 using Food4Groups.Infrastructure.Persistence;
 using Food4Groups.Infrastructure.Services;
+using Food4Groups.Infrastructure.Services.Dishes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -49,9 +51,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Rejestracja serwisu odpowiedzialnego za generowanie tokenów JWT
+// Rejestracja serwisu odpowiedzialnego za generowanie tokenów JWT oraz pozostaluch Servisow z logika biznesowa
 // lifetime Scoped: 1 instancja na request HTTP)
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IDishService, DishService>();
+
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;

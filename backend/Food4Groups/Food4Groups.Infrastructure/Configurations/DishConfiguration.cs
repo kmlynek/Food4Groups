@@ -20,10 +20,12 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
         builder.Property(x => x.Description)
             .HasMaxLength(1000);
         
-        builder.Property(x=>x.IsActive)
+        builder.Property(x=> x.IsActive)
             .IsRequired();
         
-        builder.Property(x=>x.CreatedAt)
+        builder.Property(x=> x.CreatedAt)
             .IsRequired();
+
+        builder.Property(x => x.UpdatedAt);
     }
 }
