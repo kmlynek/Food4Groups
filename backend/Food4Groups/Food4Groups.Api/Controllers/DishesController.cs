@@ -1,9 +1,7 @@
 using Food4Groups.Application.DTOs.Dishes;
-using Food4Groups.Domain.Entities;
-using Food4Groups.Infrastructure.Persistence;
+using Food4Groups.Application.Interfaces.Dishes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Food4Groups.Api.Controllers;
 
@@ -11,31 +9,25 @@ namespace Food4Groups.Api.Controllers;
 [Route("api/[controller]")]
 public class DishesController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDishService _dishService;
 
-    public DishesController(ApplicationDbContext context)
+    public DishesController(IDishService dishService)
     {
-        _context = context;
+        _dishService = dishService;
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
+        // Użytkownicy końcowi oraz koordynatorzy grup otrzymują wyłącznie aktywne dania
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
-            // Użytkownicy końcowi oraz koordynatorzy grup mogą przeglądać wyłącznie aktywne dania dostępne do zamówienia
-            var activeDishes = await _context.Dishes
-                .Where(x => x.IsActive)
-                .OrderBy(x => x.Name)
-                .ToListAsync();
-
+            var activeDishes = await _dishService.GetAllActiveAsync();
             return Ok(activeDishes);
         }
-        var allDishes = await _context.Dishes
-            .OrderBy(x => x.Name)
-            .ToListAsync();
 
+        var allDishes = await _dishService.GetAllAsync();
         return Ok(allDishes);
     }
 
@@ -43,78 +35,56 @@ public class DishesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(Guid id)
     {
-        // Dostęp do szczegółów dania dla użytkowników końcowych ograniczony jest wyłącznie do aktywnych pozycji
+        // Dostęp do szczegółów dla użytkowników końcowych ograniczony jest do aktywnych dań
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
-            var activeDish = await _context.Dishes
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
-    
+            var activeDish = await _dishService.GetActiveByIdAsync(id);
             return activeDish is null ? NotFound() : Ok(activeDish);
         }
-        
-        var dish = await _context.Dishes.FirstOrDefaultAsync(x => x.Id == id);
-        if (dish is null)
-        {
-            return NotFound();
-        }
 
-        return Ok(dish);
+        var dish = await _dishService.GetByIdAsync(id);
+        return dish is null ? NotFound() : Ok(dish);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin, Dietitian")]
     public async Task<IActionResult> Create([FromBody] CreateDishRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name))
-            return BadRequest("Name is required");
-
-        // Nowo utworzone danie jest domyślnie oznaczane jako aktywne
-        // inicjator obiektu
-        var dish = new Dish
+        try
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name.Trim(),
-            Description = request.Description?.Trim(),
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        
-        _context.Dishes.Add(dish);
-        await _context.SaveChangesAsync();
-        
-        return CreatedAtAction(nameof(GetById), new { id = dish.Id }, dish);
+            // Kontroler odpowiada za obsługę żądania HTTP, a logika biznesowa została wydzielona do serwisu
+            var dish = await _dishService.CreateAsync(request);
+
+            return CreatedAtAction(nameof(GetById), new { id = dish.Id }, dish);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
     }
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin, Dietitian")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateDishRequest request)
     {
-        var dish = await _context.Dishes.FirstOrDefaultAsync(x => x.Id == id);
-        if (dish is null) return NotFound();
+        try
+        {
+            var dish = await _dishService.UpdateAsync(id, request);
 
-        if (string.IsNullOrWhiteSpace(request.Name))
-            return BadRequest("Name is required");
-        
-        dish.Name = request.Name.Trim();
-        dish.Description = request.Description?.Trim();
-        // Status aktywności pozwala ukryć danie przed użytkownikami bez konieczności jego usuwania z bazy danych
-        dish.IsActive = request.IsActive;
-        
-        await _context.SaveChangesAsync();
-        return Ok(dish);
+            return dish is null ? NotFound() : Ok(dish);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin, Dietitian")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var dish = await _context.Dishes.FirstOrDefaultAsync(x => x.Id == id);
-        if (dish is null) return NotFound();
-        
-        _context.Dishes.Remove(dish);
-        
-        await _context.SaveChangesAsync();
-        return NoContent();
-    }
+        var deleted = await _dishService.DeleteAsync(id);
 
+        return deleted ? NoContent() : NotFound();
+    }
 }
