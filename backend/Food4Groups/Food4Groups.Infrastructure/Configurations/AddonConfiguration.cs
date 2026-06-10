@@ -24,5 +24,7 @@ public class AddonConfiguration : IEntityTypeConfiguration<Addon>
         
         builder.Property(x => x.CreatedAt)
             .IsRequired();
+
+        builder.Property(x => x.UpdatedAt);
     }
 }

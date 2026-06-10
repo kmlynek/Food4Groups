@@ -1,7 +1,5 @@
 using Food4Groups.Application.DTOs.Addons;
-using Food4Groups.Domain.Entities;
-using Food4Groups.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using Food4Groups.Application.Interfaces.Addons;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,32 +10,25 @@ namespace Food4Groups.Api.Controllers;
 [Route("api/[controller]")]
 public class AddonsController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-    
-    public AddonsController(ApplicationDbContext context)
+    private readonly IAddonService _addonService;
+
+    public AddonsController(IAddonService addonService)
     {
-        _context = context;
+        _addonService = addonService;
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        // Użytkownicy końcowi oraz koordynatorzy grup mogą przeglądać wyłącznie aktywne dodatki
+        // Użytkownicy końcowi oraz koordynatorzy grup otrzymują wyłącznie aktywne dodatki
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
-            var activeAddons = await _context.Addons
-                .Where(x => x.IsActive)
-                .OrderBy(x => x.Name)
-                .ToListAsync();
-            
+            var activeAddons = await _addonService.GetAllActiveAsync();
             return Ok(activeAddons);
         }
-        
-        var allAddons = await _context.Addons
-            .OrderBy(x => x.Name)
-            .ToListAsync();
-        
+
+        var allAddons = await _addonService.GetAllAsync();
         return Ok(allAddons);
     }
 
@@ -45,18 +36,14 @@ public class AddonsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(Guid id)
     {
-        // Dostęp do szczegółów dodatku dla użytkowników końcowych ograniczony jest wyłącznie do aktywnych pozycji
+        // Dostęp do szczegółów dla użytkowników końcowych ograniczony jest do aktywnych dodatków
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
-            var activeAddon = await _context.Addons
-                .FirstOrDefaultAsync(x => x.Id == id && x.IsActive);
-            
+            var activeAddon = await _addonService.GetActiveByIdAsync(id);
             return activeAddon is null ? NotFound() : Ok(activeAddon);
         }
-        
-        var addon = await _context.Addons
-            .FirstOrDefaultAsync(x=>x.Id == id);
-        
+
+        var addon = await _addonService.GetByIdAsync(id);
         return addon is null ? NotFound() : Ok(addon);
     }
 
@@ -64,59 +51,41 @@ public class AddonsController : ControllerBase
     [Authorize(Roles = "Admin, Dietitian")]
     public async Task<IActionResult> Create([FromBody] CreateAddonRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name))
-            return BadRequest("Name is required");
-
-        // Nowo utworzony dodatek jest domyślnie oznaczany jako aktywny
-        var addon = new Addon()
+        try
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name.Trim(),
-            Description = request.Description?.Trim(),
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        
-        _context.Addons.Add(addon);
-        await _context.SaveChangesAsync();
-        
-        return CreatedAtAction(nameof(GetById), new { id = addon.Id }, addon);
+            // Kontroler odpowiada za obsługę żądania HTTP, a logika biznesowa została wydzielona do serwisu
+            var addon = await _addonService.CreateAsync(request);
+
+            return CreatedAtAction(nameof(GetById), new { id = addon.Id }, addon);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
     }
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin, Dietitian")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAddonRequest request)
     {
-        var addon = await _context.Addons
-            .FirstOrDefaultAsync(x=>x.Id == id);
+        try
+        {
+            var addon = await _addonService.UpdateAsync(id, request);
 
-        if (addon is null)
-            return NotFound();
-        
-        if (string.IsNullOrWhiteSpace(request.Name))
-            return BadRequest("Name is required");
-
-        addon.Name = request.Name.Trim();
-        addon.Description = request.Description?.Trim();
-        // Status aktywności pozwala ukryć dodatek przed użytkownikami bez konieczności usuwania go z bazy danych
-        addon.IsActive = request.IsActive;
-        
-        await _context.SaveChangesAsync();
-        return Ok(addon);
+            return addon is null ? NotFound() : Ok(addon);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin, Dietitian")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var addon = await _context.Addons.FirstOrDefaultAsync(x=>x.Id == id);
+        var deleted = await _addonService.DeleteAsync(id);
 
-        if (addon is null)
-            return NotFound();
-        
-        _context.Addons.Remove(addon);
-        
-        await _context.SaveChangesAsync();
-        return NoContent();
+        return deleted ? NoContent() : NotFound();
     }
 }
