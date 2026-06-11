@@ -53,7 +53,6 @@ public class AddonsController : ControllerBase
     {
         try
         {
-            // Kontroler odpowiada za obsługę żądania HTTP, a logika biznesowa została wydzielona do serwisu
             var addon = await _addonService.CreateAsync(request);
 
             return CreatedAtAction(nameof(GetById), new { id = addon.Id }, addon);

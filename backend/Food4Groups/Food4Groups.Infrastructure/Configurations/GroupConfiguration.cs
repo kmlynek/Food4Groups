@@ -23,6 +23,8 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.Property(x=>x.CreatedAt)
             .IsRequired();
 
+        builder.Property(x => x.UpdatedAt);
+
         builder.HasOne(x => x.CateringCompany)
             .WithMany()
             .HasForeignKey(x => x.CateringCompanyId)

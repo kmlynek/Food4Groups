@@ -52,7 +52,6 @@ public class DishesController : ControllerBase
     {
         try
         {
-            // Kontroler odpowiada za obsługę żądania HTTP, a logika biznesowa została wydzielona do serwisu
             var dish = await _dishService.CreateAsync(request);
 
             return CreatedAtAction(nameof(GetById), new { id = dish.Id }, dish);
