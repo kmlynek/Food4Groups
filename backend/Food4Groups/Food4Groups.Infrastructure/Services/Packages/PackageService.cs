@@ -1,0 +1,128 @@
+using Food4Groups.Application.DTOs.Packages;
+using Food4Groups.Application.Interfaces.Packages;
+using Food4Groups.Domain.Entities;
+using Food4Groups.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace Food4Groups.Infrastructure.Services.Packages;
+
+public class PackageService : IPackageService
+{
+    private readonly ApplicationDbContext _context;
+
+    public PackageService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<PackageResponse>> GetAllAsync()
+    {
+        // Pakiety określają dostępność oferty dla grup
+        return await _context.Packages
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .Select(x => new PackageResponse
+            {
+                Id = x.Id,
+                CateringCompanyId = x.CateringCompanyId,
+                CateringCompanyName = x.CateringCompany != null ? x.CateringCompany.Name : null,
+                Name = x.Name,
+                PricePerPerson = x.PricePerPerson,
+                IsActive = x.IsActive,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<PackageResponse?> GetByIdAsync(Guid id)
+    {
+        return await _context.Packages
+            .AsNoTracking()
+            .Where(x => x.Id == id)
+            .Select(x => new PackageResponse
+            {
+                Id = x.Id,
+                CateringCompanyId = x.CateringCompanyId,
+                CateringCompanyName = x.CateringCompany != null ? x.CateringCompany.Name : null,
+                Name = x.Name,
+                PricePerPerson = x.PricePerPerson,
+                IsActive = x.IsActive,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
+            })
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<PackageResponse> CreateAsync(CreatePackageRequest request)
+    {
+        await ValidatePackageRequestAsync(request.CateringCompanyId, request.Name, request.PricePerPerson);
+
+        var package = new Package
+        {
+            Id = Guid.NewGuid(),
+            CateringCompanyId = request.CateringCompanyId,
+            Name = request.Name.Trim(),
+            PricePerPerson = request.PricePerPerson,
+            IsActive = true
+        };
+
+        _context.Packages.Add(package);
+        await _context.SaveChangesAsync();
+
+        return (await GetByIdAsync(package.Id))!;
+    }
+
+    public async Task<PackageResponse?> UpdateAsync(Guid id, UpdatePackageRequest request)
+    {
+        var package = await _context.Packages.FirstOrDefaultAsync(x => x.Id == id);
+        if (package is null)
+            return null;
+
+        await ValidatePackageRequestAsync(request.CateringCompanyId, request.Name, request.PricePerPerson);
+
+        package.CateringCompanyId = request.CateringCompanyId;
+        package.Name = request.Name.Trim();
+        package.PricePerPerson = request.PricePerPerson;
+        package.IsActive = request.IsActive;
+
+        // Data aktualizacji pozwala śledzić moment ostatniej modyfikacji rekordu
+        package.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return await GetByIdAsync(package.Id);
+    }
+
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var package = await _context.Packages.FirstOrDefaultAsync(x => x.Id == id);
+        if (package is null)
+            return false;
+
+        _context.Packages.Remove(package);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    private async Task ValidatePackageRequestAsync(Guid cateringCompanyId, string? name, decimal pricePerPerson)
+    {
+        // Walidacja po stronie serwisu zabezpiecza logikę aplikacji niezależnie od źródła danych
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name is required");
+
+        if (cateringCompanyId == Guid.Empty)
+            throw new ArgumentException("CateringCompanyId is required");
+
+        if (pricePerPerson < 0)
+            throw new ArgumentException("Price per person cannot be negative");
+
+        // Pakiet musi być przypisany do istniejącej firmy cateringowej
+        var cateringCompanyExists = await _context.CateringCompanies
+            .AnyAsync(x => x.Id == cateringCompanyId);
+
+        if (!cateringCompanyExists)
+            throw new KeyNotFoundException("Catering company not found");
+    }
+}
