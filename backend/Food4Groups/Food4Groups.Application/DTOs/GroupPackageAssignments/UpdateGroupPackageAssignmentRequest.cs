@@ -1,14 +1,10 @@
-using Food4Groups.Domain.Common;
+namespace Food4Groups.Application.DTOs.GroupPackageAssignments;
 
-namespace Food4Groups.Domain.Entities;
-
-public class GroupPackageAssignment : BaseEntity
+public class UpdateGroupPackageAssignmentRequest
 {
     public Guid GroupId { get; set; }
     public Guid PackageId { get; set; }
     public DateTime ActiveFrom { get; set; }
     public DateTime? ActiveTo { get; set; }
     public bool IsActive { get; set; } = true;
-    public Group? Group { get; set; }
-    public Package? Package { get; set; }
 }
