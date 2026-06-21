@@ -1,81 +1,77 @@
+using System.Security.Claims;
 using Food4Groups.Application.DTOs.Auth;
-using Food4Groups.Application.Interfaces;
-using Microsoft.AspNetCore.Identity;
+using Food4Groups.Application.Interfaces.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Food4Groups.Api.Controllers;
 
-//Dodawanie endpointow, autentykacja, autoryzacja
+// Dodawanie endpointów odpowiedzialnych za autentykację i podstawowe operacje na koncie użytkownika
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
-    private readonly IJwtTokenService _jwtTokenService;
+    private readonly IAuthService _authService;
 
-    public AuthController(UserManager<IdentityUser> userManager, IJwtTokenService jwtTokenService)
+    public AuthController(IAuthService authService)
     {
-        _userManager = userManager;
-        _jwtTokenService = jwtTokenService;
+        _authService = authService;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        // Weryfikacja czy konto o podanym adresie email nie istnieje już w systemie
-        var existing = await _userManager.FindByEmailAsync(request.Email);
-        if (existing is not null)
+        try
         {
-            return BadRequest("User with this email already exists");
+            // Kontroler deleguje rejestrację do serwisu, sam mapuje tylko wynik na odpowiedź HTTP
+            await _authService.RegisterAsync(request);
+            return Ok();
         }
-        // Utworzenie nowego użytkownika w oparciu o Identity.
-        var user = new IdentityUser
+        catch (ArgumentException exception)
         {
-            UserName = request.Email,
-            Email = request.Email,
-            EmailConfirmed = true // Nie jest wykorzystywany mechanizm potwierdzenia email stąd - true
-        };
-        
-        var result = await _userManager.CreateAsync(user, request.Password);
-        
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-                
-        // Domyślna rola User dla każdego nowego użytkownika
-        await _userManager.AddToRoleAsync(user, "User");
-        
-        return Ok();
+            return BadRequest(exception.Message);
+        }
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
-
     {
-        // Wyszukanie użytkownika na podstawie email
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user is null)
+        try
         {
-            return Unauthorized("User not found");
+            var response = await _authService.LoginAsync(request);
+            return Ok(response);
         }
-        // Weryfikacja poprawności hasła przy użyciu Identity 
-        var validPassword = await _userManager.CheckPasswordAsync(user, request.Password);
-        if (!validPassword)
+        catch (ArgumentException exception)
         {
-            return Unauthorized("Invalid password");
+            return BadRequest(exception.Message);
         }
-        // Po pomyślnej autentykacji generowany jest token JWT
-        var (token, expiresAt) = await _jwtTokenService.GenerateTokenAsync(user);
+        catch (UnauthorizedAccessException exception)
+        {
+            return Unauthorized(exception.Message);
+        }
+    }
 
-        return Ok(new AuthResponse
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        try
         {
-            Token = token,
-            ExpiresAt = expiresAt
-        });
+            // Identyfikator aktualnie zalogowanego użytkownika jest pobierany z tokenu JWT
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized("User identifier not found in token");
+
+            await _authService.ChangePasswordAsync(userId, request);
+            return NoContent();
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(exception.Message);
+        }
     }
 }
-    
-    
-    
-
-
-
