@@ -2,12 +2,14 @@ using System.Text;
 using Food4Groups.Api.Extensions;
 using Food4Groups.Application.Interfaces;
 using Food4Groups.Application.Interfaces.Addons;
+using Food4Groups.Application.Interfaces.Admin;
 using Food4Groups.Application.Interfaces.Dishes;
 using Food4Groups.Application.Interfaces.GroupMembers;
 using Food4Groups.Application.Interfaces.Groups;
 using Food4Groups.Infrastructure.Persistence;
 using Food4Groups.Infrastructure.Services;
 using Food4Groups.Infrastructure.Services.Addons;
+using Food4Groups.Infrastructure.Services.Admin;
 using Food4Groups.Infrastructure.Services.Dishes;
 using Food4Groups.Infrastructure.Services.GroupMembers;
 using Food4Groups.Infrastructure.Services.Groups;
@@ -65,6 +67,7 @@ builder.Services.AddScoped<IDishService, DishService>();
 builder.Services.AddScoped<IAddonService, AddonService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IGroupMemberService, GroupMemberService>();
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
