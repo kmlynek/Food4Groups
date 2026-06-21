@@ -20,7 +20,7 @@ public class DishesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        // Użytkownicy końcowi oraz koordynatorzy grup otrzymują wyłącznie aktywne dania
+        // Klienci oraz koordynatorzy grup otrzymują wyłącznie aktywne dania
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
             var activeDishes = await _dishService.GetAllActiveAsync();
@@ -35,7 +35,7 @@ public class DishesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(Guid id)
     {
-        // Dostęp do szczegółów dla użytkowników końcowych ograniczony jest do aktywnych dań
+        // Dostęp do szczegółów dla klientów ograniczony jest do aktywnych dań
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
             var activeDish = await _dishService.GetActiveByIdAsync(id);

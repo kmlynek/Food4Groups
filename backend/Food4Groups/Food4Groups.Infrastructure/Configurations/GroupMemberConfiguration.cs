@@ -25,6 +25,12 @@ public class GroupMemberConfiguration : IEntityTypeConfiguration<GroupMember>
         builder.Property(x=> x.JoinedAt)
             .IsRequired();
         
+        builder.Property(x => x.CreatedAt)
+            .IsRequired();
+        
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired();
+        
         builder.HasOne(x=> x.Group)
             .WithMany()
             .HasForeignKey(x=> x.GroupId)

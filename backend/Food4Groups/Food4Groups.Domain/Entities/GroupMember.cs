@@ -1,8 +1,9 @@
+using Food4Groups.Domain.Common;
+
 namespace Food4Groups.Domain.Entities;
 
-public class GroupMember
+public class GroupMember : BaseEntity
 {
-    public Guid Id { get; set; }
     public Guid GroupId { get; set; }
     public required string UserId { get; set; }
     public bool IsActive { get; set; } = true;

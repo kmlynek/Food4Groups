@@ -17,7 +17,7 @@ public class AddonService : IAddonService
 
     public async Task<List<ActiveAddonResponse>> GetAllActiveAsync()
     {
-        // Użytkownicy końcowi otrzymują wyłącznie aktywne dodatki oraz ograniczony zakres danych potrzebny do wyboru posiłku
+        // Klienci otrzymują wyłącznie aktywne dodatki oraz ograniczony zakres danych potrzebny do wyboru posiłku
         return await _context.Addons
             .AsNoTracking()
             .Where(x => x.IsActive)

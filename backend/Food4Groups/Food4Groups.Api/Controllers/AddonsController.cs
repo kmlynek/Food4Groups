@@ -21,7 +21,7 @@ public class AddonsController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        // Użytkownicy końcowi oraz koordynatorzy grup otrzymują wyłącznie aktywne dodatki
+        // Klienci oraz koordynatorzy grup otrzymują wyłącznie aktywne dodatki
         if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
         {
             var activeAddons = await _addonService.GetAllActiveAsync();

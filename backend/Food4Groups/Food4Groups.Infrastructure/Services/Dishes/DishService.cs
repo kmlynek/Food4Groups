@@ -17,7 +17,7 @@ public class DishService : IDishService
 
     public async Task<List<ActiveDishResponse>> GetAllActiveAsync()
     {
-        // Użytkownicy końcowi otrzymują wyłącznie aktywne dania oraz ograniczony zakres danych potrzebny do wyboru posiłku
+        // Klienci otrzymują wyłącznie aktywne dania oraz ograniczony zakres danych potrzebny do wyboru posiłku
         return await _context.Dishes
             .AsNoTracking()
             .Where(x => x.IsActive)
@@ -145,7 +145,7 @@ public class DishService : IDishService
             throw new ArgumentException("Name is required");
     }
 
-    //
+    // Mapuje encję domenową na obiekt DTO zwracany przez API
     private static DishResponse MapToResponse(Dish dish)
     {
         return new DishResponse

@@ -1,11 +1,7 @@
 using Food4Groups.Application.DTOs.GroupMembers;
-using Food4Groups.Domain.Entities;
-using Food4Groups.Infrastructure.Persistence;
+using Food4Groups.Application.Interfaces.GroupMembers;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 
 namespace Food4Groups.Api.Controllers;
 
@@ -13,177 +9,89 @@ namespace Food4Groups.Api.Controllers;
 [Route("api/[controller]")]
 public class GroupMembersController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<IdentityUser> _userManager;
-    
-    public GroupMembersController(ApplicationDbContext context,  UserManager<IdentityUser> userManager)
+    private readonly IGroupMemberService _groupMemberService;
+
+    public GroupMembersController(IGroupMemberService groupMemberService)
     {
-        _context = context;
-        _userManager = userManager;
+        _groupMemberService = groupMemberService;
     }
 
     [HttpGet]
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetAll()
     {
-        var members = await _context.GroupMembers
-            .OrderBy(x => x.JoinedAt)
-            .ToListAsync();
-        
+        var members = await _groupMemberService.GetAllAsync();
         return Ok(members);
     }
-    
+
     [HttpGet("users")]
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<ActionResult<List<AvailableGroupMemberResponse>>> GetUsers()
     {
-        // Do grup mogą być przypisywani wyłącznie użytkownicy końcowi, stąd rola User dla listy pobranych użytkowników 
-        var users = await _userManager.GetUsersInRoleAsync("User");
-
-        var result = users
-            .OrderBy(x => x.Email)
-            .Select(x => new AvailableGroupMemberResponse
-            {
-                Id = x.Id,
-                Email = x.Email
-            })
-            .ToList();
-
-        return Ok(result);
+        var users = await _groupMemberService.GetAvailableUsersAsync();
+        return Ok(users);
     }
 
     [HttpGet("{id:guid}")]
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var member = await _context.GroupMembers
-            .FirstOrDefaultAsync(x=>x.Id == id);
-        
-        return member == null ? NotFound() : Ok(member);
+        var member = await _groupMemberService.GetByIdAsync(id);
+        return member is null ? NotFound() : Ok(member);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Create([FromBody] CreateGroupMemberRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.UserId))
-            return BadRequest("UserId is required");
-        
-        var userId = request.UserId.Trim();
-        
-        // Członek grupy może zostać dodany tylko do istniejącej grupy
-        var groupExists = await _context.Groups.AnyAsync(x => x.Id == request.GroupId);
-        if (!groupExists)
-            return NotFound("Group not found");
-
-        // Przypisywany użytkownik musi istnieć w systemie Identity
-        var userExists = await _context.Users.AnyAsync(x=> x.Id == userId);
-        if (!userExists)
-            return NotFound("User not found");
-        
-        var alreadyExists =  await _context.GroupMembers
-            .AnyAsync(x=> x.GroupId == request.GroupId && x.UserId == userId);
-        
-        // Jeden użytkownik nie powinien być przypisany wielokrotnie do tej samej grupy
-        if (alreadyExists)
-            return Conflict("This user already belongs to the selected group");
-
-        var member = new GroupMember
+        try
         {
-            Id = Guid.NewGuid(),
-            GroupId = request.GroupId,
-            UserId = userId,
-            IsActive = true,
-            JoinedAt = DateTime.UtcNow
-        };
-        
-        _context.GroupMembers.Add(member);
-        await _context.SaveChangesAsync();
-        
-        // Po dodaniu członka aktualizowana jest liczba osób w grupie
-        await RecalculateMemberCountAsync(request.GroupId);
-        await _context.SaveChangesAsync();
-        
-        return CreatedAtAction(nameof(GetById), new { id = member.Id }, member);
+            // Kontroler deleguje logikę biznesową do serwisu, sam mapuje tylko wynik na odpowiedź HTTP
+            var member = await _groupMemberService.CreateAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = member.Id }, member);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(exception.Message);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(exception.Message);
+        }
     }
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateGroupMemberRequest request)
     {
-        var member = await _context.GroupMembers.FirstOrDefaultAsync(x => x.Id == id);
-        
-        if (member is null)
-            return NotFound();
-        
-        if (string.IsNullOrWhiteSpace(request.UserId))
-            return BadRequest("UserId is required");
-        
-        var userId = request.UserId.Trim();
-        
-        var groupExists = await _context.Groups.AnyAsync((x => x.Id == request.GroupId));
-        if(!groupExists)
-            return NotFound("Group not found");
-        
-        var userExists = await _context.Users.AnyAsync(x => x.Id == userId);
-        if (!userExists)
-            return NotFound("User not found");
-        
-        // Sprawdzenie zapobiega utworzeniu duplikatu członkostwa
-        var duplicate = await _context.GroupMembers.AnyAsync(x =>
-            x.Id != id &&
-            x.GroupId == request.GroupId &&
-            x.UserId == userId);
-
-        if (duplicate)
-            return Conflict("This user already belongs to the selected group");
-
-        var previousGroupId = member.GroupId;
-
-        member.GroupId = request.GroupId;
-        member.UserId = userId;
-        member.IsActive = request.IsActive;
-
-        await _context.SaveChangesAsync();
-        
-        // Jeżeli użytkownik został przeniesiony do innej grupy, liczba członków zostaje ponownie przeliczona w obu grupach
-        await RecalculateMemberCountAsync(previousGroupId);
-        if (previousGroupId != request.GroupId)
-            await RecalculateMemberCountAsync(request.GroupId);
-
-        await _context.SaveChangesAsync();
-        return Ok(member);
+        try
+        {
+            var member = await _groupMemberService.UpdateAsync(id, request);
+            return member is null ? NotFound() : Ok(member);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(exception.Message);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(exception.Message);
+        }
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var member = await _context.GroupMembers.FirstOrDefaultAsync(x => x.Id == id);
-        if (member is null)
-            return  NotFound();
-        
-        var groupId = member.GroupId;
-        
-        _context.GroupMembers.Remove(member);
-        await _context.SaveChangesAsync();
-        
-        // Po usunięciu członka ponownie przeliczana jest liczba osób w grupie
-        await RecalculateMemberCountAsync(groupId);
-        await  _context.SaveChangesAsync();
-        
-        return NoContent();
+        var deleted = await _groupMemberService.DeleteAsync(id);
+        return deleted ? NoContent() : NotFound();
     }
-
-    private async Task RecalculateMemberCountAsync(Guid groupId) // Przelicza liczbę członków w grupie
-    {
-        var group = await _context.Groups.FirstOrDefaultAsync(x => x.Id == groupId);
-        if (group is null)
-            return;
-        
-        // MemberCount jest wartością wyliczaną na podstawie aktualnych powiązań w tabeli GroupMembers
-        group.MemberCount = await _context.GroupMembers
-            .CountAsync(x => x.GroupId == groupId);
-    }
-    
 }
