@@ -40,6 +40,8 @@ public class AddonService : IAddonService
             .Select(x => new AddonResponse
             {
                 Id = x.Id,
+                CateringCompanyId = x.CateringCompanyId,
+                CateringCompanyName = x.CateringCompany != null ? x.CateringCompany.Name : null,
                 Name = x.Name,
                 Description = x.Description,
                 IsActive = x.IsActive,
@@ -51,7 +53,7 @@ public class AddonService : IAddonService
 
     public async Task<ActiveAddonResponse?> GetActiveByIdAsync(Guid id)
     {
-        // Przy pobieraniu szczegółów dla użytkownika końcowego ponownie sprawdzany jest status aktywności dodatku
+        // Przy pobieraniu szczegółów dla klienta ponownie sprawdzany jest status aktywności dodatku
         return await _context.Addons
             .AsNoTracking()
             .Where(x => x.Id == id && x.IsActive)
@@ -72,6 +74,8 @@ public class AddonService : IAddonService
             .Select(x => new AddonResponse
             {
                 Id = x.Id,
+                CateringCompanyId = x.CateringCompanyId,
+                CateringCompanyName = x.CateringCompany != null ? x.CateringCompany.Name : null,
                 Name = x.Name,
                 Description = x.Description,
                 IsActive = x.IsActive,
@@ -83,12 +87,13 @@ public class AddonService : IAddonService
 
     public async Task<AddonResponse> CreateAsync(CreateAddonRequest request)
     {
-        ValidateAddonName(request.Name);
+        await ValidateAddonRequestAsync(request.CateringCompanyId, request.Name);
 
         // Nowo utworzony dodatek jest domyślnie aktywny i od razu może zostać wykorzystany w menu
         var addon = new Addon
         {
             Id = Guid.NewGuid(),
+            CateringCompanyId = request.CateringCompanyId,
             Name = request.Name.Trim(),
             Description = request.Description?.Trim(),
             IsActive = true
@@ -97,21 +102,22 @@ public class AddonService : IAddonService
         _context.Addons.Add(addon);
         await _context.SaveChangesAsync();
 
-        return MapToResponse(addon);
+        return (await GetByIdAsync(addon.Id))!;
     }
 
     public async Task<AddonResponse?> UpdateAsync(Guid id, UpdateAddonRequest request)
     {
-        ValidateAddonName(request.Name);
+        await ValidateAddonRequestAsync(request.CateringCompanyId, request.Name);
 
         var addon = await _context.Addons.FirstOrDefaultAsync(x => x.Id == id);
         if (addon is null)
             return null;
 
+        addon.CateringCompanyId = request.CateringCompanyId;
         addon.Name = request.Name.Trim();
         addon.Description = request.Description?.Trim();
 
-        // Status aktywności pozwala ukryć dodatek przed użytkownikami bez konieczności jego fizycznego usuwania z bazy danych
+        // Status aktywności pozwala ukryć dodatek przed klientami bez konieczności jego fizycznego usuwania z bazy danych
         addon.IsActive = request.IsActive;
 
         // Data aktualizacji pozwala śledzić moment ostatniej modyfikacji rekordu
@@ -119,7 +125,7 @@ public class AddonService : IAddonService
 
         await _context.SaveChangesAsync();
 
-        return MapToResponse(addon);
+        return (await GetByIdAsync(addon.Id))!;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
@@ -135,24 +141,20 @@ public class AddonService : IAddonService
         return true;
     }
 
-    private static void ValidateAddonName(string? name)
+    private async Task ValidateAddonRequestAsync(Guid cateringCompanyId, string? name)
     {
         // Walidacja po stronie serwisu zabezpiecza logikę aplikacji niezależnie od źródła danych
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Name is required");
-    }
 
-    // Mapuje encję domenową na obiekt DTO zwracany przez API
-    private static AddonResponse MapToResponse(Addon addon)
-    {
-        return new AddonResponse
-        {
-            Id = addon.Id,
-            Name = addon.Name,
-            Description = addon.Description,
-            IsActive = addon.IsActive,
-            CreatedAt = addon.CreatedAt,
-            UpdatedAt = addon.UpdatedAt
-        };
+        if (cateringCompanyId == Guid.Empty)
+            throw new ArgumentException("CateringCompanyId is required");
+
+        // Dodatek może zostać przypisany wyłącznie do istniejącej firmy cateringowej
+        var cateringCompanyExists = await _context.CateringCompanies
+            .AnyAsync(x => x.Id == cateringCompanyId);
+
+        if (!cateringCompanyExists)
+            throw new KeyNotFoundException("Catering company not found");
     }
 }

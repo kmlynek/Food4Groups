@@ -40,6 +40,8 @@ public class DishService : IDishService
             .Select(x => new DishResponse
             {
                 Id = x.Id,
+                CateringCompanyId = x.CateringCompanyId,
+                CateringCompanyName = x.CateringCompany != null ? x.CateringCompany.Name : null,
                 Name = x.Name,
                 Description = x.Description,
                 IsActive = x.IsActive,
@@ -51,7 +53,7 @@ public class DishService : IDishService
 
     public async Task<ActiveDishResponse?> GetActiveByIdAsync(Guid id)
     {
-        // Przy pobieraniu szczegółów dla użytkownika końcowego ponownie sprawdzany jest status aktywności dania
+        // Przy pobieraniu szczegółów dla klienta ponownie sprawdzany jest status aktywności dania
         return await _context.Dishes
             .AsNoTracking()
             .Where(x => x.Id == id && x.IsActive)
@@ -72,6 +74,8 @@ public class DishService : IDishService
             .Select(x => new DishResponse
             {
                 Id = x.Id,
+                CateringCompanyId = x.CateringCompanyId,
+                CateringCompanyName = x.CateringCompany != null ? x.CateringCompany.Name : null,
                 Name = x.Name,
                 Description = x.Description,
                 IsActive = x.IsActive,
@@ -83,12 +87,13 @@ public class DishService : IDishService
 
     public async Task<DishResponse> CreateAsync(CreateDishRequest request)
     {
-        ValidateDishName(request.Name);
+        await ValidateDishRequestAsync(request.CateringCompanyId, request.Name);
 
         // Nowo utworzone danie jest domyślnie aktywne, dzięki czemu może zostać wykorzystane przy tworzeniu menu
         var dish = new Dish
         {
             Id = Guid.NewGuid(),
+            CateringCompanyId = request.CateringCompanyId,
             Name = request.Name.Trim(),
             Description = request.Description?.Trim(),
             IsActive = true
@@ -97,12 +102,12 @@ public class DishService : IDishService
         _context.Dishes.Add(dish);
         await _context.SaveChangesAsync();
 
-        return MapToResponse(dish);
+        return (await GetByIdAsync(dish.Id))!;
     }
 
     public async Task<DishResponse?> UpdateAsync(Guid id, UpdateDishRequest request)
     {
-        ValidateDishName(request.Name);
+        await ValidateDishRequestAsync(request.CateringCompanyId, request.Name);
 
         var dish = await _context.Dishes
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -110,10 +115,11 @@ public class DishService : IDishService
         if (dish is null)
             return null;
 
+        dish.CateringCompanyId = request.CateringCompanyId;
         dish.Name = request.Name.Trim();
         dish.Description = request.Description?.Trim();
 
-        // Status aktywności pozwala ukryć danie przed użytkownikami bez konieczności jego fizycznego usuwania z bazy danych
+        // Status aktywności pozwala ukryć danie przed klientami bez konieczności jego fizycznego usuwania z bazy danych
         dish.IsActive = request.IsActive;
 
         // Data aktualizacji pozwala śledzić moment ostatniej modyfikacji rekordu
@@ -121,7 +127,7 @@ public class DishService : IDishService
 
         await _context.SaveChangesAsync();
 
-        return MapToResponse(dish);
+        return (await GetByIdAsync(dish.Id))!;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
@@ -138,24 +144,20 @@ public class DishService : IDishService
         return true;
     }
 
-    private static void ValidateDishName(string? name)
+    private async Task ValidateDishRequestAsync(Guid cateringCompanyId, string? name)
     {
         // Walidacja po stronie API zabezpiecza logikę aplikacji niezależnie od źródła danych
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Name is required");
-    }
 
-    // Mapuje encję domenową na obiekt DTO zwracany przez API
-    private static DishResponse MapToResponse(Dish dish)
-    {
-        return new DishResponse
-        {
-            Id = dish.Id,
-            Name = dish.Name,
-            Description = dish.Description,
-            IsActive = dish.IsActive,
-            CreatedAt = dish.CreatedAt,
-            UpdatedAt = dish.UpdatedAt
-        };
+        if (cateringCompanyId == Guid.Empty)
+            throw new ArgumentException("CateringCompanyId is required");
+
+        // Danie może zostać przypisane wyłącznie do istniejącej firmy cateringowej
+        var cateringCompanyExists = await _context.CateringCompanies
+            .AnyAsync(x => x.Id == cateringCompanyId);
+
+        if (!cateringCompanyExists)
+            throw new KeyNotFoundException("Catering company not found");
     }
 }

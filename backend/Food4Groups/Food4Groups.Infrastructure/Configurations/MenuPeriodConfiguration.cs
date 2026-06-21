@@ -4,30 +4,31 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Food4Groups.Infrastructure.Configurations;
 
-public class AddonConfiguration : IEntityTypeConfiguration<Addon>
+public class MenuPeriodConfiguration : IEntityTypeConfiguration<MenuPeriod>
 {
-    public void Configure(EntityTypeBuilder<Addon> builder)
+    public void Configure(EntityTypeBuilder<MenuPeriod> builder)
     {
-        builder.ToTable("Addons");
+        builder.ToTable("MenuPeriods");
         
         builder.HasKey(x => x.Id);
         
         builder.Property(x => x.Name)
-            .HasMaxLength(200)
+            .HasMaxLength(120)
             .IsRequired();
-
-        builder.Property(x => x.Description)
-            .HasMaxLength(1000);
+        
+        builder.Property(x => x.StartDate)
+            .IsRequired();
+        
+        builder.Property(x => x.EndDate)
+            .IsRequired();
         
         builder.Property(x => x.IsActive)
             .IsRequired();
         
         builder.Property(x => x.CreatedAt)
             .IsRequired();
-
-        builder.Property(x => x.UpdatedAt);
         
-        // Dodatek należy do konkretnej firmy cateringowej
+        // Okres menu należy do konkretnej firmy cateringowej
         builder.HasOne(x => x.CateringCompany)
             .WithMany()
             .HasForeignKey(x => x.CateringCompanyId)

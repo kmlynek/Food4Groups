@@ -60,6 +60,10 @@ public class DishesController : ControllerBase
         {
             return BadRequest(exception.Message);
         }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(exception.Message);
+        }
     }
 
     [HttpPut("{id:guid}")]
@@ -75,6 +79,10 @@ public class DishesController : ControllerBase
         catch (ArgumentException exception)
         {
             return BadRequest(exception.Message);
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(exception.Message);
         }
     }
 

@@ -27,5 +27,11 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
             .IsRequired();
 
         builder.Property(x => x.UpdatedAt);
+        
+        // Danie należy do konkretnej firmy cateringowej
+        builder.HasOne(x => x.CateringCompany)
+            .WithMany()
+            .HasForeignKey(x => x.CateringCompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
