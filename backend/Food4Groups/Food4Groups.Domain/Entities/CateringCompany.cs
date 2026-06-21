@@ -1,9 +1,9 @@
+using Food4Groups.Domain.Common;
+
 namespace Food4Groups.Domain.Entities;
 
-public class CateringCompany
-{
-    public Guid Id { get; set; }
+public class CateringCompany : BaseEntity
+{ 
     public required string Name { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

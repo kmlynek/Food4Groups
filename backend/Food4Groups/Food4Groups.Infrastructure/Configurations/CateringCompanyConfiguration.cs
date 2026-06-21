@@ -21,5 +21,8 @@ public class CateringCompanyConfiguration : IEntityTypeConfiguration<CateringCom
 
         builder.Property(x => x.CreatedAt)
             .IsRequired();
+        
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired();
     }
 }
