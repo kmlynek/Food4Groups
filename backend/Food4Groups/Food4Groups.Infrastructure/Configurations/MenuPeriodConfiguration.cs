@@ -28,6 +28,9 @@ public class MenuPeriodConfiguration : IEntityTypeConfiguration<MenuPeriod>
         builder.Property(x => x.CreatedAt)
             .IsRequired();
         
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired();
+        
         // Okres menu należy do konkretnej firmy cateringowej
         builder.HasOne(x => x.CateringCompany)
             .WithMany()
