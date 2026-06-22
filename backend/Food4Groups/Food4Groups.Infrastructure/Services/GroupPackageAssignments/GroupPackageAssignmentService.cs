@@ -89,6 +89,7 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
         await ValidateAssignmentRequestAsync(request.GroupId, request.PackageId, request.ActiveFrom, request.ActiveTo);
         await EnsureNoActiveOverlapAsync(request.GroupId, request.ActiveFrom, request.ActiveTo, null);
 
+        // Nowe przypisanie pakietu do grupy jest domyślnie aktywne
         var assignment = new GroupPackageAssignment
         {
             Id = Guid.NewGuid(),
@@ -108,6 +109,7 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
     public async Task<GroupPackageAssignmentResponse?> UpdateAsync(Guid id, UpdateGroupPackageAssignmentRequest request)
     {
         var assignment = await _context.GroupPackageAssignments.FirstOrDefaultAsync(x => x.Id == id);
+
         if (assignment is null)
             return null;
 
@@ -133,6 +135,7 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var assignment = await _context.GroupPackageAssignments.FirstOrDefaultAsync(x => x.Id == id);
+
         if (assignment is null)
             return false;
 
@@ -144,7 +147,7 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
 
     private async Task ValidateAssignmentRequestAsync(Guid groupId, Guid packageId, DateTime activeFrom, DateTime? activeTo)
     {
-        // Walidacja po stronie serwisu pilnuje, aby przypisanie pakietu miało sens biznesowy
+        // Przypisanie pakietu wymaga istniejącej grupy, aktywnego pakietu oraz poprawnego zakresu dat
         if (groupId == Guid.Empty)
             throw new ArgumentException("GroupId is required");
 
@@ -183,7 +186,7 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
     {
         var requestedActiveTo = activeTo ?? DateTime.MaxValue;
 
-        // Grupa nie powinna mieć dwóch aktywnych pakietów w tym samym czasie
+        // Grupa nie może posiadać dwóch aktywnych pakietów w nakładających się okresach
         var overlapExists = await _context.GroupPackageAssignments
             .AnyAsync(x =>
                 x.GroupId == groupId &&

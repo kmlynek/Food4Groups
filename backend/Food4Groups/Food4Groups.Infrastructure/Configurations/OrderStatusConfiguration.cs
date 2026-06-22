@@ -25,6 +25,9 @@ public class OrderStatusConfiguration : IEntityTypeConfiguration<OrderStatus>
         builder.Property(x => x.CreatedAt)
             .IsRequired();
         
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired();
+        
         builder.HasIndex(x => x.Name)
             .IsUnique(); 
     }

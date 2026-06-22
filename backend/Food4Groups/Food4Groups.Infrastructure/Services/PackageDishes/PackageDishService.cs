@@ -79,6 +79,7 @@ public class PackageDishService : IPackageDishService
     {
         await ValidatePackageDishRequestAsync(request.PackageId, request.DishId, null);
 
+        // Nowe przypisanie dania do pakietu jest domyślnie aktywne
         var packageDish = new PackageDish
         {
             Id = Guid.NewGuid(),
@@ -96,6 +97,7 @@ public class PackageDishService : IPackageDishService
     public async Task<PackageDishResponse?> UpdateAsync(Guid id, UpdatePackageDishRequest request)
     {
         var packageDish = await _context.PackageDishes.FirstOrDefaultAsync(x => x.Id == id);
+
         if (packageDish is null)
             return null;
 
@@ -116,6 +118,7 @@ public class PackageDishService : IPackageDishService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var packageDish = await _context.PackageDishes.FirstOrDefaultAsync(x => x.Id == id);
+
         if (packageDish is null)
             return false;
 
@@ -127,7 +130,7 @@ public class PackageDishService : IPackageDishService
 
     private async Task ValidatePackageDishRequestAsync(Guid packageId, Guid dishId, Guid? ignoredPackageDishId)
     {
-        // Walidacja pilnuje, aby do pakietu trafiło wyłącznie aktywne danie z tej samej firmy cateringowej
+        // Do pakietu może zostać przypisane wyłącznie aktywne danie z tej samej firmy cateringowej
         if (packageId == Guid.Empty)
             throw new ArgumentException("PackageId is required");
 
@@ -157,6 +160,7 @@ public class PackageDishService : IPackageDishService
         if (package.CateringCompanyId != dish.CateringCompanyId)
             throw new InvalidOperationException("Package and dish must belong to the same catering company");
 
+        // Jedno danie nie może zostać przypisane wielokrotnie do tego samego pakietu
         var duplicateExists = await _context.PackageDishes
             .AnyAsync(x =>
                 x.PackageId == packageId &&

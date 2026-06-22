@@ -17,7 +17,7 @@ public class MenuPeriodService : IMenuPeriodService
 
     public async Task<List<MenuPeriodResponse>> GetAllAsync()
     {
-        // Okres menu grupuje dni menu, np. tydzień lub miesiąc oferty lunchowej
+        // Okres menu grupuje dni menu w ramach konkretnego zakresu dat oferty lunchowej
         return await _context.MenuPeriods
             .AsNoTracking()
             .OrderByDescending(x => x.StartDate)
@@ -81,6 +81,7 @@ public class MenuPeriodService : IMenuPeriodService
     {
         await ValidateMenuPeriodRequestAsync(request.CateringCompanyId, request.Name, request.StartDate, request.EndDate);
 
+        // Nowy okres menu jest domyślnie aktywny i może zostać wykorzystany do tworzenia dni menu
         var menuPeriod = new MenuPeriod
         {
             Id = Guid.NewGuid(),
@@ -100,6 +101,7 @@ public class MenuPeriodService : IMenuPeriodService
     public async Task<MenuPeriodResponse?> UpdateAsync(Guid id, UpdateMenuPeriodRequest request)
     {
         var menuPeriod = await _context.MenuPeriods.FirstOrDefaultAsync(x => x.Id == id);
+
         if (menuPeriod is null)
             return null;
 
@@ -122,6 +124,7 @@ public class MenuPeriodService : IMenuPeriodService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var menuPeriod = await _context.MenuPeriods.FirstOrDefaultAsync(x => x.Id == id);
+
         if (menuPeriod is null)
             return false;
 
@@ -135,7 +138,7 @@ public class MenuPeriodService : IMenuPeriodService
 
     private async Task ValidateMenuPeriodRequestAsync(Guid cateringCompanyId, string? name, DateTime startDate, DateTime endDate)
     {
-        // Walidacja po stronie serwisu pilnuje poprawności okresu menu niezależnie od frontendu
+        // Okres menu może zostać przypisany wyłącznie do istniejącej firmy cateringowej
         if (cateringCompanyId == Guid.Empty)
             throw new ArgumentException("CateringCompanyId is required");
 
@@ -148,6 +151,7 @@ public class MenuPeriodService : IMenuPeriodService
         if (endDate == default)
             throw new ArgumentException("EndDate is required");
 
+        // Data zakończenia okresu menu nie może być wcześniejsza niż data rozpoczęcia
         if (endDate < startDate)
             throw new ArgumentException("EndDate cannot be earlier than StartDate");
 
@@ -160,7 +164,7 @@ public class MenuPeriodService : IMenuPeriodService
 
     private async Task EnsureMenuPeriodIsNotUsedAsync(Guid menuPeriodId)
     {
-        // Nie usuwamy okresu menu, jeśli ma już zdefiniowane konkretne dni
+        // Okres menu posiadający zdefiniowane dni menu nie może zostać usunięty
         var isUsed = await _context.MenuDays.AnyAsync(x => x.MenuPeriodId == menuPeriodId);
 
         if (isUsed)

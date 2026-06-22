@@ -79,6 +79,7 @@ public class MenuItemService : IMenuItemService
     {
         await ValidateMenuItemRequestAsync(request.MenuDayId, request.DishId, null);
 
+        // Nowa pozycja menu jest domyślnie aktywna i może zostać wykorzystana przez Klienta przy składaniu zamówienia
         var menuItem = new MenuItem
         {
             Id = Guid.NewGuid(),
@@ -96,6 +97,7 @@ public class MenuItemService : IMenuItemService
     public async Task<MenuItemResponse?> UpdateAsync(Guid id, UpdateMenuItemRequest request)
     {
         var menuItem = await _context.MenuItems.FirstOrDefaultAsync(x => x.Id == id);
+
         if (menuItem is null)
             return null;
 
@@ -116,6 +118,7 @@ public class MenuItemService : IMenuItemService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var menuItem = await _context.MenuItems.FirstOrDefaultAsync(x => x.Id == id);
+
         if (menuItem is null)
             return false;
 
@@ -129,7 +132,7 @@ public class MenuItemService : IMenuItemService
 
     private async Task ValidateMenuItemRequestAsync(Guid menuDayId, Guid dishId, Guid? ignoredMenuItemId)
     {
-        // Walidacja pilnuje, aby do dnia menu trafiło aktywne danie z tej samej firmy cateringowej
+        // Do dnia menu może zostać przypisane wyłącznie aktywne danie z tej samej firmy cateringowej
         if (menuDayId == Guid.Empty)
             throw new ArgumentException("MenuDayId is required");
 
@@ -163,6 +166,7 @@ public class MenuItemService : IMenuItemService
         if (menuDay.MenuPeriod.CateringCompanyId != dish.CateringCompanyId)
             throw new InvalidOperationException("Menu day and dish must belong to the same catering company");
 
+        // Jedno danie nie może zostać przypisane wielokrotnie do tego samego dnia menu
         var duplicateExists = await _context.MenuItems
             .AnyAsync(x =>
                 x.MenuDayId == menuDayId &&
@@ -175,7 +179,7 @@ public class MenuItemService : IMenuItemService
 
     private async Task EnsureMenuItemIsNotUsedAsync(Guid menuItemId)
     {
-        // Jeśli dane danie zostało już wybrane w zamówieniu, pozycja nie jest fizycznie usuwana
+        // Pozycja menu wykorzystana w zamówieniach nie może zostać fizycznie usunięta
         var menuItem = await _context.MenuItems
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == menuItemId);

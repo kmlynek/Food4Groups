@@ -13,6 +13,7 @@ using Food4Groups.Application.Interfaces.MenuDayAddons;
 using Food4Groups.Application.Interfaces.MenuDays;
 using Food4Groups.Application.Interfaces.MenuItems;
 using Food4Groups.Application.Interfaces.MenuPeriods;
+using Food4Groups.Application.Interfaces.Orders;
 using Food4Groups.Application.Interfaces.PackageAddons;
 using Food4Groups.Application.Interfaces.PackageDishes;
 using Food4Groups.Application.Interfaces.Packages;
@@ -30,6 +31,7 @@ using Food4Groups.Infrastructure.Services.MenuDayAddons;
 using Food4Groups.Infrastructure.Services.MenuDays;
 using Food4Groups.Infrastructure.Services.MenuItems;
 using Food4Groups.Infrastructure.Services.MenuPeriods;
+using Food4Groups.Infrastructure.Services.Orders;
 using Food4Groups.Infrastructure.Services.PackageAddons;
 using Food4Groups.Infrastructure.Services.PackageDishes;
 using Food4Groups.Infrastructure.Services.Packages;
@@ -98,6 +100,7 @@ builder.Services.AddScoped<IMenuDayService, MenuDayService>();
 builder.Services.AddScoped<IMenuPeriodService, MenuPeriodService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IMenuDayAddonService, MenuDayAddonService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;

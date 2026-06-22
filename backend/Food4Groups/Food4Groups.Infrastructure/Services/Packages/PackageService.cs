@@ -17,7 +17,7 @@ public class PackageService : IPackageService
 
     public async Task<List<PackageResponse>> GetAllAsync()
     {
-        // Pakiety określają dostępność oferty dla grup
+        // Pakiety określają zakres oferty dostępnej dla przypisanych grup
         return await _context.Packages
             .AsNoTracking()
             .OrderBy(x => x.Name)
@@ -58,6 +58,7 @@ public class PackageService : IPackageService
     {
         await ValidatePackageRequestAsync(request.CateringCompanyId, request.Name, request.PricePerPerson);
 
+        // Nowy pakiet jest domyślnie aktywny i może zostać przypisany do grupy
         var package = new Package
         {
             Id = Guid.NewGuid(),
@@ -76,6 +77,7 @@ public class PackageService : IPackageService
     public async Task<PackageResponse?> UpdateAsync(Guid id, UpdatePackageRequest request)
     {
         var package = await _context.Packages.FirstOrDefaultAsync(x => x.Id == id);
+
         if (package is null)
             return null;
 
@@ -97,6 +99,7 @@ public class PackageService : IPackageService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var package = await _context.Packages.FirstOrDefaultAsync(x => x.Id == id);
+
         if (package is null)
             return false;
 
@@ -108,7 +111,7 @@ public class PackageService : IPackageService
 
     private async Task ValidatePackageRequestAsync(Guid cateringCompanyId, string? name, decimal pricePerPerson)
     {
-        // Walidacja po stronie serwisu zabezpiecza logikę aplikacji niezależnie od źródła danych
+        // Pakiet musi mieć nazwę, nieujemną cenę oraz istniejącą firmę cateringową
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Name is required");
 
@@ -118,7 +121,6 @@ public class PackageService : IPackageService
         if (pricePerPerson < 0)
             throw new ArgumentException("Price per person cannot be negative");
 
-        // Pakiet musi być przypisany do istniejącej firmy cateringowej
         var cateringCompanyExists = await _context.CateringCompanies
             .AnyAsync(x => x.Id == cateringCompanyId);
 

@@ -81,6 +81,7 @@ public class MenuDayService : IMenuDayService
     {
         await ValidateMenuDayRequestAsync(request.MenuPeriodId, request.MenuDate, null);
 
+        // Nowy dzień menu jest domyślnie aktywny i może zostać wykorzystany do budowy oferty
         var menuDay = new MenuDay
         {
             Id = Guid.NewGuid(),
@@ -98,6 +99,7 @@ public class MenuDayService : IMenuDayService
     public async Task<MenuDayResponse?> UpdateAsync(Guid id, UpdateMenuDayRequest request)
     {
         var menuDay = await _context.MenuDays.FirstOrDefaultAsync(x => x.Id == id);
+
         if (menuDay is null)
             return null;
 
@@ -118,6 +120,7 @@ public class MenuDayService : IMenuDayService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var menuDay = await _context.MenuDays.FirstOrDefaultAsync(x => x.Id == id);
+
         if (menuDay is null)
             return false;
 
@@ -131,7 +134,7 @@ public class MenuDayService : IMenuDayService
 
     private async Task ValidateMenuDayRequestAsync(Guid menuPeriodId, DateTime menuDate, Guid? ignoredMenuDayId)
     {
-        // Walidacja po stronie serwisu pilnuje, aby dzień menu należał do poprawnego okresu
+        // Dzień menu może zostać utworzony wyłącznie w istniejącym i aktywnym okresie menu
         if (menuPeriodId == Guid.Empty)
             throw new ArgumentException("MenuPeriodId is required");
 
@@ -149,9 +152,12 @@ public class MenuDayService : IMenuDayService
             throw new InvalidOperationException("Inactive menu period cannot be used");
 
         var normalizedMenuDate = menuDate.Date;
+
+        // Dzień menu musi mieścić się w zakresie dat zdefiniowanym dla okresu menu
         if (normalizedMenuDate < menuPeriod.StartDate.Date || normalizedMenuDate > menuPeriod.EndDate.Date)
             throw new InvalidOperationException("Menu date must be inside menu period date range");
 
+        // W ramach jednego okresu menu dana data może wystąpić tylko raz
         var duplicateExists = await _context.MenuDays
             .AnyAsync(x =>
                 x.MenuPeriodId == menuPeriodId &&
@@ -164,7 +170,7 @@ public class MenuDayService : IMenuDayService
 
     private async Task EnsureMenuDayIsNotUsedAsync(Guid menuDayId)
     {
-        // Nie usuwamy dnia menu, jeśli ma już przypisane dania, dodatki albo zamówienia
+        // Dzień menu posiadający powiązane dania, dodatki lub zamówienia nie może zostać usunięty
         var isUsed =
             await _context.MenuItems.AnyAsync(x => x.MenuDayId == menuDayId) ||
             await _context.MenuDayAddons.AnyAsync(x => x.MenuDayId == menuDayId) ||

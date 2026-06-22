@@ -15,6 +15,9 @@ public class OrderAddonConfiguration : IEntityTypeConfiguration<OrderAddon>
         builder.Property(x => x.CreatedAt)
             .IsRequired();
         
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired();
+        
         builder.HasOne(x => x.Order)
             .WithMany()
             .HasForeignKey(x => x.OrderId)

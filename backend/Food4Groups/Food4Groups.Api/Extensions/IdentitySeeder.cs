@@ -1,4 +1,7 @@
+using Food4Groups.Domain.Entities;
+using Food4Groups.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Food4Groups.Api.Extensions;
 
@@ -24,6 +27,16 @@ public static class IdentitySeeder
         ("user@food4groups.com", "Test123!", "User")
     };
     
+    // Statusy wykorzystywane w procesie obsługi zamówienia
+    private static readonly (string Name, bool IsFinal)[] OrderStatuses =
+    {
+        ("Created", false),
+        ("Accepted", false),
+        ("Prepared", false),
+        ("Completed", true),
+        ("Cancelled", true)
+    };
+    
     // Inicializuje role oraz konto admina, IServiceProvider - interfejs odpowiedzialny za pobieranie instancji  
     public static async Task SeedIdentityAsync(this IServiceProvider services)
     {
@@ -32,6 +45,7 @@ public static class IdentitySeeder
         
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
         // Utworzenie wymaganych ról systemowych
         foreach (var role in Roles)
@@ -47,6 +61,8 @@ public static class IdentitySeeder
         {
             await SeedUserAsync(userManager, user.Email, user.Password, user.Role);
         }
+        
+        await SeedOrderStatusesAsync(dbContext);
     }
 
     private static async Task SeedUserAsync(
@@ -79,5 +95,27 @@ public static class IdentitySeeder
             await userManager.AddToRoleAsync(user, role);
         }
         
+    }
+
+    private static async Task SeedOrderStatusesAsync(ApplicationDbContext dbContext)
+    {
+        foreach (var status in OrderStatuses)
+        {
+            var exists = await dbContext.OrderStatuses.AnyAsync(x => x.Name == status.Name);
+            if (exists)
+            {
+                continue;
+            }
+
+            dbContext.OrderStatuses.Add(new OrderStatus
+            {
+                Id = Guid.NewGuid(),
+                Name = status.Name,
+                IsFinal = status.IsFinal,
+                IsActive = true
+            });
+        }
+
+        await dbContext.SaveChangesAsync();
     }
 }

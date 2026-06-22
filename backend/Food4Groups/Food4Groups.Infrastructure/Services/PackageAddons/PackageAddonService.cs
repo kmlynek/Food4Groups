@@ -79,6 +79,7 @@ public class PackageAddonService : IPackageAddonService
     {
         await ValidatePackageAddonRequestAsync(request.PackageId, request.AddonId, null);
 
+        // Nowe przypisanie dodatku do pakietu jest domyślnie aktywne
         var packageAddon = new PackageAddon
         {
             Id = Guid.NewGuid(),
@@ -96,6 +97,7 @@ public class PackageAddonService : IPackageAddonService
     public async Task<PackageAddonResponse?> UpdateAsync(Guid id, UpdatePackageAddonRequest request)
     {
         var packageAddon = await _context.PackageAddons.FirstOrDefaultAsync(x => x.Id == id);
+
         if (packageAddon is null)
             return null;
 
@@ -116,6 +118,7 @@ public class PackageAddonService : IPackageAddonService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var packageAddon = await _context.PackageAddons.FirstOrDefaultAsync(x => x.Id == id);
+
         if (packageAddon is null)
             return false;
 
@@ -127,7 +130,7 @@ public class PackageAddonService : IPackageAddonService
 
     private async Task ValidatePackageAddonRequestAsync(Guid packageId, Guid addonId, Guid? ignoredPackageAddonId)
     {
-        // Walidacja pilnuje, aby do pakietu trafił wyłącznie aktywny dodatek z tej samej firmy cateringowej
+        // Do pakietu może zostać przypisany wyłącznie aktywny dodatek z tej samej firmy cateringowej
         if (packageId == Guid.Empty)
             throw new ArgumentException("PackageId is required");
 
@@ -157,6 +160,7 @@ public class PackageAddonService : IPackageAddonService
         if (package.CateringCompanyId != addon.CateringCompanyId)
             throw new InvalidOperationException("Package and addon must belong to the same catering company");
 
+        // Jeden dodatek nie może zostać przypisany wielokrotnie do tego samego pakietu
         var duplicateExists = await _context.PackageAddons
             .AnyAsync(x =>
                 x.PackageId == packageId &&

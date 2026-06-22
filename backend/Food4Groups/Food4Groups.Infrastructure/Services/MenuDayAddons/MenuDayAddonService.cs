@@ -79,6 +79,7 @@ public class MenuDayAddonService : IMenuDayAddonService
     {
         await ValidateMenuDayAddonRequestAsync(request.MenuDayId, request.AddonId, null);
 
+        // Nowe przypisanie dodatku do dnia menu jest domyślnie aktywne
         var menuDayAddon = new MenuDayAddon
         {
             Id = Guid.NewGuid(),
@@ -96,6 +97,7 @@ public class MenuDayAddonService : IMenuDayAddonService
     public async Task<MenuDayAddonResponse?> UpdateAsync(Guid id, UpdateMenuDayAddonRequest request)
     {
         var menuDayAddon = await _context.MenuDayAddons.FirstOrDefaultAsync(x => x.Id == id);
+
         if (menuDayAddon is null)
             return null;
 
@@ -116,6 +118,7 @@ public class MenuDayAddonService : IMenuDayAddonService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var menuDayAddon = await _context.MenuDayAddons.FirstOrDefaultAsync(x => x.Id == id);
+
         if (menuDayAddon is null)
             return false;
 
@@ -163,6 +166,7 @@ public class MenuDayAddonService : IMenuDayAddonService
         if (menuDay.MenuPeriod.CateringCompanyId != addon.CateringCompanyId)
             throw new InvalidOperationException("Menu day and addon must belong to the same catering company");
 
+        // Jeden dodatek nie może zostać przypisany wielokrotnie do tego samego dnia menu
         var duplicateExists = await _context.MenuDayAddons
             .AnyAsync(x =>
                 x.MenuDayId == menuDayId &&

@@ -52,6 +52,7 @@ public class CateringCompanyService : ICateringCompanyService
     {
         ValidateCompanyRequest(request.Name);
 
+        // Nowa firma cateringowa jest domyślnie aktywna i może zostać wykorzystana w konfiguracji systemu
         var company = new CateringCompany
         {
             Id = Guid.NewGuid(),
@@ -68,6 +69,7 @@ public class CateringCompanyService : ICateringCompanyService
     public async Task<CateringCompanyResponse?> UpdateAsync(Guid id, UpdateCateringCompanyRequest request)
     {
         var company = await _context.CateringCompanies.FirstOrDefaultAsync(x => x.Id == id);
+
         if (company is null)
             return null;
 
@@ -87,6 +89,7 @@ public class CateringCompanyService : ICateringCompanyService
     public async Task<bool> DeleteAsync(Guid id)
     {
         var company = await _context.CateringCompanies.FirstOrDefaultAsync(x => x.Id == id);
+
         if (company is null)
             return false;
 
@@ -107,7 +110,7 @@ public class CateringCompanyService : ICateringCompanyService
 
     private async Task EnsureCompanyIsNotUsedAsync(Guid companyId)
     {
-        // Nie usuwamy firmy, która ma już powiązane dane biznesowe w systemie
+        // Firma cateringowa posiadająca powiązane dane biznesowe nie może zostać usunięta
         var isUsed =
             await _context.Groups.AnyAsync(x => x.CateringCompanyId == companyId) ||
             await _context.Packages.AnyAsync(x => x.CateringCompanyId == companyId) ||
