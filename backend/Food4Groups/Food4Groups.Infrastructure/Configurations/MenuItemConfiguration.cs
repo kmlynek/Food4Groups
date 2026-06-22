@@ -18,6 +18,10 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(x => x.CreatedAt)
             .IsRequired();
         
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired();
+        
+        
         builder.HasOne(x => x.MenuDay)
             .WithMany()
             .HasForeignKey(x => x.MenuDayId)
@@ -27,6 +31,7 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
             .WithMany()
             .HasForeignKey(x => x.DishId)
             .OnDelete(DeleteBehavior.Restrict);
+        
         
         builder.HasIndex(x => new {x.MenuDayId, x.DishId})
             .IsUnique();

@@ -28,6 +28,9 @@ public class MenuDayAddonConfiguration : IEntityTypeConfiguration<MenuDayAddon>
             .HasForeignKey(x => x.AddonId)
             .OnDelete(DeleteBehavior.Restrict);
         
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired();
+        
         builder.HasIndex(x => new { x.MenuDayId, x.AddonId })
             .IsUnique();
     }

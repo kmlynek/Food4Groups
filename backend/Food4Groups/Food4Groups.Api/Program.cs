@@ -9,7 +9,9 @@ using Food4Groups.Application.Interfaces.Dishes;
 using Food4Groups.Application.Interfaces.GroupMembers;
 using Food4Groups.Application.Interfaces.GroupPackageAssignments;
 using Food4Groups.Application.Interfaces.Groups;
+using Food4Groups.Application.Interfaces.MenuDayAddons;
 using Food4Groups.Application.Interfaces.MenuDays;
+using Food4Groups.Application.Interfaces.MenuItems;
 using Food4Groups.Application.Interfaces.MenuPeriods;
 using Food4Groups.Application.Interfaces.PackageAddons;
 using Food4Groups.Application.Interfaces.PackageDishes;
@@ -24,7 +26,9 @@ using Food4Groups.Infrastructure.Services.Dishes;
 using Food4Groups.Infrastructure.Services.GroupMembers;
 using Food4Groups.Infrastructure.Services.GroupPackageAssignments;
 using Food4Groups.Infrastructure.Services.Groups;
+using Food4Groups.Infrastructure.Services.MenuDayAddons;
 using Food4Groups.Infrastructure.Services.MenuDays;
+using Food4Groups.Infrastructure.Services.MenuItems;
 using Food4Groups.Infrastructure.Services.MenuPeriods;
 using Food4Groups.Infrastructure.Services.PackageAddons;
 using Food4Groups.Infrastructure.Services.PackageDishes;
@@ -76,7 +80,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // Rejestracja serwisu odpowiedzialnego za generowanie tokenów JWT oraz pozostaluch Servisow z logika biznesowa
-// lifetime Scoped: 1 instancja na request HTTP)
+// lifetime Scoped: 1 instancja na request HTTP
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 builder.Services.AddScoped<IDishService, DishService>();
@@ -92,6 +96,9 @@ builder.Services.AddScoped<IPackageDishService, PackageDishService>();
 builder.Services.AddScoped<IPackageAddonService, PackageAddonService>();
 builder.Services.AddScoped<IMenuDayService, MenuDayService>();
 builder.Services.AddScoped<IMenuPeriodService, MenuPeriodService>();
+builder.Services.AddScoped<IMenuItemService, MenuItemService>();
+builder.Services.AddScoped<IMenuDayAddonService, MenuDayAddonService>();
+
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
