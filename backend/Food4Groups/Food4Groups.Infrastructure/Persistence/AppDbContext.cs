@@ -40,7 +40,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser> //DbContext 
     public DbSet<SettlementPeriod> SettlementPeriods => Set<SettlementPeriod>();
     public DbSet<GroupSettlement> GroupSettlements => Set<GroupSettlement>();
     public DbSet<SettlementLine> SettlementLines => Set<SettlementLine>();
-    
+    public DbSet<PrintTemplate> PrintTemplates => Set<PrintTemplate>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

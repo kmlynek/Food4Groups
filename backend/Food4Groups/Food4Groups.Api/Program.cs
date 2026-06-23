@@ -17,6 +17,8 @@ using Food4Groups.Application.Interfaces.Orders;
 using Food4Groups.Application.Interfaces.PackageAddons;
 using Food4Groups.Application.Interfaces.PackageDishes;
 using Food4Groups.Application.Interfaces.Packages;
+using Food4Groups.Application.Interfaces.PrintTemplates;
+using Food4Groups.Application.Interfaces.Reports;
 using Food4Groups.Infrastructure.Persistence;
 using Food4Groups.Infrastructure.Services;
 using Food4Groups.Infrastructure.Services.Addons;
@@ -35,11 +37,14 @@ using Food4Groups.Infrastructure.Services.Orders;
 using Food4Groups.Infrastructure.Services.PackageAddons;
 using Food4Groups.Infrastructure.Services.PackageDishes;
 using Food4Groups.Infrastructure.Services.Packages;
+using Food4Groups.Infrastructure.Services.PrintTemplates;
+using Food4Groups.Infrastructure.Services.Reports;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using QuestPDF.Infrastructure;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -101,6 +106,8 @@ builder.Services.AddScoped<IMenuPeriodService, MenuPeriodService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IMenuDayAddonService, MenuDayAddonService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IPrintTemplateService, PrintTemplateService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -134,6 +141,9 @@ builder.Services.AddAuthorization();
 
 // Powyżej konfiguracja startowa, teraz tworzy builder (obiekt) aplikacji
 var app = builder.Build();
+
+//Wskazanie typu licencji wg dokumentacji QuestPDF
+QuestPDF.Settings.License = LicenseType.Community;
 
 // Inicjalizacja podstawowych ról i kont testowych przy starcie aplikacji
 await app.Services.SeedIdentityAsync();

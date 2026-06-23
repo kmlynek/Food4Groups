@@ -37,6 +37,8 @@ public static class IdentitySeeder
         ("Cancelled", true)
     };
     
+    private const string GroupSettlementProformaTemplateCode = "GroupSettlementProforma";
+    
     // Inicializuje role oraz konto admina, IServiceProvider - interfejs odpowiedzialny za pobieranie instancji  
     public static async Task SeedIdentityAsync(this IServiceProvider services)
     {
@@ -63,6 +65,8 @@ public static class IdentitySeeder
         }
         
         await SeedOrderStatusesAsync(dbContext);
+        
+        await SeedPrintTemplatesAsync(dbContext);
     }
 
     private static async Task SeedUserAsync(
@@ -115,6 +119,29 @@ public static class IdentitySeeder
                 IsActive = true
             });
         }
+
+        await dbContext.SaveChangesAsync();
+    }
+    private static async Task SeedPrintTemplatesAsync(ApplicationDbContext dbContext)
+    {
+        // Domyślny szablon raportu rozliczeniowego jest tworzony tylko podczas pierwszej inicjalizacji systemu
+        var exists = await dbContext.PrintTemplates.AnyAsync(x => x.Code == GroupSettlementProformaTemplateCode);
+
+        if (exists)
+        {
+            return;
+        }
+
+        dbContext.PrintTemplates.Add(new PrintTemplate
+        {
+            Id = Guid.NewGuid(),
+            Code = GroupSettlementProformaTemplateCode,
+            Name = "Dokument rozliczeniowy proforma dla grupy",
+            TitleTemplate = "Dokument rozliczeniowy proforma - {{GroupName}}",
+            BodyTemplate = "Podsumowanie usług cateringowych dla grupy {{GroupName}} za okres {{DateFrom}} - {{DateTo}}. Liczba zamówień: {{TotalOrders}}, kwota do rozliczenia: {{TotalAmount}}.",
+            FooterTemplate = "Dokument ma charakter informacyjny i nie jest fakturą VAT.",
+            IsActive = true
+        });
 
         await dbContext.SaveChangesAsync();
     }
