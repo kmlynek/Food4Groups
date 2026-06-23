@@ -6,7 +6,7 @@ public class MenuDay : BaseEntity
 {
     public Guid MenuPeriodId { get; set; }
     public DateTime MenuDate { get; set; }
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
     
     public MenuPeriod? MenuPeriod { get; set; }
 }

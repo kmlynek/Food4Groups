@@ -33,7 +33,7 @@ public class OrderService : IOrderService
         if (string.IsNullOrWhiteSpace(currentUserId))
             throw new UnauthorizedAccessException("User is not authenticated");
 
-        // Użytkownik końcowy widzi wyłącznie zamówienia powiązane z jego członkostwem w grupie
+        // Klient widzi wyłącznie zamówienia powiązane z jego członkostwem w grupie
         var orders = await GetOrdersQuery()
             .Where(x => x.GroupMember != null && x.GroupMember.UserId == currentUserId)
             .OrderByDescending(x => x.CreatedAt)
