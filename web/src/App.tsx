@@ -1,28 +1,34 @@
-import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { allRoles } from './types/authTypes';
 
-// Tymczasowy ekran startowy pozwala sprawdzić, czy Material UI i motyw aplikacji działają poprawnie.
+const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
+  {
+    path: '/dashboard',
+    element: (
+      <ProtectedRoute allowedRoles={allRoles}>
+        <DashboardPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/',
+    element: <Navigate to="/dashboard" replace />,
+  },
+  {
+    path: '*',
+    element: <Navigate to="/dashboard" replace />,
+  },
+]);
+
+// App odpowiada za główny routing aplikacji
+// Pełne strony, takie jak login i dashboard, podpinamy tutaj jako trasy
 export default function App() {
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: 'background.default',
-        display: 'grid',
-        placeItems: 'center',
-        p: 3,
-      }}
-    >
-      <Card sx={{ maxWidth: 520, width: '100%' }}>
-        <CardContent>
-          <Stack spacing={2}>
-            <Typography variant="h4">Food4Groups</Typography>
-            <Typography color="text.secondary">
-              Portal web został połączony z Material UI.
-            </Typography>
-            <Button variant="contained">Działa</Button>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Box>
-  );
+  return <RouterProvider router={router} />;
 }
