@@ -217,7 +217,7 @@ export function LoginPage() {
                   <VerifiedUserIcon color="success" fontSize="small" />
 
                   <Typography variant="caption">
-                    Po zalogowaniu zakres dostępnych funkcji zależy od przypisanej roli użytkownika
+                    Po zalogowaniu zostaniesz przekierowany do odpowiednich funkcjonalności systemu
                   </Typography>
                 </Stack>
               </Stack>

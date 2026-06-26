@@ -1,52 +1,113 @@
-import { Box, Card, CardContent, Chip, Stack, Typography } from '@mui/material';
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
+import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import {
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  Stack,
+  Typography,
+} from '@mui/material';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { roleLabels, roles, type UserRole } from '../types/authTypes';
 
-const roleDescriptions: Record<UserRole, { title: string; items: string[] }> = {
-  [roles.admin]: {
-    title: 'Administracja',
-    items: ['Użytkownicy i role', 'Firmy cateringowe', 'Grupy', 'Pełny podgląd systemu'],
-  },
-  [roles.cateringEmployee]: {
-    title: 'Obsługa cateringu',
-    items: ['Pakiety', 'Menu', 'Zamówienia', 'Raporty i wydruki'],
-  },
-  [roles.dietitian]: {
-    title: 'Dietetyk',
-    items: ['Dania', 'Dodatki', 'Menu', 'Powiązania oferty'],
-  },
-  [roles.groupCoordinator]: {
-    title: 'Koordynator grupy',
-    items: ['Członkowie grupy', 'Przegląd zamówień', 'Informacje organizacyjne grupy'],
-  },
-  [roles.user]: {
-    title: 'Użytkownik',
-    items: ['Nowe zamówienie', 'Moje zamówienia', 'Dostępne dania i dodatki'],
-  },
+type DashboardAction = {
+  title: string;
+  description: string;
+  path: string;
+  icon: React.ReactNode;
+  allowedRoles: UserRole[];
 };
+
+const dashboardActions: DashboardAction[] = [
+  {
+    title: 'Użytkownicy',
+    description: 'Zarządzanie kontami, rolami oraz przypisaniem użytkowników do grup',
+    path: '/users',
+    icon: <PeopleAltOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.groupCoordinator],
+  },
+  {
+    title: 'Grupy',
+    description: 'Obsługa grup żywieniowych, koordynatorów oraz członków grup',
+    path: '/groups',
+    icon: <GroupOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.groupCoordinator],
+  },
+  {
+    title: 'Dania',
+    description: 'Katalog dań, informacje dietetyczne oraz dostępność pozycji w ofercie',
+    path: '/dishes',
+    icon: <RestaurantMenuOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian],
+  },
+  {
+    title: 'Menu',
+    description: 'Menu dzienne, pakiety oraz przypisanie dań do konkretnych terminów',
+    path: '/menus',
+    icon: <MenuBookOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian],
+  },
+  {
+    title: 'Zamówienia',
+    description: 'Składanie zamówień, przegląd realizacji oraz statusy zamówień',
+    path: '/orders',
+    icon: <AssignmentOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator, roles.user],
+  },
+];
 
 export function DashboardPage() {
   const { auth } = useAuth();
   const userRoles = auth?.user.roles ?? [];
 
+  const availableActions = dashboardActions.filter((action) =>
+    action.allowedRoles.some((role) => userRoles.includes(role)),
+  );
+
+  const isClient = userRoles.includes(roles.user);
+
   return (
     <Stack spacing={3}>
       {/* Nagłówek strony informuje użytkownika, w jakim obszarze aplikacji się znajduje */}
       <Box>
-        <Typography variant="h4">Panel operacyjny</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          Pulpit
+        </Typography>
         <Typography color="text.secondary">
           Najważniejsze obszary pracy dostępne dla Twojej roli w systemie
         </Typography>
       </Box>
 
-      {/* Role z tokenu JWT pokazujemy jako czytelne etykiety */}
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+      {/* Role dostępne w tokenie JWT jako etykiety */}
+      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
         {userRoles.map((role) => (
-          <Chip key={role} color="primary" label={roleLabels[role]} />
+          <Chip key={role} color="primary" variant="outlined" label={roleLabels[role]} />
         ))}
       </Stack>
 
-      {/* Karty pokazują zakres funkcji dostępnych dla aktualnego użytkownika */}
+      {/* Komunikat dla klienta przed przypisaniem do grupy */}
+      {isClient && (
+        <Card sx={{ borderColor: 'primary.light' }} variant="outlined">
+          <CardContent>
+            <Stack spacing={1}>
+              <Typography variant="h6">Status konta klienta</Typography>
+              <Typography color="text.secondary">
+                Jeśli konto nie zostało jeszcze przypisane do grupy, dostęp do menu i zamówień
+                pojawi się po przypisaniu przez administratora lub koordynatora grupy
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Karty z zakresem funkcji dostępnych dla aktualnego użytkownika */}
       <Box
         sx={{
           display: 'grid',
@@ -58,26 +119,51 @@ export function DashboardPage() {
           gap: 2,
         }}
       >
-        {userRoles.map((role) => (
-          <Box key={role}>
-            <Card sx={{ height: '100%' }}>
+        {availableActions.map((action) => (
+          <Card key={action.path} variant="outlined">
+            <CardActionArea component={Link} to={action.path} sx={{ height: '100%' }}>
               <CardContent>
                 <Stack spacing={2}>
-                  <Typography variant="h6">{roleDescriptions[role].title}</Typography>
+                  <Box
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 2,
+                      bgcolor: 'rgba(46, 125, 50, 0.10)',
+                      color: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {action.icon}
+                  </Box>
 
-                  <Stack spacing={1}>
-                    {roleDescriptions[role].items.map((item) => (
-                      <Typography key={item} variant="body2" color="text.secondary">
-                        {item}
-                      </Typography>
-                    ))}
+                  <Stack spacing={0.5}>
+                    <Typography variant="h6">{action.title}</Typography>
+                    <Typography color="text.secondary">{action.description}</Typography>
                   </Stack>
                 </Stack>
               </CardContent>
-            </Card>
-          </Box>
+            </CardActionArea>
+          </Card>
         ))}
       </Box>
+
+      {/* Sekcja podsumowania najważniejszych obszarów systemu */}
+      <Card variant="outlined">
+        <CardContent>
+          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+            <SettingsOutlinedIcon color="primary" />
+            <Box>
+              <Typography variant="h6">Podsumowanie systemu</Typography>
+              <Typography color="text.secondary">
+                W tym miejscu pojawią się najważniejsze informacje o grupach, aktualnym menu i zamówieniach
+              </Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
     </Stack>
   );
 }
