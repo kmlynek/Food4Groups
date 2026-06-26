@@ -6,6 +6,14 @@ export const roles = {
   user: 'User',
 } as const;
 
+export const roleLabels: Record<UserRole, string> = {
+  [roles.admin]: 'Administrator',
+  [roles.cateringEmployee]: 'Pracownik cateringu',
+  [roles.dietitian]: 'Dietetyk',
+  [roles.groupCoordinator]: 'Koordynator grupy',
+  [roles.user]: 'Klient',
+};
+
 export type UserRole = (typeof roles)[keyof typeof roles];
 
 export const allRoles = Object.values(roles);

@@ -17,7 +17,7 @@ export type NavigationItem = {
 // Główne pozycje menu dostępne po zalogowaniu
 export const navigationItems: NavigationItem[] = [
   {
-    label: 'Panel',
+    label: 'Pulpit',
     path: '/dashboard',
     icon: <DashboardOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],

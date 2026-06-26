@@ -116,7 +116,7 @@ export function LoginPage() {
             </Stack>
 
             <Typography variant="h4" sx={{ maxWidth: 520, lineHeight: 1.15 }}>
-              Panel do organizacji posiłków grupowych
+              System do organizacji posiłków grupowych
             </Typography>
 
             <Typography sx={{ maxWidth: 560, color: '#cbd5d1' }}>

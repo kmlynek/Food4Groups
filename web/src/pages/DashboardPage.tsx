@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Chip, Stack, Typography } from '@mui/material';
 import { useAuth } from '../hooks/useAuth';
-import { roles, type UserRole } from '../types/authTypes';
+import { roleLabels, roles, type UserRole } from '../types/authTypes';
 
 const roleDescriptions: Record<UserRole, { title: string; items: string[] }> = {
   [roles.admin]: {
@@ -42,7 +42,7 @@ export function DashboardPage() {
       {/* Role z tokenu JWT pokazujemy jako czytelne etykiety */}
       <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
         {userRoles.map((role) => (
-          <Chip key={role} color="primary" label={role} />
+          <Chip key={role} color="primary" label={roleLabels[role]} />
         ))}
       </Stack>
 

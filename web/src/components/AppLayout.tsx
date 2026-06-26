@@ -21,6 +21,7 @@ import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { navigationItems } from '../navigation';
+import { roleLabels } from '../types/authTypes';
 
 const drawerWidth = 280;
 
@@ -57,7 +58,7 @@ export function AppLayout() {
                     Food4Groups
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Panel zarządzania cateringiem
+                    System zarządzania cateringiem
                 </Typography>
             </Box>
 
@@ -76,11 +77,17 @@ export function AppLayout() {
                             mb: 0.5,
                             color: 'text.secondary',
                             '&.active': {
-                                bgcolor: 'primary.light',
-                                color: 'primary.contrastText',
+                                bgcolor: 'rgba(46, 125, 50, 0.10)',
+                                color: 'primary.main',
                                 '& .MuiListItemIcon-root': {
-                                    color: 'primary.contrastText',
+                                    color: 'primary.main',
                                 },
+                                '& .MuiListItemText-primary': {
+                                    fontWeight: 700,
+                                },
+                            },
+                            '&:hover': {
+                                bgcolor: 'rgba(46, 125, 50, 0.06)',
                             },
                         }}
                     >
@@ -101,7 +108,7 @@ export function AppLayout() {
                         {auth?.user.email}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                        {userRoles.join(', ')}
+                        {userRoles.map((role) => roleLabels[role]).join(', ')}
                     </Typography>
                 </Box>
 
@@ -125,10 +132,9 @@ export function AppLayout() {
                 color="inherit"
                 elevation={0}
                 sx={{
+                    display: { xs: 'block', md: 'none' },
                     borderBottom: '1px solid',
                     borderColor: 'divider',
-                    ml: { md: `${drawerWidth}px` },
-                    width: { md: `calc(100% - ${drawerWidth}px)` },
                 }}
             >
                 <Toolbar>
