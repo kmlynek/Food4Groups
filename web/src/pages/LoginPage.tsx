@@ -18,6 +18,7 @@ import {
 import { type FormEvent, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { getApiErrorMessage } from '../api/apiError';
 
 // Lista atutów aplikacji wyświetlana po lewej stronie ekranu logowania
 const businessHighlights = [
@@ -42,7 +43,7 @@ export function LoginPage() {
   const { isAuthenticated, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
@@ -57,14 +58,17 @@ export function LoginPage() {
   // Obsługa formularza logowania i przekierowania po poprawnym zalogowaniu
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError('');
+    setErrorMessage('');
     setIsSubmitting(true);
 
     try {
       await login(email, password);
       navigate(from, { replace: true });
-    } catch {
-      setError('Nie udało się zalogować. Sprawdź adres email i hasło.');
+    } catch (error) {
+      // Komunikat błędu logowania pochodzi z odpowiedzi backendu
+      setErrorMessage(
+        getApiErrorMessage(error, 'Nie udało się zalogować. Sprawdź adres email i hasło.'),
+      );
     } finally {
       setIsSubmitting(false);
     }

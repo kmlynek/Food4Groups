@@ -1,18 +1,19 @@
 import axios from 'axios';
 import { getStoredAuth } from '../utils/authStorage';
 
-// Wspólny klient HTTP dla całej aplikacji
-// baseURL '/api' trafia do proxy Vite, a proxy przekazuje request do backendu
+// Wspólny klient HTTP wykorzystywany przez całą aplikację
 export const httpClient = axios.create({
-  baseURL: '/api',
+    // Wszystkie żądania są kierowane przez proxy Vite do backendu ASP.NET Core
+    baseURL: '/api',
 });
 
 httpClient.interceptors.request.use((config) => {
-  const auth = getStoredAuth();
+    const auth = getStoredAuth();
 
-  if (auth?.token) {
-    config.headers.Authorization = `Bearer ${auth.token}`;
-  }
+    // Token JWT jest automatycznie dołączany do każdego chronionego żądania
+    if (auth?.token) {
+        config.headers.Authorization = `Bearer ${auth.token}`;
+    }
 
-  return config;
+    return config;
 });

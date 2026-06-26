@@ -38,3 +38,8 @@ export type LoginResponse = {
   token: string;
   expiresAt: string;
 };
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+};

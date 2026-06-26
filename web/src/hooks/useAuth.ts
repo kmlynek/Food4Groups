@@ -1,14 +1,14 @@
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
-// Hook upraszcza korzystanie z AuthContext w komponentach
-// Dzięki temu komponent nie musi za każdym razem importować useContext i AuthContext
+// Hook udostępnia komponentom stan uwierzytelnienia oraz operacje logowania i wylogowania
 export function useAuth() {
-  const context = useContext(AuthContext);
+    const context = useContext(AuthContext);
 
-  if (!context) {
-    throw new Error('useAuth must be used inside AuthProvider');
-  }
+    // Hook może zostać użyty wyłącznie wewnątrz komponentu AuthProvider
+    if (!context) {
+        throw new Error('useAuth must be used inside AuthProvider');
+    }
 
-  return context;
+    return context;
 }

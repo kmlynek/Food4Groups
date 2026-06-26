@@ -6,6 +6,7 @@ import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlined';
 import type { ReactNode } from 'react';
 import { roles, type UserRole } from './types/authTypes';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 
 export type NavigationItem = {
   label: string;
@@ -20,6 +21,12 @@ export const navigationItems: NavigationItem[] = [
     label: 'Pulpit',
     path: '/dashboard',
     icon: <DashboardOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
+  },
+  {
+    label: 'Moje konto',
+    path: '/account',
+    icon: <AccountCircleOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
   },
   {
