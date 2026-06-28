@@ -12,11 +12,15 @@ import {
   Chip,
   Stack,
   Typography,
+  Alert,
+  Button,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { roleLabels, roles, type UserRole } from '../types/authTypes';
+import { hasSeededPasswordChanged } from '../utils/securityNoticeStorage';
 
+// Opis elementów UI Pulpitu
 type DashboardAction = {
   title: string;
   description: string;
@@ -24,6 +28,14 @@ type DashboardAction = {
   icon: React.ReactNode;
   allowedRoles: UserRole[];
 };
+
+const seededAccountEmails = [
+  'admin@food4groups.com',
+  'catering@food4groups.com',
+  'dietitian@food4groups.com',
+  'coordinator@food4groups.com',
+  'user@food4groups.com',
+];
 
 const dashboardActions: DashboardAction[] = [
   {
@@ -73,7 +85,19 @@ export function DashboardPage() {
 
   const isClient = userRoles.includes(roles.user);
 
+  // Sprawdza czy hasło konta startowego zostało zmienione
+const isSeededAccount = auth?.user.email
+  ? seededAccountEmails.includes(auth.user.email.toLowerCase())
+  : false;
+
+const isSeededPasswordChanged = auth?.user.email
+  ? hasSeededPasswordChanged(auth.user.email)
+  : false;
+
+const shouldShowSeededAccountAlert = isSeededAccount && !isSeededPasswordChanged;
+
   return (
+
     <Stack spacing={3}>
       {/* Nagłówek strony informuje użytkownika, w jakim obszarze aplikacji się znajduje */}
       <Box>
@@ -91,7 +115,29 @@ export function DashboardPage() {
           <Chip key={role} color="primary" variant="outlined" label={roleLabels[role]} />
         ))}
       </Stack>
-
+      {/* Informacja o zmianie hasła dla kont startowych tworzonych podczas inicjalizacji systemu */}
+      {shouldShowSeededAccountAlert && (
+        <Alert
+          severity="warning"
+          variant="filled"
+          sx={{
+            mt: 3,
+            mb: 2,
+            boxShadow: 3,
+            fontSize: "1rem",
+            alignItems: "center",
+          }}
+          action={
+            <Button component={Link} to="/account" color="inherit" variant="outlined">
+              Zmień hasło
+            </Button>
+          }
+        >
+          <strong>Ze względów bezpieczeństwa zalecamy zmianę hasła!</strong>
+          <br />
+          
+        </Alert>
+      )}
       {/* Komunikat dla klienta przed przypisaniem do grupy */}
       {isClient && (
         <Card sx={{ borderColor: 'primary.light' }} variant="outlined">

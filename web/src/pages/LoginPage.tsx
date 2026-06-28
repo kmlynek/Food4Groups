@@ -11,12 +11,13 @@ import {
   Card,
   CardContent,
   Divider,
+  Link as MuiLink,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
 import { type FormEvent, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getApiErrorMessage } from '../api/apiError';
 
@@ -212,12 +213,19 @@ export function LoginPage() {
                     />
 
                     <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
-                      {isSubmitting ? 'Logowanie...' : 'Zaloguj do panelu'}
+                      {isSubmitting ? 'Logowanie...' : 'Zaloguj'}
                     </Button>
                   </Stack>
                 </Box>
-
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+                  Nie masz konta?{' '}
+                  <MuiLink component={RouterLink} to="/register" underline="hover">
+                    Zarejestruj się
+                  </MuiLink>
+                </Typography>
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start', color: 'text.secondary' }}>
+                  {/* Link do rejestracji nowego konta klienta */}
+
                   <VerifiedUserIcon color="success" fontSize="small" />
 
                   <Typography variant="caption">

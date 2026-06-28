@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import { roleLabels } from '../types/authTypes';
 import { changePassword } from '../api/authApi';
 import { getApiErrorMessage } from '../api/apiError';
+import { markSeededPasswordChanged } from '../utils/securityNoticeStorage';
 
 export function AccountPage() {
     const { auth } = useAuth();
@@ -32,7 +33,12 @@ export function AccountPage() {
         setErrorMessage('');
 
         if (newPassword !== confirmNewPassword) {
-            setErrorMessage('Potwierdzone hasło nie jest zgodne');
+            setErrorMessage('Potwierdzenie hasła nie jest zgodne z nowym hasłem');
+            return;
+        }
+
+        if (currentPassword === newPassword) {
+            setErrorMessage('Nowe hasło musi różnić się od obecnego hasła');
             return;
         }
 
@@ -47,6 +53,11 @@ export function AccountPage() {
             setCurrentPassword('');
             setNewPassword('');
             setConfirmNewPassword('');
+
+            if (auth?.user.email) {
+                markSeededPasswordChanged(auth.user.email);
+            }
+            
             setSuccessMessage('Hasło zostało pomyślnie zmienione');
         } catch (error) {
             // Komunikat błędu zmiany hasła pochodzi z odpowiedzi backendu

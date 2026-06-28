@@ -6,12 +6,19 @@ import { DashboardPage } from './pages/DashboardPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { allRoles, roles } from './types/authTypes';
 import { AccountPage } from './pages/AccountPage';
+import { RegisterPage } from './pages/RegisterPage';
 
 const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
   },
+
+  {
+    path: '/register',
+    element: <RegisterPage />
+  },
+  
   {
     path: '/',
     element: (
@@ -95,7 +102,7 @@ const router = createBrowserRouter([
   },
 ]);
 
-// App odpowiada za główną konfigurację tras aplikacji
+// App odpowiada za główną konfigurację tras/routingu aplikacji
 // Trasy po zalogowaniu korzystają ze wspólnego layoutu z menu bocznym
 export default function App() {
   return <RouterProvider router={router} />;
