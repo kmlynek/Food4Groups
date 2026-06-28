@@ -7,6 +7,7 @@ import { PlaceholderPage } from './pages/PlaceholderPage';
 import { allRoles, roles } from './types/authTypes';
 import { AccountPage } from './pages/AccountPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { GroupsPage } from './pages/GroupsPage';
 
 const router = createBrowserRouter([
   {
@@ -18,7 +19,7 @@ const router = createBrowserRouter([
     path: '/register',
     element: <RegisterPage />
   },
-  
+
   {
     path: '/',
     element: (
@@ -53,11 +54,8 @@ const router = createBrowserRouter([
       {
         path: 'groups',
         element: (
-          <ProtectedRoute allowedRoles={[roles.admin, roles.groupCoordinator]}>
-            <PlaceholderPage
-              title="Grupy"
-              description="Moduł będzie obsługiwał grupy żywieniowe, koordynatorów oraz członków przypisanych do grup"
-            />
+          <ProtectedRoute allowedRoles={[roles.admin, roles.cateringEmployee]}>
+            <GroupsPage />
           </ProtectedRoute>
         ),
       },

@@ -39,7 +39,7 @@ export const navigationItems: NavigationItem[] = [
     label: 'Grupy',
     path: '/groups',
     icon: <GroupOutlinedIcon />,
-    allowedRoles: [roles.admin, roles.groupCoordinator],
+    allowedRoles: [roles.admin, roles.cateringEmployee],
   },
   {
     label: 'Dania',
