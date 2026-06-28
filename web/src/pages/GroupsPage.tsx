@@ -1,5 +1,8 @@
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {
     Alert,
     Box,
@@ -10,10 +13,18 @@ import {
     CircularProgress,
     Stack,
     Typography,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
-import { getGroups } from '../api/groupsApi';
+import { getCateringCompanies } from '../api/cateringCompaniesApi';
+import { getGroups, createGroup, updateGroup, deleteGroup } from '../api/groupsApi';
+import { GroupForm } from '../components/groups/GroupForm';
+import type { CateringCompany } from '../types/cateringCompanyTypes';
 import type { Group } from '../types/groupTypes';
 
 function formatDate(value: string) {
@@ -25,7 +36,12 @@ function formatDate(value: string) {
 
 export function GroupsPage() {
     const [groups, setGroups] = useState<Group[]>([]);
+    const [companies, setCompanies] = useState<CateringCompany[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+    const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
     async function loadGroups() {
@@ -43,8 +59,75 @@ export function GroupsPage() {
         }
     }
 
+    async function loadCompanies() {
+        try {
+            const data = await getCateringCompanies();
+            setCompanies(data.filter((company) => company.isActive));
+        } catch (error) {
+            // Komunikat błędu pobierania firm cateringowych pochodzi z odpowiedzi backendu
+            setErrorMessage(getApiErrorMessage(error, 'Nie udało się pobrać listy firm cateringowych'));
+        }
+    }
+
+    function openCreateForm() {
+        setSelectedGroup(null);
+        setIsFormOpen(true);
+    }
+
+    function openEditForm(group: Group) {
+        setSelectedGroup(group);
+        setIsFormOpen(true);
+    }
+
+    function closeForm() {
+        setSelectedGroup(null);
+        setIsFormOpen(false);
+    }
+
+    async function handleSaveGroup(values: { name: string; cateringCompanyId: string }) {
+        setIsSubmitting(true);
+        setErrorMessage('');
+
+        try {
+            if (selectedGroup) {
+                await updateGroup(selectedGroup.id, values);
+            } else {
+                await createGroup(values);
+            }
+
+            closeForm();
+            await loadGroups();
+        } catch (error) {
+            // Komunikat błędu zapisu grupy pochodzi z odpowiedzi backendu
+            setErrorMessage(getApiErrorMessage(error, 'Nie udało się zapisać grupy'));
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    async function handleDeleteGroup() {
+        if (!groupToDelete) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        setErrorMessage('');
+
+        try {
+            await deleteGroup(groupToDelete.id);
+            setGroupToDelete(null);
+            await loadGroups();
+        } catch (error) {
+            // Komunikat błędu usuwania grupy pochodzi z odpowiedzi backendu
+            setErrorMessage(getApiErrorMessage(error, 'Nie udało się usunąć grupy'));
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
     useEffect(() => {
         void loadGroups();
+        void loadCompanies();
     }, []);
 
     return (
@@ -59,7 +142,7 @@ export function GroupsPage() {
                 </Typography>
             </Box>
 
-            {/* Pasek akcji dla odświeżenia danych z backendu */}
+            {/* Pasek akcji dla odświeżenia danych i dodania nowej grupy */}
             <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
                 <Button
                     variant="outlined"
@@ -68,6 +151,15 @@ export function GroupsPage() {
                     disabled={isLoading}
                 >
                     Odśwież
+                </Button>
+
+                <Button
+                    variant="contained"
+                    startIcon={<AddOutlinedIcon />}
+                    onClick={openCreateForm}
+                    disabled={companies.length === 0}
+                >
+                    Dodaj grupę
                 </Button>
             </Stack>
 
@@ -121,22 +213,68 @@ export function GroupsPage() {
                                             </Typography>
                                         </Box>
 
-                                        <Chip
-                                            color="primary"
-                                            variant="outlined"
-                                            label={`${group.memberCount} członków`}
-                                        />
+                                        <Chip color="primary" variant="outlined" label={`${group.memberCount} członków`} />
                                     </Stack>
 
                                     <Typography variant="body2" color="text.secondary">
                                         Utworzono: {formatDate(group.createdAt)}
                                     </Typography>
+
+                                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            startIcon={<EditOutlinedIcon />}
+                                            onClick={() => openEditForm(group)}
+                                        >
+                                            Edytuj
+                                        </Button>
+
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            size="small"
+                                            startIcon={<DeleteOutlineOutlinedIcon />}
+                                            onClick={() => setGroupToDelete(group)}
+                                        >
+                                            Usuń
+                                        </Button>
+                                    </Stack>
                                 </Stack>
                             </CardContent>
                         </Card>
                     ))}
                 </Box>
             )}
+
+            <GroupForm
+                open={isFormOpen}
+                title={selectedGroup ? 'Edytuj grupę' : 'Dodaj grupę'}
+                submitLabel={selectedGroup ? 'Zapisz zmiany' : 'Dodaj grupę'}
+                isSubmitting={isSubmitting}
+                companies={companies}
+                initialGroup={selectedGroup}
+                onClose={closeForm}
+                onSubmit={handleSaveGroup}
+            />
+            <Dialog open={Boolean(groupToDelete)} onClose={() => setGroupToDelete(null)}>
+                <DialogTitle>Usuń grupę</DialogTitle>
+
+                <DialogContent>
+                    <DialogContentText>
+                        Czy na pewno chcesz usunąć grupę {groupToDelete?.name}? Tej operacji nie można cofnąć.
+                    </DialogContentText>
+                </DialogContent>
+
+                <DialogActions sx={{ px: 3, pb: 3 }}>
+                    <Button onClick={() => setGroupToDelete(null)} disabled={isSubmitting}>
+                        Anuluj
+                    </Button>
+                    <Button color="error" variant="contained" onClick={handleDeleteGroup} disabled={isSubmitting}>
+                        {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Stack>
     );
 }
