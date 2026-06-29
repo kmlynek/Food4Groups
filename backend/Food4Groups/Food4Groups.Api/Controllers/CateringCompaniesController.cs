@@ -17,7 +17,7 @@ public class CateringCompaniesController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin, CateringEmployee")]
+    [Authorize(Roles = "Admin, CateringEmployee, Dietitian")]
     public async Task<IActionResult> GetAll()
     {
         var companies = await _cateringCompanyService.GetAllAsync();
@@ -26,7 +26,7 @@ public class CateringCompaniesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    [Authorize(Roles = "Admin, CateringEmployee")]
+    [Authorize(Roles = "Admin, CateringEmployee, Dietitian")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var company = await _cateringCompanyService.GetByIdAsync(id);
