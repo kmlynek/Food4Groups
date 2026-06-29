@@ -26,17 +26,17 @@ const businessHighlights = [
   {
     icon: GroupsIcon,
     title: 'Obsługa wielu ról',
-    description: 'Administrator, catering, dietetyk, koordynator i użytkownik pracują w jednym procesie',
+    description: 'Administratorzy, firmy cateringowe, dietetycy, koordynatorzy i klienci w jednym spójnym środowisku.',
   },
   {
     icon: RestaurantMenuIcon,
-    title: 'Kontrola oferty i menu',
-    description: 'Dania, dodatki, pakiety i dni menu są uporządkowane w przejrzystym panelu',
+    title: 'Łatwe zarządzanie menu',
+    description: 'Twórz odpowiednie pakiety menu, edytuj dania i dodatki na każdy dzień.',
   },
   {
     icon: CheckCircleOutlinedIcon,
-    title: 'Zamówienia grupowe',
-    description: 'System wspiera składanie, przeglądanie i obsługę zamówień dla grup',
+    title: 'Obsługa zamówień grupowych',
+    description: 'System wspiera składanie, przeglądanie i obsługę zamówień dla grup.',
   },
 ];
 
@@ -121,11 +121,11 @@ export function LoginPage() {
             </Stack>
 
             <Typography variant="h4" sx={{ maxWidth: 520, lineHeight: 1.15 }}>
-              System do organizacji posiłków grupowych
+              System do organizacji posiłków dla grup
             </Typography>
 
             <Typography sx={{ maxWidth: 560, color: '#cbd5d1' }}>
-              Jedno miejsce do zarządzania ofertą, menu, grupami oraz obsługą zamówień
+              Wszystko, czego potrzebujesz do zarządzania ofertą, menu, grupami i zamówieniami.
             </Typography>
           </Stack>
 

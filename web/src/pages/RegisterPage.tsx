@@ -88,11 +88,10 @@ export function RegisterPage() {
                             <Avatar sx={{ bgcolor: 'primary.main' }}>
                                 <PersonAddAltOutlinedIcon />
                             </Avatar>
-
                             <Box>
                                 <Typography variant="h5">Rejestracja konta</Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Nowe konto otrzyma rolę klienta i dostęp po przypisaniu do grupy
+                                <Typography  sx={{pt: 1}} variant="body2" color="text.secondary">
+                                    Dostęp do odpowiednich funkcji systemu zostanie nadany po przypisanu do grupy
                                 </Typography>
                             </Box>
                         </Stack>
