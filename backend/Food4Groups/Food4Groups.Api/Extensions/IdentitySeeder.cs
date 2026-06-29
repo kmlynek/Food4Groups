@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Food4Groups.Api.Extensions;
 
-// Klasa odpowiedzialna za inicjalizację ról oraz kont testowych podczas uruchamiania aplikacji
+// Klasa odpowiedzialna za inicjalizację ról oraz kont testowych podczas uruchamiania aplikacji  
 public static class IdentitySeeder
 {
     private static readonly string[] Roles =
