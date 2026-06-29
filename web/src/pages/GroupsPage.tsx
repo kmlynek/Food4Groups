@@ -262,7 +262,7 @@ export function GroupsPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć grupę {groupToDelete?.name}? Tej operacji nie można cofnąć.
+                        Czy na pewno chcesz usunąć <strong>{groupToDelete?.name}</strong>? Tej operacji nie można cofnąć.
                     </DialogContentText>
                 </DialogContent>
 

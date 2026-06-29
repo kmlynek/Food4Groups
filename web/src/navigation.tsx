@@ -45,7 +45,7 @@ export const navigationItems: NavigationItem[] = [
     label: 'Dania',
     path: '/dishes',
     icon: <RestaurantMenuOutlinedIcon />,
-    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian],
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
   },
   {
     label: 'Menu',

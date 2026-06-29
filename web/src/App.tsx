@@ -8,6 +8,7 @@ import { allRoles, roles } from './types/authTypes';
 import { AccountPage } from './pages/AccountPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { GroupsPage } from './pages/GroupsPage';
+import { DishesPage } from './pages/DishesPage';
 
 const router = createBrowserRouter([
   {
@@ -62,11 +63,8 @@ const router = createBrowserRouter([
       {
         path: 'dishes',
         element: (
-          <ProtectedRoute allowedRoles={[roles.admin, roles.cateringEmployee, roles.dietitian]}>
-            <PlaceholderPage
-              title="Dania"
-              description="Moduł będzie obsługiwał katalog dań, informacje dietetyczne oraz dostępność pozycji w ofercie"
-            />
+          <ProtectedRoute allowedRoles={allRoles}>
+            <DishesPage />
           </ProtectedRoute>
         ),
       },
