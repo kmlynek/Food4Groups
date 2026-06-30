@@ -7,6 +7,7 @@ import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlin
 import type { ReactNode } from 'react';
 import { roles, type UserRole } from './types/authTypes';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
 
 export type NavigationItem = {
   label: string;
@@ -45,6 +46,12 @@ export const navigationItems: NavigationItem[] = [
     label: 'Dania',
     path: '/dishes',
     icon: <RestaurantMenuOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
+  },
+  {
+    label: 'Dodatki',
+    path: '/addons',
+    icon: <ExtensionOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
   },
   {

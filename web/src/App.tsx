@@ -9,6 +9,7 @@ import { AccountPage } from './pages/AccountPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { GroupsPage } from './pages/GroupsPage';
 import { DishesPage } from './pages/DishesPage';
+import { AddonsPage } from './pages/AddonsPage';
 
 const router = createBrowserRouter([
   {
@@ -65,6 +66,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={allRoles}>
             <DishesPage />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: 'addons',
+        element: (
+          <ProtectedRoute allowedRoles={allRoles}>
+            <AddonsPage />
           </ProtectedRoute>
         ),
       },
