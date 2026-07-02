@@ -11,6 +11,7 @@ import { GroupsPage } from './pages/GroupsPage';
 import { DishesPage } from './pages/DishesPage';
 import { AddonsPage } from './pages/AddonsPage';
 import { PackagesPage } from './pages/PackagesPage';
+import { MenuPage } from './pages/MenuPage';
 
 const router = createBrowserRouter([
   {
@@ -90,10 +91,7 @@ const router = createBrowserRouter([
         path: 'menus',
         element: (
           <ProtectedRoute allowedRoles={[roles.admin, roles.cateringEmployee, roles.dietitian]}>
-            <PlaceholderPage
-              title="Menu"
-              description="Moduł będzie obsługiwał menu dzienne, pakiety oraz przypisanie dań i dodatków do konkretnych terminów"
-            />
+            <MenuPage />
           </ProtectedRoute>
         ),
       },
