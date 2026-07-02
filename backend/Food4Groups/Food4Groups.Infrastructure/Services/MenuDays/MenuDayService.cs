@@ -86,7 +86,7 @@ public class MenuDayService : IMenuDayService
         {
             Id = Guid.NewGuid(),
             MenuPeriodId = request.MenuPeriodId,
-            MenuDate = request.MenuDate.Date,
+            MenuDate = NormalizeDate(request.MenuDate),
             IsActive = true
         };
 
@@ -106,7 +106,7 @@ public class MenuDayService : IMenuDayService
         await ValidateMenuDayRequestAsync(request.MenuPeriodId, request.MenuDate, id);
 
         menuDay.MenuPeriodId = request.MenuPeriodId;
-        menuDay.MenuDate = request.MenuDate.Date;
+        menuDay.MenuDate = NormalizeDate(request.MenuDate);
         menuDay.IsActive = request.IsActive;
 
         // Data aktualizacji pozwala śledzić moment ostatniej modyfikacji rekordu
@@ -132,6 +132,12 @@ public class MenuDayService : IMenuDayService
         return true;
     }
 
+    private static DateTime NormalizeDate(DateTime value)
+    {
+        // Dzień menu jest zapisywany jako początek dnia w UTC
+        return DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
+    }
+
     private async Task ValidateMenuDayRequestAsync(Guid menuPeriodId, DateTime menuDate, Guid? ignoredMenuDayId)
     {
         // Dzień menu może zostać utworzony wyłącznie w istniejącym i aktywnym okresie menu
@@ -151,7 +157,7 @@ public class MenuDayService : IMenuDayService
         if (!menuPeriod.IsActive)
             throw new InvalidOperationException("Inactive menu period cannot be used");
 
-        var normalizedMenuDate = menuDate.Date;
+        var normalizedMenuDate = NormalizeDate(menuDate);
 
         // Dzień menu musi mieścić się w zakresie dat zdefiniowanym dla okresu menu
         if (normalizedMenuDate < menuPeriod.StartDate.Date || normalizedMenuDate > menuPeriod.EndDate.Date)
