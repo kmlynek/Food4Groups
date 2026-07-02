@@ -87,8 +87,8 @@ public class MenuPeriodService : IMenuPeriodService
             Id = Guid.NewGuid(),
             CateringCompanyId = request.CateringCompanyId,
             Name = request.Name.Trim(),
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
+            StartDate = NormalizeDate(request.StartDate),
+            EndDate = NormalizeDate(request.EndDate),
             IsActive = true
         };
 
@@ -109,8 +109,8 @@ public class MenuPeriodService : IMenuPeriodService
 
         menuPeriod.CateringCompanyId = request.CateringCompanyId;
         menuPeriod.Name = request.Name.Trim();
-        menuPeriod.StartDate = request.StartDate;
-        menuPeriod.EndDate = request.EndDate;
+        menuPeriod.StartDate = NormalizeDate(request.StartDate);
+        menuPeriod.EndDate = NormalizeDate(request.EndDate);
         menuPeriod.IsActive = request.IsActive;
 
         // Data aktualizacji pozwala śledzić moment ostatniej modyfikacji rekordu
@@ -136,6 +136,12 @@ public class MenuPeriodService : IMenuPeriodService
         return true;
     }
 
+    private static DateTime NormalizeDate(DateTime value)
+    {
+        // Daty menu są zapisywane jako początek dnia w UTC
+        return DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
+    }
+
     private async Task ValidateMenuPeriodRequestAsync(Guid cateringCompanyId, string? name, DateTime startDate, DateTime endDate)
     {
         // Okres menu może zostać przypisany wyłącznie do istniejącej firmy cateringowej
@@ -152,7 +158,7 @@ public class MenuPeriodService : IMenuPeriodService
             throw new ArgumentException("EndDate is required");
 
         // Data zakończenia okresu menu nie może być wcześniejsza niż data rozpoczęcia
-        if (endDate < startDate)
+        if (endDate.Date < startDate.Date)
             throw new ArgumentException("EndDate cannot be earlier than StartDate");
 
         var cateringCompanyExists = await _context.CateringCompanies
