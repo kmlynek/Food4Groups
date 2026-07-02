@@ -59,7 +59,7 @@ export const navigationItems: NavigationItem[] = [
     label: 'Pakiety',
     path: '/packages',
     icon: <Inventory2OutlinedIcon />,
-    allowedRoles: [roles.admin, roles.cateringEmployee],
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian],
   },
   {
     label: 'Menu',

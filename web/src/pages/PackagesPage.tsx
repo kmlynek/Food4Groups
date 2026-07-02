@@ -2,6 +2,7 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import PlaylistAddCheckOutlinedIcon from '@mui/icons-material/PlaylistAddCheckOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
   Alert,
@@ -21,10 +22,17 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
+import { getAddons } from '../api/addonsApi';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
+import { getDishes } from '../api/dishesApi';
 import { createPackage, deletePackage, getPackages, updatePackage } from '../api/packagesApi';
+import { PackageContentDialog } from '../components/packages/PackageContentDialog';
 import { PackageForm } from '../components/packages/PackageForm';
+import { useAuth } from '../hooks/useAuth';
+import type { Addon } from '../types/addonTypes';
+import { roles } from '../types/authTypes';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
+import type { Dish } from '../types/dishTypes';
 import type { Package } from '../types/packageTypes';
 
 function formatDate(value: string) {
@@ -42,12 +50,24 @@ function formatPrice(value: number) {
 }
 
 export function PackagesPage() {
+  const { auth } = useAuth();
+  const userRoles = auth?.user.roles ?? [];
+
+  const canManagePackages =
+    userRoles.includes(roles.admin) || userRoles.includes(roles.cateringEmployee);
+
+  const canManagePackageContent =
+    userRoles.includes(roles.admin) || userRoles.includes(roles.dietitian);
+
   const [packages, setPackages] = useState<Package[]>([]);
   const [companies, setCompanies] = useState<CateringCompany[]>([]);
+  const [dishes, setDishes] = useState<Dish[]>([]);
+  const [addons, setAddons] = useState<Addon[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [packageToDelete, setPackageToDelete] = useState<Package | null>(null);
+  const [packageContent, setPackageContent] = useState<Package | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -67,12 +87,32 @@ export function PackagesPage() {
   }
 
   async function loadCompanies() {
+    if (!canManagePackages) {
+      return;
+    }
+
     try {
       const data = await getCateringCompanies();
       setCompanies(data.filter((company) => company.isActive));
     } catch (error) {
       // Komunikat błędu pobierania firm cateringowych pochodzi z odpowiedzi backendu
       setErrorMessage(getApiErrorMessage(error, 'Nie udało się pobrać listy firm cateringowych'));
+    }
+  }
+
+  async function loadOfferItems() {
+    if (!canManagePackageContent) {
+      return;
+    }
+
+    try {
+      const [dishesData, addonsData] = await Promise.all([getDishes(), getAddons()]);
+
+      setDishes(dishesData);
+      setAddons(addonsData);
+    } catch (error) {
+      // Komunikat błędu pobierania dań i dodatków pochodzi z odpowiedzi backendu
+      setErrorMessage(getApiErrorMessage(error, 'Nie udało się pobrać listy dań i dodatków'));
     }
   }
 
@@ -144,6 +184,7 @@ export function PackagesPage() {
   useEffect(() => {
     void loadPackages();
     void loadCompanies();
+    void loadOfferItems();
   }, []);
 
   return (
@@ -169,14 +210,16 @@ export function PackagesPage() {
           Odśwież
         </Button>
 
-        <Button
-          variant="contained"
-          startIcon={<AddOutlinedIcon />}
-          onClick={openCreateForm}
-          disabled={companies.length === 0}
-        >
-          Dodaj pakiet
-        </Button>
+        {canManagePackages && (
+          <Button
+            variant="contained"
+            startIcon={<AddOutlinedIcon />}
+            onClick={openCreateForm}
+            disabled={companies.length === 0}
+          >
+            Dodaj pakiet
+          </Button>
+        )}
       </Stack>
 
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
@@ -244,26 +287,43 @@ export function PackagesPage() {
                     Utworzono: {formatDate(packageItem.createdAt)}
                   </Typography>
 
-                  <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<EditOutlinedIcon />}
-                      onClick={() => openEditForm(packageItem)}
-                    >
-                      Edytuj
-                    </Button>
+                  {(canManagePackageContent || canManagePackages) && (
+                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                      {canManagePackageContent && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<PlaylistAddCheckOutlinedIcon />}
+                          onClick={() => setPackageContent(packageItem)}
+                        >
+                          Zawartość
+                        </Button>
+                      )}
 
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      size="small"
-                      startIcon={<DeleteOutlineOutlinedIcon />}
-                      onClick={() => setPackageToDelete(packageItem)}
-                    >
-                      Usuń
-                    </Button>
-                  </Stack>
+                      {canManagePackages && (
+                        <>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<EditOutlinedIcon />}
+                            onClick={() => openEditForm(packageItem)}
+                          >
+                            Edytuj
+                          </Button>
+
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            startIcon={<DeleteOutlineOutlinedIcon />}
+                            onClick={() => setPackageToDelete(packageItem)}
+                          >
+                            Usuń
+                          </Button>
+                        </>
+                      )}
+                    </Stack>
+                  )}
                 </Stack>
               </CardContent>
             </Card>
@@ -281,6 +341,14 @@ export function PackagesPage() {
         initialPackage={selectedPackage}
         onClose={closeForm}
         onSubmit={handleSavePackage}
+      />
+
+      <PackageContentDialog
+        open={Boolean(packageContent)}
+        packageItem={packageContent}
+        dishes={dishes}
+        addons={addons}
+        onClose={() => setPackageContent(null)}
       />
 
       <Dialog open={Boolean(packageToDelete)} onClose={() => setPackageToDelete(null)}>
