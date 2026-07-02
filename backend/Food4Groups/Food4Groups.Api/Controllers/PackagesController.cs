@@ -7,7 +7,6 @@ namespace Food4Groups.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin, CateringEmployee")]
 public class PackagesController : ControllerBase
 {
     private readonly IPackageService _packageService;
@@ -18,6 +17,7 @@ public class PackagesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin, CateringEmployee, Dietitian")]
     public async Task<IActionResult> GetAll()
     {
         var packages = await _packageService.GetAllAsync();
@@ -25,6 +25,7 @@ public class PackagesController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "Admin, CateringEmployee, Dietitian")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var package = await _packageService.GetByIdAsync(id);
@@ -32,6 +33,7 @@ public class PackagesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Create([FromBody] CreatePackageRequest request)
     {
         try
@@ -51,6 +53,7 @@ public class PackagesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePackageRequest request)
     {
         try
@@ -69,6 +72,7 @@ public class PackagesController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var deleted = await _packageService.DeleteAsync(id);
