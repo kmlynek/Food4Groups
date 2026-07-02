@@ -10,6 +10,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { GroupsPage } from './pages/GroupsPage';
 import { DishesPage } from './pages/DishesPage';
 import { AddonsPage } from './pages/AddonsPage';
+import { PackagesPage } from './pages/PackagesPage';
 
 const router = createBrowserRouter([
   {
@@ -74,6 +75,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={allRoles}>
             <AddonsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'packages',
+        element: (
+          <ProtectedRoute allowedRoles={[roles.admin, roles.cateringEmployee]}>
+            <PackagesPage />
           </ProtectedRoute>
         ),
       },

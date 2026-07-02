@@ -8,6 +8,7 @@ import type { ReactNode } from 'react';
 import { roles, type UserRole } from './types/authTypes';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 
 export type NavigationItem = {
   label: string;
@@ -53,6 +54,12 @@ export const navigationItems: NavigationItem[] = [
     path: '/addons',
     icon: <ExtensionOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
+  },
+  {
+    label: 'Pakiety',
+    path: '/packages',
+    icon: <Inventory2OutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee],
   },
   {
     label: 'Menu',
