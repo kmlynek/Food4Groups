@@ -3,6 +3,7 @@ import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
+import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import {
   Alert,
   Box,
@@ -31,6 +32,7 @@ import {
 import { MenuPeriodForm } from '../components/menu/MenuPeriodForm';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
 import type { MenuPeriod } from '../types/menuTypes';
+import { MenuDaysDialog } from '../components/menu/MenuDaysDialog';
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('pl-PL', {
@@ -45,6 +47,7 @@ export function MenuPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<MenuPeriod | null>(null);
   const [periodToDelete, setPeriodToDelete] = useState<MenuPeriod | null>(null);
+  const [periodDays, setPeriodDays] = useState<MenuPeriod | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -243,6 +246,14 @@ export function MenuPage() {
                     <Button
                       variant="outlined"
                       size="small"
+                      startIcon={<EventOutlinedIcon />}
+                      onClick={() => setPeriodDays(period)}
+                    >
+                      Dni menu
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
                       startIcon={<EditOutlinedIcon />}
                       onClick={() => openEditForm(period)}
                     >
@@ -277,7 +288,11 @@ export function MenuPage() {
         onClose={closeForm}
         onSubmit={handleSavePeriod}
       />
-
+      <MenuDaysDialog
+        open={Boolean(periodDays)}
+        menuPeriod={periodDays}
+        onClose={() => setPeriodDays(null)}
+      />
       <Dialog open={Boolean(periodToDelete)} onClose={() => setPeriodToDelete(null)}>
         <DialogTitle>Usuń okres menu</DialogTitle>
 
