@@ -3,6 +3,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import {
     Alert,
     Box,
@@ -24,6 +25,7 @@ import { getApiErrorMessage } from '../api/apiError';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
 import { getGroups, createGroup, updateGroup, deleteGroup } from '../api/groupsApi';
 import { GroupForm } from '../components/groups/GroupForm';
+import { GroupMembersDialog } from '../components/groups/GroupMembersDialog';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
 import type { Group } from '../types/groupTypes';
 
@@ -40,6 +42,7 @@ export function GroupsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+    const [groupMembers, setGroupMembers] = useState<Group | null>(null);
     const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -213,7 +216,7 @@ export function GroupsPage() {
                                             </Typography>
                                         </Box>
 
-                                        <Chip color="primary" variant="outlined" label={`${group.memberCount} członków`} />
+                                        <Chip color="primary" variant="outlined" label={`Liczba uczestników: ${group.memberCount}`} />
                                     </Stack>
 
                                     <Typography variant="body2" color="text.secondary">
@@ -221,6 +224,14 @@ export function GroupsPage() {
                                     </Typography>
 
                                     <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            startIcon={<PeopleAltOutlinedIcon />}
+                                            onClick={() => setGroupMembers(group)}
+                                        >
+                                            Uczestnicy
+                                        </Button>
                                         <Button
                                             variant="outlined"
                                             size="small"
@@ -250,19 +261,27 @@ export function GroupsPage() {
             <GroupForm
                 open={isFormOpen}
                 title={selectedGroup ? 'Edytuj grupę' : 'Dodaj grupę'}
-                submitLabel={selectedGroup ? 'Zapisz zmiany' : 'Dodaj grupę'}
+                submitLabel={selectedGroup ? 'Zapisz' : 'Dodaj grupę'}
                 isSubmitting={isSubmitting}
                 companies={companies}
                 initialGroup={selectedGroup}
                 onClose={closeForm}
                 onSubmit={handleSaveGroup}
             />
+            <GroupMembersDialog
+                open={Boolean(groupMembers)}
+                group={groupMembers}
+                onClose={() => setGroupMembers(null)}
+                onChanged={async () => {
+                    await loadGroups();
+                }}
+            />
             <Dialog open={Boolean(groupToDelete)} onClose={() => setGroupToDelete(null)}>
                 <DialogTitle>Usuń grupę</DialogTitle>
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{groupToDelete?.name}</strong>? Tej operacji nie można cofnąć.
+                        Czy na pewno chcesz usunąć <strong>{groupToDelete?.name}</strong>?
                     </DialogContentText>
                 </DialogContent>
 

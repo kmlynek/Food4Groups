@@ -334,7 +334,7 @@ export function PackagesPage() {
       <PackageForm
         open={isFormOpen}
         title={selectedPackage ? 'Edytuj pakiet' : 'Dodaj pakiet'}
-        submitLabel={selectedPackage ? 'Zapisz zmiany' : 'Dodaj pakiet'}
+        submitLabel={selectedPackage ? 'Zapisz' : 'Dodaj pakiet'}
         isSubmitting={isSubmitting}
         canEditStatus={Boolean(selectedPackage)}
         companies={companies}

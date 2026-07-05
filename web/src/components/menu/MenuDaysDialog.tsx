@@ -298,7 +298,7 @@ export function MenuDaysDialog({ open, menuPeriod, onClose }: MenuDaysDialogProp
       <MenuDayForm
         open={isFormOpen}
         title={selectedDay ? 'Edytuj dzień menu' : 'Dodaj dzień menu'}
-        submitLabel={selectedDay ? 'Zapisz zmiany' : 'Dodaj dzień'}
+        submitLabel={selectedDay ? 'Zapisz' : 'Dodaj dzień'}
         isSubmitting={isSubmitting}
         canEditStatus={Boolean(selectedDay)}
         menuPeriod={menuPeriod}
@@ -320,8 +320,7 @@ export function MenuDaysDialog({ open, menuPeriod, onClose }: MenuDaysDialogProp
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{dayToDelete ? formatDate(dayToDelete.menuDate) : ''}</strong>?
-            Tej operacji nie można cofnąć.
+            Czy na pewno chcesz usunąć <strong>{dayToDelete ? formatDate(dayToDelete.menuDate) : ''}</strong>?            
           </DialogContentText>
         </DialogContent>
 

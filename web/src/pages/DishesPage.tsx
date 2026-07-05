@@ -291,7 +291,7 @@ export function DishesPage() {
             <DishForm
                 open={isFormOpen}
                 title={selectedDish ? 'Edytuj danie' : 'Dodaj danie'}
-                submitLabel={selectedDish ? 'Zapisz zmiany' : 'Dodaj danie'}
+                submitLabel={selectedDish ? 'Zapisz' : 'Dodaj danie'}
                 isSubmitting={isSubmitting}
                 canEditStatus={Boolean(selectedDish)}
                 companies={companies}
@@ -305,7 +305,7 @@ export function DishesPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{dishToDelete?.name}?</strong> Tej operacji nie można cofnąć.
+                        Czy na pewno chcesz usunąć <strong>{dishToDelete?.name}?</strong>
                     </DialogContentText>
                 </DialogContent>
 

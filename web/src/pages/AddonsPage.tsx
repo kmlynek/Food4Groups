@@ -292,7 +292,7 @@ export function AddonsPage() {
             <AddonForm
                 open={isFormOpen}
                 title={selectedAddon ? 'Edytuj dodatek' : 'Dodaj dodatek'}
-                submitLabel={selectedAddon ? 'Zapisz zmiany' : 'Dodaj dodatek'}
+                submitLabel={selectedAddon ? 'Zapisz' : 'Dodaj dodatek'}
                 isSubmitting={isSubmitting}
                 canEditStatus={Boolean(selectedAddon)}
                 companies={companies}
@@ -306,7 +306,7 @@ export function AddonsPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{addonToDelete?.name}</strong>? Tej operacji nie można cofnąć.
+                        Czy na pewno chcesz usunąć <strong>{addonToDelete?.name}</strong>?
                     </DialogContentText>
                 </DialogContent>
 

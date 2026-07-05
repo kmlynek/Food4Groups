@@ -280,7 +280,7 @@ export function MenuPage() {
       <MenuPeriodForm
         open={isFormOpen}
         title={selectedPeriod ? 'Edytuj okres menu' : 'Dodaj okres obowiązywania menu'}
-        submitLabel={selectedPeriod ? 'Zapisz zmiany' : 'Dodaj'}
+        submitLabel={selectedPeriod ? 'Zapisz' : 'Dodaj'}
         isSubmitting={isSubmitting}
         canEditStatus={Boolean(selectedPeriod)}
         companies={companies}
