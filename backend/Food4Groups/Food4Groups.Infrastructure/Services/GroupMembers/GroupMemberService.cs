@@ -162,14 +162,13 @@ public class GroupMemberService : IGroupMemberService
         if (!isClient)
             throw new ArgumentException("Only users with User role can be assigned as group members");
 
-        // Jeden klient nie powinien być przypisany wielokrotnie do tej samej grupy
-        var duplicateExists = await _context.GroupMembers.AnyAsync(x =>
-            x.GroupId == groupId &&
+        // Jeden klient może należeć tylko do jednej grupy
+        var userAlreadyAssigned = await _context.GroupMembers.AnyAsync(x =>
             x.UserId == trimmedUserId &&
             (!currentMemberId.HasValue || x.Id != currentMemberId.Value));
 
-        if (duplicateExists)
-            throw new InvalidOperationException("This user already belongs to the selected group");
+        if (userAlreadyAssigned)
+            throw new InvalidOperationException("This user already belongs to a group");
 
         return trimmedUserId;
     }
