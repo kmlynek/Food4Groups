@@ -35,7 +35,7 @@ export const navigationItems: NavigationItem[] = [
     label: 'Użytkownicy',
     path: '/users',
     icon: <PeopleAltOutlinedIcon />,
-    allowedRoles: [roles.admin, roles.groupCoordinator],
+    allowedRoles: [roles.admin],
   },
   {
     label: 'Grupy',

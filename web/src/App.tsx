@@ -12,6 +12,7 @@ import { DishesPage } from './pages/DishesPage';
 import { AddonsPage } from './pages/AddonsPage';
 import { PackagesPage } from './pages/PackagesPage';
 import { MenuPage } from './pages/MenuPage';
+import { UsersPage } from './pages/UsersPage';
 
 const router = createBrowserRouter([
   {
@@ -47,11 +48,8 @@ const router = createBrowserRouter([
       {
         path: 'users',
         element: (
-          <ProtectedRoute allowedRoles={[roles.admin, roles.groupCoordinator]}>
-            <PlaceholderPage
-              title="Użytkownicy"
-              description="Moduł będzie obsługiwał zarządzanie kontami, rolami oraz przypisaniem użytkowników do grup"
-            />
+          <ProtectedRoute allowedRoles={[roles.admin]}>
+            <UsersPage />
           </ProtectedRoute>
         ),
       },
