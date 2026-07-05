@@ -23,7 +23,8 @@ export const theme = createTheme({
     borderRadius: 8,
   },
   typography: {
-    fontFamily: ['Inter', 'Roboto', 'Arial', 'sans-serif'].join(','),
+
+    fontFamily: 'Inter, sans-serif',
     h4: {
       fontWeight: 700,
     },
