@@ -51,6 +51,24 @@ public class OrdersController : ControllerBase
 
         return Ok(statuses);
     }
+    
+    [HttpGet("options")]
+    [Authorize(Roles = "User")]
+    public async Task<IActionResult> GetOptions()
+    {
+        try
+        {
+            // Opcje zamówienia są wyliczane dla aktualnego klienta na podstawie jego grupy i aktywnego pakietu
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var options = await _orderService.GetOptionsAsync(currentUserId ?? string.Empty);
+
+            return Ok(options);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return Unauthorized(exception.Message);
+        }
+    }
 
     [HttpGet("{id:guid}")]
     [Authorize(Roles = "Admin, CateringEmployee")]

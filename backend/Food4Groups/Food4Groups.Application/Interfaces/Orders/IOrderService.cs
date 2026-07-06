@@ -8,6 +8,7 @@ public interface IOrderService
     Task<List<OrderResponse>> GetMyOrdersAsync(string currentUserId);
     Task<OrderResponse?> GetByIdAsync(Guid id);
     Task<List<OrderStatusResponse>> GetStatusesAsync();
+    Task<OrderOptionsResponse> GetOptionsAsync(string currentUserId);
     Task<OrderResponse> CreateAsync(string currentUserId, CreateOrderRequest request);
     Task<OrderResponse?> ChangeStatusAsync(Guid id, string changedByUserId, ChangeOrderStatusRequest request);
 }

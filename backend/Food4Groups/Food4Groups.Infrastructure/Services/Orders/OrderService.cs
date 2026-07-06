@@ -67,6 +67,82 @@ public class OrderService : IOrderService
             })
             .ToListAsync();
     }
+    
+     public async Task<OrderOptionsResponse> GetOptionsAsync(string currentUserId)
+    {
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UnauthorizedAccessException("User is not authenticated");
+
+        var groupMember = await _context.GroupMembers
+            .AsNoTracking()
+            .Include(x => x.Group)
+            .FirstOrDefaultAsync(x => x.UserId == currentUserId && x.IsActive);
+
+        if (groupMember is null || groupMember.Group is null)
+            return new OrderOptionsResponse();
+
+        var orderedMenuDayIds = await _context.Orders
+            .AsNoTracking()
+            .Where(x => x.GroupMemberId == groupMember.Id)
+            .Select(x => x.MenuDayId)
+            .ToListAsync();
+
+        // Klient otrzymuje tylko aktywne dni menu swojej firmy, dla których nie złożył jeszcze zamówienia
+        var menuDays = await _context.MenuDays
+            .AsNoTracking()
+            .Include(x => x.MenuPeriod)
+            .Where(x =>
+                x.IsActive &&
+                x.MenuPeriod != null &&
+                x.MenuPeriod.IsActive &&
+                x.MenuPeriod.CateringCompanyId == groupMember.Group.CateringCompanyId &&
+                !orderedMenuDayIds.Contains(x.Id))
+            .OrderBy(x => x.MenuDate)
+            .ToListAsync();
+
+        var response = new OrderOptionsResponse
+        {
+            GroupMemberId = groupMember.Id,
+            GroupId = groupMember.GroupId,
+            GroupName = groupMember.Group.Name
+        };
+
+        foreach (var menuDay in menuDays)
+        {
+            var menuDate = menuDay.MenuDate.Date;
+
+            var packageAssignment = await _context.GroupPackageAssignments
+                .AsNoTracking()
+                .Include(x => x.Package)
+                .FirstOrDefaultAsync(x =>
+                    x.GroupId == groupMember.GroupId &&
+                    x.IsActive &&
+                    x.Package != null &&
+                    x.Package.IsActive &&
+                    x.ActiveFrom.Date <= menuDate &&
+                    (x.ActiveTo == null || x.ActiveTo.Value.Date >= menuDate));
+
+            if (packageAssignment is null)
+                continue;
+
+            var dishes = await GetOrderOptionDishesAsync(menuDay.Id, packageAssignment.PackageId, groupMember.Group.CateringCompanyId);
+            if (dishes.Count == 0)
+                continue;
+
+            var addons = await GetOrderOptionAddonsAsync(menuDay.Id, packageAssignment.PackageId, groupMember.Group.CateringCompanyId);
+
+            response.MenuDays.Add(new OrderOptionMenuDayResponse
+            {
+                Id = menuDay.Id,
+                MenuDate = menuDay.MenuDate,
+                MenuPeriodName = menuDay.MenuPeriod?.Name,
+                Dishes = dishes,
+                Addons = addons
+            });
+        }
+
+        return response;
+    }
 
     public async Task<OrderResponse> CreateAsync(string currentUserId, CreateOrderRequest request)
     {
@@ -241,6 +317,51 @@ public class OrderService : IOrderService
         }).ToList();
     }
 
+    private async Task<List<OrderOptionDishResponse>> GetOrderOptionDishesAsync(Guid menuDayId, Guid packageId, Guid cateringCompanyId)
+    {
+        // Dostępne dania muszą być jednocześnie w menu dnia i w pakiecie przypisanym do grupy
+        return await (
+            from menuItem in _context.MenuItems.AsNoTracking()
+            join dish in _context.Dishes.AsNoTracking() on menuItem.DishId equals dish.Id
+            join packageDish in _context.PackageDishes.AsNoTracking() on dish.Id equals packageDish.DishId
+            where menuItem.MenuDayId == menuDayId &&
+                  menuItem.IsActive &&
+                  dish.IsActive &&
+                  dish.CateringCompanyId == cateringCompanyId &&
+                  packageDish.PackageId == packageId &&
+                  packageDish.IsActive
+            orderby dish.Name
+            select new OrderOptionDishResponse
+            {
+                Id = dish.Id,
+                Name = dish.Name
+            })
+            .Distinct()
+            .ToListAsync();
+    }
+
+    private async Task<List<OrderOptionAddonResponse>> GetOrderOptionAddonsAsync(Guid menuDayId, Guid packageId, Guid cateringCompanyId)
+    {
+        // Dostępne dodatki muszą być jednocześnie w menu dnia i w pakiecie przypisanym do grupy
+        return await (
+            from menuDayAddon in _context.MenuDayAddons.AsNoTracking()
+            join addon in _context.Addons.AsNoTracking() on menuDayAddon.AddonId equals addon.Id
+            join packageAddon in _context.PackageAddons.AsNoTracking() on addon.Id equals packageAddon.AddonId
+            where menuDayAddon.MenuDayId == menuDayId &&
+                  menuDayAddon.IsActive &&
+                  addon.IsActive &&
+                  addon.CateringCompanyId == cateringCompanyId &&
+                  packageAddon.PackageId == packageId &&
+                  packageAddon.IsActive
+            orderby addon.Name
+            select new OrderOptionAddonResponse
+            {
+                Id = addon.Id,
+                Name = addon.Name
+            })
+            .Distinct()
+            .ToListAsync();
+    }
     private async Task<GroupMember> ValidateCustomerOrderRequestAsync(
         string currentUserId,
         Guid groupMemberId,
