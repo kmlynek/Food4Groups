@@ -3,7 +3,6 @@ import { AppLayout } from './components/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
-import { PlaceholderPage } from './pages/PlaceholderPage';
 import { allRoles, roles } from './types/authTypes';
 import { AccountPage } from './pages/AccountPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -13,6 +12,7 @@ import { AddonsPage } from './pages/AddonsPage';
 import { PackagesPage } from './pages/PackagesPage';
 import { MenuPage } from './pages/MenuPage';
 import { UsersPage } from './pages/UsersPage';
+import { OrdersPage } from './pages/OrdersPage';
 
 const router = createBrowserRouter([
   {
@@ -97,10 +97,7 @@ const router = createBrowserRouter([
         path: 'orders',
         element: (
           <ProtectedRoute allowedRoles={[roles.admin, roles.cateringEmployee, roles.groupCoordinator, roles.user]}>
-            <PlaceholderPage
-              title="Zamówienia"
-              description="Moduł będzie obsługiwał składanie zamówień, przegląd zamówień oraz statusy realizacji"
-            />
+            <OrdersPage />
           </ProtectedRoute>
         ),
       },

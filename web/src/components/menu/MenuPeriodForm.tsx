@@ -128,7 +128,9 @@ export function MenuPeriodForm({
                 onChange={(event) => setStartDate(event.target.value)}
                 required
                 fullWidth
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                }}
               />
 
               <TextField
@@ -151,7 +153,7 @@ export function MenuPeriodForm({
                     onChange={(event) => setIsActive(event.target.checked)}
                   />
                 }
-                label="Okres menu aktywny"
+                label="Aktywny"
               />
             )}
           </Stack>

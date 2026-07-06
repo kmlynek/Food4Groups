@@ -87,10 +87,12 @@ export function MenuDayForm({
               required
               fullWidth
               autoFocus
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: toDateInputValue(menuPeriod?.startDate),
-                max: toDateInputValue(menuPeriod?.endDate),
+              slotProps={{
+                inputLabel: { shrink: true },
+                htmlInput: {
+                  min: toDateInputValue(menuPeriod?.startDate),
+                  max: toDateInputValue(menuPeriod?.endDate),
+                },
               }}
             />
 

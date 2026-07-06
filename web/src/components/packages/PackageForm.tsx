@@ -115,7 +115,9 @@ export function PackageForm({
               onChange={(event) => setPricePerPerson(event.target.value)}
               required
               fullWidth
-              inputProps={{ min: 0, step: '0.01' }}
+              slotProps={{
+                htmlInput: { min: 0, step: '0.01' },
+              }}
             />
 
             {/* Status aktywności pozwala ukryć pakiet bez usuwania go z bazy */}

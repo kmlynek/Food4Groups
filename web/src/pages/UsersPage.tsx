@@ -127,10 +127,7 @@ export function UsersPage() {
                     <CardContent>
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <ManageAccountsOutlinedIcon color="primary" fontSize="large" />
-                            <Typography variant="h6">Brak użytkowników</Typography>
-                            <Typography color="text.secondary">
-                                Po utworzeniu kont użytkownicy będą widoczni w tym miejscu
-                            </Typography>
+                            <Typography variant="h6">Brak użytkowników</Typography>                            
                         </Stack>
                     </CardContent>
                 </Card>

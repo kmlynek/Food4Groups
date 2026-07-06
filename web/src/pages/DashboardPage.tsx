@@ -203,9 +203,6 @@ const shouldShowSeededAccountAlert = isSeededAccount && !isSeededPasswordChanged
             <SettingsOutlinedIcon color="primary" />
             <Box>
               <Typography variant="h6">Podsumowanie systemu</Typography>
-              <Typography color="text.secondary">
-                W tym miejscu pojawią się najważniejsze informacje o grupach, aktualnym menu i zamówieniach
-              </Typography>
             </Box>
           </Stack>
         </CardContent>

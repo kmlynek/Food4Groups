@@ -187,9 +187,6 @@ export function GroupsPage() {
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <GroupsOutlinedIcon color="primary" fontSize="large" />
                             <Typography variant="h6">Brak grup</Typography>
-                            <Typography color="text.secondary">
-                                Po utworzeniu grup będą one widoczne w tym miejscu
-                            </Typography>
                         </Stack>
                     </CardContent>
                 </Card>

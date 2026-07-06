@@ -209,9 +209,6 @@ export function DishesPage() {
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <RestaurantMenuOutlinedIcon color="primary" fontSize="large" />
                             <Typography variant="h6">Brak dań</Typography>
-                            <Typography color="text.secondary">
-                                Po dodaniu dań będą one widoczne w tym miejscu
-                            </Typography>
                         </Stack>
                     </CardContent>
                 </Card>

@@ -209,9 +209,6 @@ export function AddonsPage() {
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <ExtensionOutlinedIcon color="primary" fontSize="large" />
                             <Typography variant="h6">Brak dodatków</Typography>
-                            <Typography color="text.secondary">
-                                Po dodaniu dodatków będą one widoczne w tym miejscu
-                            </Typography>
                         </Stack>
                     </CardContent>
                 </Card>

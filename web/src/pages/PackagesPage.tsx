@@ -243,9 +243,6 @@ export function PackagesPage() {
             <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
               <Inventory2OutlinedIcon color="primary" fontSize="large" />
               <Typography variant="h6">Brak pakietów</Typography>
-              <Typography color="text.secondary">
-                Po dodaniu pakietów będą one widoczne w tym miejscu
-              </Typography>
             </Stack>
           </CardContent>
         </Card>

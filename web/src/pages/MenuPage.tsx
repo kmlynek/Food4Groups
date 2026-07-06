@@ -202,9 +202,6 @@ export function MenuPage() {
             <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
               <CalendarMonthOutlinedIcon color="primary" fontSize="large" />
               <Typography variant="h6">Brak okresów menu</Typography>
-              <Typography color="text.secondary">
-                Po dodaniu okresów menu będą one widoczne w tym miejscu
-              </Typography>
             </Stack>
           </CardContent>
         </Card>

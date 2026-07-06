@@ -214,9 +214,6 @@ export function MenuDaysDialog({ open, menuPeriod, onClose }: MenuDaysDialogProp
                   <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                     <EventOutlinedIcon color="primary" fontSize="large" />
                     <Typography variant="h6">Brak dni menu</Typography>
-                    <Typography color="text.secondary">
-                      Po dodaniu dni menu będą one widoczne w tym miejscu
-                    </Typography>
                   </Stack>
                 </CardContent>
               </Card>
