@@ -86,8 +86,11 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
 
     public async Task<GroupPackageAssignmentResponse> CreateAsync(CreateGroupPackageAssignmentRequest request)
     {
-        await ValidateAssignmentRequestAsync(request.GroupId, request.PackageId, request.ActiveFrom, request.ActiveTo);
-        await EnsureNoActiveOverlapAsync(request.GroupId, request.ActiveFrom, request.ActiveTo, null);
+        var activeFrom = NormalizeDate(request.ActiveFrom);
+        var activeTo = NormalizeOptionalDate(request.ActiveTo);
+
+        await ValidateAssignmentRequestAsync(request.GroupId, request.PackageId, activeFrom, activeTo);
+        await EnsureNoActiveOverlapAsync(request.GroupId, activeFrom, activeTo, null);
 
         // Nowe przypisanie pakietu do grupy jest domyślnie aktywne
         var assignment = new GroupPackageAssignment
@@ -95,8 +98,8 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
             Id = Guid.NewGuid(),
             GroupId = request.GroupId,
             PackageId = request.PackageId,
-            ActiveFrom = request.ActiveFrom,
-            ActiveTo = request.ActiveTo,
+            ActiveFrom = activeFrom,
+            ActiveTo = activeTo,
             IsActive = true
         };
 
@@ -113,15 +116,18 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
         if (assignment is null)
             return null;
 
-        await ValidateAssignmentRequestAsync(request.GroupId, request.PackageId, request.ActiveFrom, request.ActiveTo);
+        var activeFrom = NormalizeDate(request.ActiveFrom);
+        var activeTo = NormalizeOptionalDate(request.ActiveTo);
+
+        await ValidateAssignmentRequestAsync(request.GroupId, request.PackageId, activeFrom, activeTo);
 
         if (request.IsActive)
-            await EnsureNoActiveOverlapAsync(request.GroupId, request.ActiveFrom, request.ActiveTo, id);
+            await EnsureNoActiveOverlapAsync(request.GroupId, activeFrom, activeTo, id);
 
         assignment.GroupId = request.GroupId;
         assignment.PackageId = request.PackageId;
-        assignment.ActiveFrom = request.ActiveFrom;
-        assignment.ActiveTo = request.ActiveTo;
+        assignment.ActiveFrom = activeFrom;
+        assignment.ActiveTo = activeTo;
         assignment.IsActive = request.IsActive;
 
         // Data aktualizacji pozwala śledzić moment ostatniej modyfikacji rekordu
@@ -143,6 +149,17 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
         await _context.SaveChangesAsync();
 
         return true;
+    }
+
+    private static DateTime NormalizeDate(DateTime value)
+    {
+        // Daty obowiązywania pakietu są zapisywane jako początek dnia w UTC
+        return DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
+    }
+
+    private static DateTime? NormalizeOptionalDate(DateTime? value)
+    {
+        return value.HasValue ? NormalizeDate(value.Value) : null;
     }
 
     private async Task ValidateAssignmentRequestAsync(Guid groupId, Guid packageId, DateTime activeFrom, DateTime? activeTo)
