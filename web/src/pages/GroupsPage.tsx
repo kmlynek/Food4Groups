@@ -1,9 +1,9 @@
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import {
     Alert,
     Box,
@@ -25,7 +25,7 @@ import { getApiErrorMessage } from '../api/apiError';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
 import { getGroups, createGroup, updateGroup, deleteGroup } from '../api/groupsApi';
 import { GroupForm } from '../components/groups/GroupForm';
-import { GroupMembersDialog } from '../components/groups/GroupMembersDialog';
+import { GroupPackageAssignmentsDialog } from '../components/groups/GroupPackageAssignmentsDialog';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
 import type { Group } from '../types/groupTypes';
 
@@ -42,7 +42,7 @@ export function GroupsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-    const [groupMembers, setGroupMembers] = useState<Group | null>(null);
+    const [groupPackages, setGroupPackages] = useState<Group | null>(null);
     const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -187,6 +187,9 @@ export function GroupsPage() {
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <GroupsOutlinedIcon color="primary" fontSize="large" />
                             <Typography variant="h6">Brak grup</Typography>
+                            <Typography color="text.secondary">
+                                Po utworzeniu grup będą one widoczne w tym miejscu
+                            </Typography>
                         </Stack>
                     </CardContent>
                 </Card>
@@ -213,7 +216,7 @@ export function GroupsPage() {
                                             </Typography>
                                         </Box>
 
-                                        <Chip color="primary" variant="outlined" label={`Liczba uczestników: ${group.memberCount}`} />
+                                        <Chip color="primary" variant="outlined" label={`${group.memberCount} członków`} />
                                     </Stack>
 
                                     <Typography variant="body2" color="text.secondary">
@@ -224,11 +227,12 @@ export function GroupsPage() {
                                         <Button
                                             variant="outlined"
                                             size="small"
-                                            startIcon={<PeopleAltOutlinedIcon />}
-                                            onClick={() => setGroupMembers(group)}
+                                            startIcon={<Inventory2OutlinedIcon />}
+                                            onClick={() => setGroupPackages(group)}
                                         >
-                                            Uczestnicy
+                                            Pakiet
                                         </Button>
+
                                         <Button
                                             variant="outlined"
                                             size="small"
@@ -258,21 +262,20 @@ export function GroupsPage() {
             <GroupForm
                 open={isFormOpen}
                 title={selectedGroup ? 'Edytuj grupę' : 'Dodaj grupę'}
-                submitLabel={selectedGroup ? 'Zapisz' : 'Dodaj grupę'}
+                submitLabel={selectedGroup ? 'Zapisz zmiany' : 'Dodaj grupę'}
                 isSubmitting={isSubmitting}
                 companies={companies}
                 initialGroup={selectedGroup}
                 onClose={closeForm}
                 onSubmit={handleSaveGroup}
             />
-            <GroupMembersDialog
-                open={Boolean(groupMembers)}
-                group={groupMembers}
-                onClose={() => setGroupMembers(null)}
-                onChanged={async () => {
-                    await loadGroups();
-                }}
+
+            <GroupPackageAssignmentsDialog
+                open={Boolean(groupPackages)}
+                group={groupPackages}
+                onClose={() => setGroupPackages(null)}
             />
+
             <Dialog open={Boolean(groupToDelete)} onClose={() => setGroupToDelete(null)}>
                 <DialogTitle>Usuń grupę</DialogTitle>
 
