@@ -197,8 +197,7 @@ export function UsersPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{userToDelete?.email}</strong>? Tej operacji nie można
-                        cofnąć.
+                        Czy na pewno chcesz usunąć <strong>{userToDelete?.email}</strong>?
                     </DialogContentText>
                 </DialogContent>
 

@@ -1,322 +1,361 @@
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
-    Alert,
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Chip,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Stack,
-    Typography,
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+  Typography,
 } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { getApiErrorMessage } from '../../api/apiError';
 import {
-    createGroupMember,
-    deleteGroupMember,
-    getAvailableGroupMemberUsers,
-    getGroupMembers,
-    updateGroupMember,
+  createGroupMember,
+  deleteGroupMember,
+  getAvailableGroupMemberUsers,
+  getGroupMembers,
+  updateGroupMember,
 } from '../../api/groupMembersApi';
 import type { AvailableGroupMemberUser, GroupMember } from '../../types/groupMemberTypes';
 import type { Group } from '../../types/groupTypes';
 import { GroupMemberForm } from './GroupMemberForm';
 
 type GroupMembersDialogProps = {
-    open: boolean;
-    group: Group | null;
-    onClose: () => void;
-    onChanged: () => Promise<void>;
+  open: boolean;
+  group: Group | null;
+  onClose: () => void;
+  onChanged: () => Promise<void>;
 };
 
-function formatDate(value: string) {
-    return new Intl.DateTimeFormat('pl-PL', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    }).format(new Date(value));
+function formatDate(value?: string) {
+  if (!value) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('pl-PL', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
 }
 
 export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMembersDialogProps) {
-    const [members, setMembers] = useState<GroupMember[]>([]);
-    const [users, setUsers] = useState<AvailableGroupMemberUser[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null);
-    const [memberToDelete, setMemberToDelete] = useState<GroupMember | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
+  const [members, setMembers] = useState<GroupMember[]>([]);
+  const [users, setUsers] = useState<AvailableGroupMemberUser[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<GroupMember | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
-    const groupMembers = useMemo(() => {
-        if (!group) {
-            return [];
-        }
+  const groupMembers = useMemo(() => {
+    if (!group) {
+      return [];
+    }
 
-        return members.filter((member) => member.groupId === group.id);
-    }, [group, members]);
+    return members.filter((member) => member.groupId === group.id);
+  }, [group, members]);
 
+  const availableUsers = useMemo(() => {
     // Jeden klient może należeć tylko do jednej grupy, więc lista pomija użytkowników przypisanych gdziekolwiek
-    const availableUsers = useMemo(() => {
-        const assignedUserIds = new Set(members.map((member) => member.userId));
-        return users.filter((user) => !assignedUserIds.has(user.id));
-    }, [members, users]);
+    const assignedUserIds = new Set(members.map((member) => member.userId));
 
-    async function loadData() {
-        setIsLoading(true);
-        setErrorMessage('');
+    return users.filter((user) => !assignedUserIds.has(user.id));
+  }, [members, users]);
 
-        try {
-            const [membersData, usersData] = await Promise.all([
-                getGroupMembers(),
-                getAvailableGroupMemberUsers(),
-            ]);
-
-            setMembers(membersData);
-            setUsers(usersData);
-        } catch (error) {
-            // Komunikat błędu pobierania członków grupy pochodzi z odpowiedzi backendu
-            setErrorMessage(getApiErrorMessage(error, 'Nie udało się pobrać członków grupy'));
-        } finally {
-            setIsLoading(false);
-        }
+  const usersForForm = useMemo(() => {
+    if (!selectedMember) {
+      return availableUsers;
     }
 
-    function openCreateForm() {
-        setSelectedMember(null);
-        setIsFormOpen(true);
+    const selectedUserExists = availableUsers.some((user) => user.id === selectedMember.userId);
+
+    if (selectedUserExists) {
+      return availableUsers;
     }
 
-    function openEditForm(member: GroupMember) {
-        setSelectedMember(member);
-        setIsFormOpen(true);
+    return [
+      ...availableUsers,
+      {
+        id: selectedMember.userId,
+        email: selectedMember.userEmail,
+      },
+    ];
+  }, [availableUsers, selectedMember]);
+
+  async function loadData() {
+    if (!group) {
+      return;
     }
 
-    function closeForm() {
-        setSelectedMember(null);
-        setIsFormOpen(false);
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const [membersData, usersData] = await Promise.all([
+        getGroupMembers(),
+        getAvailableGroupMemberUsers(),
+      ]);
+
+      setMembers(membersData);
+      setUsers(usersData);
+    } catch (error) {
+      // Komunikat błędu pobierania uczestników pochodzi z odpowiedzi backendu
+      setErrorMessage(getApiErrorMessage(error, 'Nie udało się pobrać uczestników grupy'));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function openCreateForm() {
+    setSelectedMember(null);
+    setIsFormOpen(true);
+  }
+
+  function openEditForm(member: GroupMember) {
+    setSelectedMember(member);
+    setIsFormOpen(true);
+  }
+
+  function closeForm() {
+    setSelectedMember(null);
+    setIsFormOpen(false);
+  }
+
+  async function handleSaveMember(values: { userId: string; isActive: boolean }) {
+    if (!group) {
+      return;
     }
 
-    async function handleSaveMember(values: { userId: string; isActive: boolean }) {
-        if (!group) {
-            return;
-        }
+    setIsSubmitting(true);
+    setErrorMessage('');
 
-        setIsSubmitting(true);
-        setErrorMessage('');
+    try {
+      if (selectedMember) {
+        await updateGroupMember(selectedMember.id, {
+          groupId: group.id,
+          userId: values.userId,
+          isActive: values.isActive,
+        });
+      } else {
+        await createGroupMember({
+          groupId: group.id,
+          userId: values.userId,
+        });
+      }
 
-        try {
-            if (selectedMember) {
-                await updateGroupMember(selectedMember.id, {
-                    groupId: group.id,
-                    userId: selectedMember.userId,
-                    isActive: values.isActive,
-                });
-            } else {
-                await createGroupMember({
-                    groupId: group.id,
-                    userId: values.userId,
-                });
-            }
+      closeForm();
+      await loadData();
+      await onChanged();
+    } catch (error) {
+      // Komunikat błędu zapisu uczestnika pochodzi z odpowiedzi backendu
+      setErrorMessage(getApiErrorMessage(error, 'Nie udało się zapisać uczestnika grupy'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
-            closeForm();
-            await loadData();
-            await onChanged();
-        } catch (error) {
-            // Komunikat błędu zapisu członkostwa pochodzi z odpowiedzi backendu
-            setErrorMessage(getApiErrorMessage(error, 'Nie udało się zapisać członkostwa'));
-        } finally {
-            setIsSubmitting(false);
-        }
+  async function handleDeleteMember() {
+    if (!memberToDelete) {
+      return;
     }
 
-    async function handleDeleteMember() {
-        if (!memberToDelete) {
-            return;
-        }
+    setIsSubmitting(true);
+    setErrorMessage('');
 
-        setIsSubmitting(true);
-        setErrorMessage('');
-
-        try {
-            await deleteGroupMember(memberToDelete.id);
-            setMemberToDelete(null);
-            await loadData();
-            await onChanged();
-        } catch (error) {
-            // Komunikat błędu usuwania członkostwa pochodzi z odpowiedzi backendu
-            setErrorMessage(getApiErrorMessage(error, 'Nie udało się usunąć członkostwa'));
-        } finally {
-            setIsSubmitting(false);
-        }
+    try {
+      await deleteGroupMember(memberToDelete.id);
+      setMemberToDelete(null);
+      await loadData();
+      await onChanged();
+    } catch (error) {
+      // Komunikat błędu usuwania uczestnika pochodzi z odpowiedzi backendu
+      setErrorMessage(getApiErrorMessage(error, 'Nie udało się usunąć uczestnika grupy'));
+    } finally {
+      setIsSubmitting(false);
     }
+  }
 
-    useEffect(() => {
-        if (open) {
-            void loadData();
-        }
-    }, [open]);
+  function handleClose() {
+    setMembers([]);
+    setUsers([]);
+    setSelectedMember(null);
+    setMemberToDelete(null);
+    setErrorMessage('');
+    onClose();
+  }
 
-    return (
-        <>
-            <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-                <DialogTitle>Uczestnicy: {group?.name}</DialogTitle>
+  useEffect(() => {
+    if (open) {
+      void loadData();
+    }
+  }, [open, group]);
 
-                <DialogContent>
-                    <Stack spacing={3} sx={{ pt: 1 }}>
-                        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+      <DialogTitle>Uczestnicy grupy</DialogTitle>
 
-                        {/* Pasek akcji dla odświeżenia i dodania członka grupy */}
-                        <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-                            <Button
-                                variant="outlined"
-                                startIcon={<RefreshOutlinedIcon />}
-                                onClick={loadData}
-                                disabled={isLoading}
-                            >
-                                Odśwież
-                            </Button>
+      <DialogContent>
+        <Stack spacing={3} sx={{ pt: 1 }}>
+          <Box>
+            <Typography variant="h6">{group?.name}</Typography>
+            <Typography color="text.secondary">
+              Uczestnicy grupy mogą składać zamówienia zgodnie z aktywnym pakietem przypisanym do grupy
+            </Typography>
+          </Box>
 
-                            <Button
-                                variant="contained"
-                                startIcon={<AddOutlinedIcon />}
-                                onClick={openCreateForm}
-                                disabled={!group || availableUsers.length === 0}
-                            >
-                                Dodaj uczestnika
-                            </Button>
-                        </Stack>
+          <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              startIcon={<RefreshOutlinedIcon />}
+              onClick={loadData}
+              disabled={isLoading}
+            >
+              Odśwież
+            </Button>
 
-                        {/* Stan ładowania członków grupy */}
-                        {isLoading && (
-                            <Card variant="outlined">
-                                <CardContent>
-                                    <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
-                                        <CircularProgress />
-                                        <Typography color="text.secondary">Pobieranie członków grupy...</Typography>
-                                    </Stack>
-                                </CardContent>
-                            </Card>
-                        )}
+            <Button
+              variant="contained"
+              startIcon={<AddOutlinedIcon />}
+              onClick={openCreateForm}
+              disabled={availableUsers.length === 0}
+            >
+              Dodaj uczestnika
+            </Button>
+          </Stack>
 
-                        {/* Pusty stan dla grupy bez przypisanych członków */}
-                        {!isLoading && groupMembers.length === 0 && (
-                            <Card variant="outlined">
-                                <CardContent>
-                                    <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
-                                        <GroupsOutlinedIcon color="primary" fontSize="large" />
-                                        <Typography variant="h6">Brak uczestników grupy</Typography>
-                                        <Typography color="text.secondary">
-                                            Po dodaniu zostaną wyświetleni uczestnicy
-                                        </Typography>
-                                    </Stack>
-                                </CardContent>
-                            </Card>
-                        )}
+          {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-                        {/* Lista członków przypisanych do wybranej grupy */}
-                        {!isLoading && groupMembers.length > 0 && (
-                            <Stack spacing={1.5}>
-                                {groupMembers.map((member) => (
-                                    <Box
-                                        key={member.id}
-                                        sx={{
-                                            border: '1px solid',
-                                            borderColor: 'divider',
-                                            borderRadius: 2,
-                                            p: 2,
-                                        }}
-                                    >
-                                        <Stack spacing={1.5}>
-                                            <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', gap: 2 }}>
-                                                <Box>
-                                                    <Typography variant="h6">{member.userEmail}</Typography>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        Dołączono: {formatDate(member.joinedAt)}
-                                                    </Typography>
-                                                </Box>
+          {availableUsers.length === 0 && !isLoading && (
+            <Alert severity="info" variant="outlined">
+              Brak klientów dostępnych do przypisania do grupy
+            </Alert>
+          )}
 
-                                                <Chip
-                                                    color={member.isActive ? 'success' : 'default'}
-                                                    variant="outlined"
-                                                    label={member.isActive ? 'Aktywny' : 'Nieaktywny'}
-                                                />
-                                            </Stack>
+          {/* Stan ładowania widoczny podczas pobierania uczestników grupy */}
+          {isLoading && (
+            <Card variant="outlined">
+              <CardContent>
+                <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
+                  <CircularProgress />
+                  <Typography color="text.secondary">Pobieranie uczestników...</Typography>
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
 
-                                            <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                                                <Button
-                                                    variant="outlined"
-                                                    size="small"
-                                                    startIcon={<EditOutlinedIcon />}
-                                                    onClick={() => openEditForm(member)}
-                                                >
-                                                    Edytuj
-                                                </Button>
+          {/* Pusty stan dla grupy bez przypisanych uczestników */}
+          {!isLoading && groupMembers.length === 0 && (
+            <Card variant="outlined">
+              <CardContent>
+                <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
+                  <PeopleAltOutlinedIcon color="primary" fontSize="large" />
+                  <Typography variant="h6">Brak uczestników</Typography>
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
 
-                                                <Button
-                                                    variant="outlined"
-                                                    color="error"
-                                                    size="small"
-                                                    startIcon={<DeleteOutlineOutlinedIcon />}
-                                                    onClick={() => setMemberToDelete(member)}
-                                                >
-                                                    Usuń
-                                                </Button>
-                                            </Stack>
-                                        </Stack>
-                                    </Box>
-                                ))}
-                            </Stack>
-                        )}
+          {/* Lista uczestników przypisanych do wybranej grupy */}
+          {!isLoading && groupMembers.length > 0 && (
+            <Stack spacing={2}>
+              {groupMembers.map((member) => (
+                <Card key={member.id} variant="outlined">
+                  <CardContent>
+                    <Stack spacing={2}>
+                      <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', gap: 2 }}>
+                        <Box>
+                          <Typography variant="h6">{member.userEmail}</Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Dołączono: {formatDate(member.joinedAt)}
+                          </Typography>
+                        </Box>
+
+                        <Chip
+                          color={member.isActive ? 'success' : 'default'}
+                          variant="outlined"
+                          label={member.isActive ? 'Aktywny' : 'Nieaktywny'}
+                        />
+                      </Stack>
+
+                      <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<EditOutlinedIcon />}
+                          onClick={() => openEditForm(member)}
+                        >
+                          Edytuj
+                        </Button>
+
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          startIcon={<DeleteOutlineOutlinedIcon />}
+                          onClick={() => setMemberToDelete(member)}
+                        >
+                          Usuń
+                        </Button>
+                      </Stack>
                     </Stack>
-                </DialogContent>
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </DialogContent>
 
-                <DialogActions sx={{ px: 3, pb: 3 }}>
-                    <Button onClick={onClose} disabled={isSubmitting}>
-                        Zamknij
-                    </Button>
-                </DialogActions>
-            </Dialog>
+      <DialogActions sx={{ px: 3, pb: 3 }}>
+        <Button onClick={handleClose} disabled={isSubmitting}>
+          Zamknij
+        </Button>
+      </DialogActions>
 
-            <GroupMemberForm
-                open={isFormOpen}
-                title={selectedMember ? 'Edytuj' : 'Dodaj'}
-                submitLabel={selectedMember ? 'Zapisz' : 'Dodaj'}
-                isSubmitting={isSubmitting}
-                canEditStatus={Boolean(selectedMember)}
-                group={group}
-                users={selectedMember ? users : availableUsers}
-                initialMember={selectedMember}
-                onClose={closeForm}
-                onSubmit={handleSaveMember}
-            />
+      <GroupMemberForm
+        open={isFormOpen}
+        title={selectedMember ? 'Edytuj uczestnika' : 'Dodaj uczestnika'}
+        submitLabel={selectedMember ? 'Zapisz zmiany' : 'Dodaj uczestnika'}
+        isSubmitting={isSubmitting}
+        canEditStatus={Boolean(selectedMember)}
+        group={group}
+        users={usersForForm}
+        initialMember={selectedMember}
+        onClose={closeForm}
+        onSubmit={handleSaveMember}
+      />
 
-            <Dialog open={Boolean(memberToDelete)} onClose={() => setMemberToDelete(null)}>
-                <DialogTitle>Usuń członkostwo</DialogTitle>
+      <Dialog open={Boolean(memberToDelete)} onClose={() => setMemberToDelete(null)}>
+        <DialogTitle>Usuń uczestnika</DialogTitle>
 
-                <DialogContent>
-                    <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{memberToDelete?.userEmail}</strong> z grupy?
-                    </DialogContentText>
-                </DialogContent>
+        <DialogContent>
+          <DialogContentText>
+            Czy na pewno chcesz usunąć <strong>{memberToDelete?.userEmail}</strong>?
+          </DialogContentText>
+        </DialogContent>
 
-                <DialogActions sx={{ px: 3, pb: 3 }}>
-                    <Button onClick={() => setMemberToDelete(null)} disabled={isSubmitting}>
-                        Anuluj
-                    </Button>
-                    <Button color="error" variant="contained" onClick={handleDeleteMember} disabled={isSubmitting}>
-                        {isSubmitting ? 'Usuwanie...' : 'Usuń'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </>
-    );
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button onClick={() => setMemberToDelete(null)} disabled={isSubmitting}>
+            Anuluj
+          </Button>
+          <Button color="error" variant="contained" onClick={handleDeleteMember} disabled={isSubmitting}>
+            {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Dialog>
+  );
 }
