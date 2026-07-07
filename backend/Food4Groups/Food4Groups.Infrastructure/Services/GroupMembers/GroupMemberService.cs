@@ -107,6 +107,8 @@ public class GroupMemberService : IGroupMemberService
 
         var groupId = member.GroupId;
 
+        await EnsureMemberHasNoOrdersAsync(id);
+        
         _context.GroupMembers.Remove(member);
         await _context.SaveChangesAsync();
 
@@ -116,7 +118,15 @@ public class GroupMemberService : IGroupMemberService
 
         return true;
     }
+    private async Task EnsureMemberHasNoOrdersAsync(Guid memberId)
+    {
+        // Uczestnik z historią zamówień nie może zostać fizycznie usunięty z systemu
+        var hasOrders = await _context.Orders.AnyAsync(x => x.GroupMemberId == memberId);
 
+        if (hasOrders)
+            throw new InvalidOperationException("User cannot be deleted because have existing orders. Deactivate the membership instead of deleting.");
+    }
+    
     private IQueryable<GroupMemberResponse> GetGroupMembersQuery()
     {
         // Zapytanie łączy członkostwo z grupą i użytkownikiem Identity, aby zwrócić kompletne DTO do widoku

@@ -91,7 +91,15 @@ public class GroupMembersController : ControllerBase
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await _groupMemberService.DeleteAsync(id);
-        return deleted ? NoContent() : NotFound();
+        try
+        {
+            var deleted = await _groupMemberService.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(exception.Message);
+        }
+
     }
 }
