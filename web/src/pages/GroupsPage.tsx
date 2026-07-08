@@ -24,12 +24,12 @@ import {
 import { useEffect, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
-import { getGroups, createGroup, updateGroup, deleteGroup } from '../api/groupsApi';
+import { getGroups, createGroup, updateGroup, deleteGroup, getGroupCoordinators } from '../api/groupsApi';
 import { GroupForm } from '../components/groups/GroupForm';
 import { GroupMembersDialog } from '../components/groups/GroupMembersDialog';
 import { GroupPackageAssignmentsDialog } from '../components/groups/GroupPackageAssignmentsDialog';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
-import type { Group } from '../types/groupTypes';
+import type { AvailableGroupCoordinator, Group } from '../types/groupTypes';
 
 function formatDate(value: string) {
     return new Intl.DateTimeFormat('pl-PL', {
@@ -41,6 +41,7 @@ function formatDate(value: string) {
 export function GroupsPage() {
     const [groups, setGroups] = useState<Group[]>([]);
     const [companies, setCompanies] = useState<CateringCompany[]>([]);
+    const [coordinators, setCoordinators] = useState<AvailableGroupCoordinator[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
@@ -72,6 +73,16 @@ export function GroupsPage() {
         } catch (error) {
             // Komunikat błędu pobierania firm cateringowych pochodzi z odpowiedzi backendu
             setErrorMessage(getApiErrorMessage(error, 'Nie udało się pobrać listy firm cateringowych'));
+        }
+    }
+
+    async function loadCoordinators() {
+        try {
+            const data = await getGroupCoordinators();
+            setCoordinators(data);
+        } catch (error) {
+            // Komunikat błędu pobierania koordynatorów pochodzi z odpowiedzi backendu
+            setErrorMessage(getApiErrorMessage(error, 'Nie udało się pobrać listy koordynatorów'));
         }
     }
 
@@ -134,6 +145,7 @@ export function GroupsPage() {
     useEffect(() => {
         void loadGroups();
         void loadCompanies();
+        void loadCoordinators();
     }, []);
 
     return (
@@ -214,6 +226,11 @@ export function GroupsPage() {
                                             <Typography variant="body2" color="text.secondary">
                                                 {group.cateringCompanyName ?? 'Brak przypisanej firmy'}
                                             </Typography>
+                                            {group.coordinatorEmail && (
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Koordynator: {group.coordinatorEmail}
+                                                </Typography>
+                                            )}
                                         </Box>
 
                                         <Chip color="primary" variant="outlined" label={`Liczba uczestników: ${group.memberCount}`} />
@@ -274,6 +291,7 @@ export function GroupsPage() {
                 submitLabel={selectedGroup ? 'Zapisz zmiany' : 'Dodaj grupę'}
                 isSubmitting={isSubmitting}
                 companies={companies}
+                coordinators={coordinators}
                 initialGroup={selectedGroup}
                 onClose={closeForm}
                 onSubmit={handleSaveGroup}

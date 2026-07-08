@@ -1,9 +1,21 @@
 import { httpClient } from './httpClient';
-import type { CreateGroupRequest, Group, UpdateGroupRequest } from '../types/groupTypes';
+import type {
+  AvailableGroupCoordinator,
+  CreateGroupRequest,
+  Group,
+  UpdateGroupRequest,
+} from '../types/groupTypes';
 
 export async function getGroups() {
   // Pobiera listę grup dostępnych dla aktualnie zalogowanego użytkownika
   const response = await httpClient.get<Group[]>('/groups');
+
+  return response.data;
+}
+
+export async function getGroupCoordinators() {
+  // Pobiera użytkowników z rolą koordynatora grupy
+  const response = await httpClient.get<AvailableGroupCoordinator[]>('/groups/coordinators');
 
   return response.data;
 }

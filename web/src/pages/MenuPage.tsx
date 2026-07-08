@@ -295,8 +295,7 @@ export function MenuPage() {
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{periodToDelete?.name}</strong>? Tej operacji nie
-            można cofnąć.
+            Czy na pewno chcesz usunąć <strong>{periodToDelete?.name}</strong>?
           </DialogContentText>
         </DialogContent>
 

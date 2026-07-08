@@ -353,8 +353,7 @@ export function PackagesPage() {
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{packageToDelete?.name}</strong>? Tej operacji nie
-            można cofnąć.
+            Czy na pewno chcesz usunąć <strong>{packageToDelete?.name}</strong>?
           </DialogContentText>
         </DialogContent>
 

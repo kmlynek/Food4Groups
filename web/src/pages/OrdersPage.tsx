@@ -24,6 +24,7 @@ import { getApiErrorMessage } from '../api/apiError';
 import {
   changeOrderStatus,
   createOrder,
+  getCoordinatorOrders,
   getMyOrders,
   getOrderOptions,
   getOrderStatuses,
@@ -114,6 +115,8 @@ export function OrdersPage() {
   const canManageOrders = userRoles.includes(roles.admin) || userRoles.includes(roles.cateringEmployee);
   const isClient = userRoles.includes(roles.user);
   const isGroupCoordinator = userRoles.includes(roles.groupCoordinator);
+  const canCreateOrders = isClient && !canManageOrders && !isGroupCoordinator;
+  const canSeeOrderContext = canManageOrders || isGroupCoordinator;
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [statuses, setStatuses] = useState<OrderStatus[]>([]);
@@ -122,7 +125,7 @@ export function OrdersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [orderToConfirm, setOrderToConfirm] = useState<OrderFormValues | null>(null);
-   const [statusChangeToConfirm, setStatusChangeToConfirm] = useState<OrderStatusChange | null>(null);
+  const [statusChangeToConfirm, setStatusChangeToConfirm] = useState<OrderStatusChange | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   const activeStatuses = useMemo(
@@ -159,7 +162,15 @@ export function OrdersPage() {
         return;
       }
 
-      if (isClient) {
+      if (isGroupCoordinator) {
+        const ordersData = await getCoordinatorOrders();
+        setOrders(ordersData);
+        setStatuses([]);
+        setOrderOptions(null);
+        return;
+      }
+
+      if (canCreateOrders) {
         const [ordersData, statusesData, optionsData] = await Promise.all([
           getMyOrders(),
           getOrderStatuses(),
@@ -286,7 +297,7 @@ export function OrdersPage() {
           Odśwież
         </Button>
 
-        {isClient && (
+        {canCreateOrders && (
           <Button
             variant="contained"
             startIcon={<AddOutlinedIcon />}
@@ -300,19 +311,13 @@ export function OrdersPage() {
 
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-      {isGroupCoordinator && !canManageOrders && !isClient && (
-        <Alert severity="info" variant="outlined">
-          Widok zamówień koordynatora grupy zostanie rozbudowany po przypisaniu koordynatora do konkretnej grupy
-        </Alert>
-      )}
-
-      {isClient && !isLoading && !orderOptions?.groupMemberId && (
+      {canCreateOrders && !isLoading && !orderOptions?.groupMemberId && (
         <Alert severity="info" variant="outlined">
           Konto jeszcze nie zostało przypisane do grupy - po przypisaniu pojawi się możliwość złożenia zamówienia.
         </Alert>
       )}
 
-      {isClient && !isLoading && orderOptions?.groupMemberId && orderOptions.menuDays.length === 0 && (
+      {canCreateOrders && !isLoading && orderOptions?.groupMemberId && orderOptions.menuDays.length === 0 && (
         <Alert severity="info" variant="outlined">
           Brak dostępnych zamówień
         </Alert>
@@ -336,7 +341,7 @@ export function OrdersPage() {
           <CardContent>
             <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
               <AssignmentOutlinedIcon color="primary" fontSize="large" />
-              <Typography variant="h6">Brak zamówień</Typography>              
+              <Typography variant="h6">Brak zamówień</Typography>
             </Stack>
           </CardContent>
         </Card>
@@ -376,7 +381,7 @@ export function OrdersPage() {
                       />
                     </Stack>
 
-                    {canManageOrders && (
+                    {canSeeOrderContext && (
                       <Stack spacing={0.5}>
                         {order.groupName && (
                           <Typography variant="body2" color="text.secondary">

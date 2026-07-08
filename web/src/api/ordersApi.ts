@@ -21,6 +21,13 @@ export async function getMyOrders() {
   return response.data;
 }
 
+export async function getCoordinatorOrders() {
+  // Pobiera zamówienia grupy przypisanej do aktualnie zalogowanego koordynatora
+  const response = await httpClient.get<Order[]>('/orders/coordinator');
+
+  return response.data;
+}
+
 export async function getOrderStatuses() {
   // Pobiera słownik statusów wykorzystywanych przy obsłudze zamówień
   const response = await httpClient.get<OrderStatus[]>('/orders/statuses');

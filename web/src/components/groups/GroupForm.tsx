@@ -11,11 +11,12 @@ import {
 } from '@mui/material';
 import { type FormEvent, useEffect, useState } from 'react';
 import type { CateringCompany } from '../../types/cateringCompanyTypes';
-import type { Group } from '../../types/groupTypes';
+import type { AvailableGroupCoordinator, Group } from '../../types/groupTypes'
 
 type GroupFormValues = {
     name: string;
     cateringCompanyId: string;
+    coordinatorUserId?: string | null;
 };
 
 type GroupFormProps = {
@@ -24,6 +25,7 @@ type GroupFormProps = {
     submitLabel: string;
     isSubmitting: boolean;
     companies: CateringCompany[];
+    coordinators: AvailableGroupCoordinator[];
     initialGroup?: Group | null;
     onClose: () => void;
     onSubmit: (values: GroupFormValues) => Promise<void>;
@@ -35,12 +37,14 @@ export function GroupForm({
     submitLabel,
     isSubmitting,
     companies,
+    coordinators,
     initialGroup,
     onClose,
     onSubmit,
 }: GroupFormProps) {
     const [name, setName] = useState('');
     const [cateringCompanyId, setCateringCompanyId] = useState('');
+    const [coordinatorUserId, setCoordinatorUserId] = useState('');
 
     useEffect(() => {
         if (!open) {
@@ -50,6 +54,7 @@ export function GroupForm({
         // Formularz uzupełnia pola podczas edycji albo czyści je przy tworzeniu nowej grupy
         setName(initialGroup?.name ?? '');
         setCateringCompanyId(initialGroup?.cateringCompanyId ?? companies[0]?.id ?? '');
+        setCoordinatorUserId(initialGroup?.coordinatorUserId ?? '');
     }, [companies, initialGroup, open]);
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -58,6 +63,7 @@ export function GroupForm({
         await onSubmit({
             name,
             cateringCompanyId,
+            coordinatorUserId: coordinatorUserId || null,
         });
     }
 
@@ -91,6 +97,22 @@ export function GroupForm({
                             {companies.map((company) => (
                                 <MenuItem key={company.id} value={company.id}>
                                     {company.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                        {/* Koordynator grupy otrzymuje podgląd zamówień przypisanej grupy */}
+                        <TextField
+                            label="Koordynator grupy"
+                            value={coordinatorUserId}
+                            onChange={(event) => setCoordinatorUserId(event.target.value)}
+                            fullWidth
+                            select
+                        >
+                            <MenuItem value="">Brak koordynatora</MenuItem>
+
+                            {coordinators.map((coordinator) => (
+                                <MenuItem key={coordinator.id} value={coordinator.id}>
+                                    {coordinator.email}
                                 </MenuItem>
                             ))}
                         </TextField>
