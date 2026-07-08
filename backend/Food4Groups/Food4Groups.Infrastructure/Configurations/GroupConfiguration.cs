@@ -1,4 +1,5 @@
 using Food4Groups.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,6 +21,9 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
         builder.Property(x => x.MemberCount)
             .IsRequired();
         
+        builder.Property(x => x.CoordinatorUserId)
+            .HasMaxLength(458);
+        
         builder.Property(x=>x.CreatedAt)
             .IsRequired();
 
@@ -29,6 +33,13 @@ public class GroupConfiguration : IEntityTypeConfiguration<Group>
             .WithMany()
             .HasForeignKey(x => x.CateringCompanyId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(x => x.CoordinatorUserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasIndex(x => x.CoordinatorUserId)
+            .IsUnique();
     }
 }

@@ -41,7 +41,23 @@ public class OrderService : IOrderService
 
         return await MapOrdersAsync(orders);
     }
+    
+    public async Task<List<OrderResponse>> GetCoordinatorOrdersAsync(string currentUserId)
+    {
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UnauthorizedAccessException("User is not authenticated");
 
+        // Koordynator widzi wyłącznie zamówienia grupy, do której został przypisany
+        var orders = await GetOrdersQuery()
+            .Where(x =>
+                x.GroupMember != null &&
+                x.GroupMember.Group != null &&
+                x.GroupMember.Group.CoordinatorUserId == currentUserId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+
+        return await MapOrdersAsync(orders);
+    }
     public async Task<OrderResponse?> GetByIdAsync(Guid id)
     {
         var order = await GetOrdersQuery()

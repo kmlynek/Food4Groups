@@ -6,6 +6,7 @@ public interface IOrderService
 {
     Task<List<OrderResponse>> GetAllAsync();
     Task<List<OrderResponse>> GetMyOrdersAsync(string currentUserId);
+    Task<List<OrderResponse>> GetCoordinatorOrdersAsync(string currentUserId);
     Task<OrderResponse?> GetByIdAsync(Guid id);
     Task<List<OrderStatusResponse>> GetStatusesAsync();
     Task<OrderOptionsResponse> GetOptionsAsync(string currentUserId);

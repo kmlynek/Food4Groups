@@ -26,6 +26,15 @@ public class GroupsController : ControllerBase
         return Ok(groups);
     }
 
+    [HttpGet("coordinators")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
+    public async Task<IActionResult> GetCoordinators()
+    {
+        var coordinators = await _groupService.GetAvailableCoordinatorsAsync();
+
+        return Ok(coordinators);
+    }
+    
     [HttpGet("{id:guid}")]
     [Authorize]
     public async Task<IActionResult> GetById(Guid id)
@@ -53,6 +62,10 @@ public class GroupsController : ControllerBase
         {
             return NotFound(exception.Message);
         }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(exception.Message);
+        }
     }
 
     [HttpPut("{id:guid}")]
@@ -73,7 +86,12 @@ public class GroupsController : ControllerBase
         {
             return NotFound(exception.Message);
         }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(exception.Message);
+        }
     }
+    
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin, CateringEmployee")]

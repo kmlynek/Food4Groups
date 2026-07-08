@@ -43,6 +43,23 @@ public class OrdersController : ControllerBase
         }
     }
 
+    [HttpGet("coordinator")]
+    [Authorize(Roles = "GroupCoordinator")]
+    public async Task<IActionResult> GetCoordinatorOrders()
+    {
+        try
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var orders = await _orderService.GetCoordinatorOrdersAsync(currentUserId ?? string.Empty);
+
+            return Ok(orders);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return Unauthorized(exception.Message);
+        }
+    }
+
     [HttpGet("statuses")]
     [Authorize]
     public async Task<IActionResult> GetStatuses()
@@ -51,7 +68,7 @@ public class OrdersController : ControllerBase
 
         return Ok(statuses);
     }
-    
+
     [HttpGet("options")]
     [Authorize(Roles = "User")]
     public async Task<IActionResult> GetOptions()
