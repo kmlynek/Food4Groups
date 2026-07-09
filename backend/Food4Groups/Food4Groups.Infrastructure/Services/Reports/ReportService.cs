@@ -38,6 +38,10 @@ public class ReportService : IReportService
         if (dateTo.Date < dateFrom.Date)
             throw new ArgumentException("DateTo cannot be earlier than DateFrom");
 
+        var reportDateFrom = DateTime.SpecifyKind(dateFrom.Date, DateTimeKind.Utc);
+        var reportDateTo = DateTime.SpecifyKind(dateTo.Date, DateTimeKind.Utc);
+
+        
         var group = await _context.Groups
             .AsNoTracking()
             .Include(x => x.CateringCompany)
@@ -47,7 +51,7 @@ public class ReportService : IReportService
             throw new KeyNotFoundException("Group not found");
 
         var template = await GetActiveTemplateAsync(GroupSettlementProformaTemplateCode);
-        var reportRows = await GetGroupSettlementRowsAsync(groupId, dateFrom.Date, dateTo.Date);
+        var reportRows = await GetGroupSettlementRowsAsync(groupId, reportDateFrom, reportDateTo);
 
         var totalOrders = reportRows.Count;
         var totalAmount = reportRows.Sum(x => x.PackagePrice);
@@ -62,8 +66,8 @@ public class ReportService : IReportService
         {
             ["GroupName"] = group.Name,
             ["CateringCompanyName"] = group.CateringCompany?.Name ?? string.Empty,
-            ["DateFrom"] = FormatDate(dateFrom),
-            ["DateTo"] = FormatDate(dateTo),
+            ["DateFrom"] = FormatDate(reportDateFrom),
+            ["DateTo"] = FormatDate(reportDateTo),
             ["TotalOrders"] = totalOrders.ToString(PolishCulture),
             ["TotalAmount"] = FormatMoney(totalAmount),
             ["PackageName"] = packageNames.Count > 0 ? string.Join(", ", packageNames) : "Brak zamówień"
@@ -144,7 +148,7 @@ public class ReportService : IReportService
 
         return new ReportFileResponse
         {
-            FileName = $"proforma-{group.Name}-{dateFrom:yyyyMMdd}-{dateTo:yyyyMMdd}.pdf",
+            FileName = $"proforma-{group.Name}-{reportDateFrom:yyyyMMdd}-{reportDateTo:yyyyMMdd}.pdf",
             ContentType = "application/pdf",
             Content = pdf
         };
@@ -358,7 +362,7 @@ public class ReportService : IReportService
         return container
             .BorderBottom(1)
             .BorderColor(Colors.Grey.Lighten2)
-            .Padding(5);
+            .Padding(5); 
     }
 
     private record GroupSettlementReportRow(
