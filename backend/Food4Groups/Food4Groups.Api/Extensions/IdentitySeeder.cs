@@ -125,21 +125,33 @@ public static class IdentitySeeder
     private static async Task SeedPrintTemplatesAsync(ApplicationDbContext dbContext)
     {
         // Domyślny szablon raportu rozliczeniowego jest tworzony tylko podczas pierwszej inicjalizacji systemu
-        var exists = await dbContext.PrintTemplates.AnyAsync(x => x.Code == GroupSettlementProformaTemplateCode);
+        const string titleTemplate = "Dokument rozliczeniowy proforma - {{GroupName}}";
+        const string bodyTemplate = "Podsumowanie abonamentu cateringowego dla grupy {{GroupName}} za okres {{DateFrom}} - {{DateTo}}. Liczba dni menu: {{TotalMenuDays}}, liczba uczestników: {{TotalParticipants}}, liczba osobodni: {{TotalSubscriptionUnits}}, kwota do rozliczenia: {{TotalAmount}}.";
+        const string footerTemplate = "Dokument ma charakter informacyjny i nie jest fakturą VAT.";
 
-        if (exists)
+        var template = await dbContext.PrintTemplates.FirstOrDefaultAsync(x => x.Code == GroupSettlementProformaTemplateCode);
+
+        if (template is not null)
         {
+            // Aktualizacja zachowuje spójny tekst proformy po zmianie modelu rozliczenia na abonamentowy
+            template.Name = "Dokument rozliczeniowy proforma dla grupy";
+            template.TitleTemplate = titleTemplate;
+            template.BodyTemplate = bodyTemplate;
+            template.FooterTemplate = footerTemplate;
+            template.UpdatedAt = DateTime.UtcNow;
+
+            await dbContext.SaveChangesAsync();
             return;
         }
-
+        
         dbContext.PrintTemplates.Add(new PrintTemplate
         {
             Id = Guid.NewGuid(),
             Code = GroupSettlementProformaTemplateCode,
             Name = "Dokument rozliczeniowy proforma dla grupy",
-            TitleTemplate = "Dokument rozliczeniowy proforma - {{GroupName}}",
-            BodyTemplate = "Podsumowanie usług cateringowych dla grupy {{GroupName}} za okres {{DateFrom}} - {{DateTo}}. Liczba zamówień: {{TotalOrders}}, kwota do rozliczenia: {{TotalAmount}}.",
-            FooterTemplate = "Dokument ma charakter informacyjny i nie jest fakturą VAT.",
+            TitleTemplate = titleTemplate,
+            BodyTemplate = bodyTemplate,
+            FooterTemplate = footerTemplate,
             IsActive = true
         });
 

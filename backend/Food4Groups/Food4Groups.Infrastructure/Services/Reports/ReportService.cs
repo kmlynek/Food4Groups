@@ -41,7 +41,6 @@ public class ReportService : IReportService
         var reportDateFrom = DateTime.SpecifyKind(dateFrom.Date, DateTimeKind.Utc);
         var reportDateTo = DateTime.SpecifyKind(dateTo.Date, DateTimeKind.Utc);
 
-        
         var group = await _context.Groups
             .AsNoTracking()
             .Include(x => x.CateringCompany)
@@ -53,8 +52,10 @@ public class ReportService : IReportService
         var template = await GetActiveTemplateAsync(GroupSettlementProformaTemplateCode);
         var reportRows = await GetGroupSettlementRowsAsync(groupId, reportDateFrom, reportDateTo);
 
-        var totalOrders = reportRows.Count;
-        var totalAmount = reportRows.Sum(x => x.PackagePrice);
+        var totalMenuDays = reportRows.Count;
+        var totalParticipants = reportRows.FirstOrDefault()?.MemberCount ?? 0;
+        var totalSubscriptionUnits = reportRows.Sum(x => x.MemberCount);
+        var totalAmount = reportRows.Sum(x => x.TotalAmount);
         var packageNames = reportRows
             .Select(x => x.PackageName)
             .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -68,9 +69,12 @@ public class ReportService : IReportService
             ["CateringCompanyName"] = group.CateringCompany?.Name ?? string.Empty,
             ["DateFrom"] = FormatDate(reportDateFrom),
             ["DateTo"] = FormatDate(reportDateTo),
-            ["TotalOrders"] = totalOrders.ToString(PolishCulture),
+            ["TotalOrders"] = totalSubscriptionUnits.ToString(PolishCulture),
+            ["TotalMenuDays"] = totalMenuDays.ToString(PolishCulture),
+            ["TotalParticipants"] = totalParticipants.ToString(PolishCulture),
+            ["TotalSubscriptionUnits"] = totalSubscriptionUnits.ToString(PolishCulture),
             ["TotalAmount"] = FormatMoney(totalAmount),
-            ["PackageName"] = packageNames.Count > 0 ? string.Join(", ", packageNames) : "Brak zamówień"
+            ["PackageName"] = packageNames.Count > 0 ? string.Join(", ", packageNames) : "Brak pakietu"
         };
 
         var title = ApplyTemplate(template.TitleTemplate, replacements);
@@ -106,27 +110,27 @@ public class ReportService : IReportService
                             {
                                 columns.RelativeColumn(2);
                                 columns.RelativeColumn(2);
-                                columns.RelativeColumn(2);
-                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(1);
+                                columns.RelativeColumn(1);
                                 columns.RelativeColumn(2);
                             });
 
                             table.Header(header =>
                             {
                                 header.Cell().Element(HeaderCell).Text("Data");
-                                header.Cell().Element(HeaderCell).Text("Klient");
-                                header.Cell().Element(HeaderCell).Text("Danie");
                                 header.Cell().Element(HeaderCell).Text("Pakiet");
+                                header.Cell().Element(HeaderCell).Text("Uczestnicy");
+                                header.Cell().Element(HeaderCell).AlignRight().Text("Cena");
                                 header.Cell().Element(HeaderCell).AlignRight().Text("Kwota");
                             });
 
                             foreach (var row in reportRows)
                             {
                                 table.Cell().Element(BodyCell).Text(FormatDate(row.MenuDate));
-                                table.Cell().Element(BodyCell).Text(row.CustomerEmail);
-                                table.Cell().Element(BodyCell).Text(row.DishName);
                                 table.Cell().Element(BodyCell).Text(row.PackageName);
-                                table.Cell().Element(BodyCell).AlignRight().Text(FormatMoney(row.PackagePrice));
+                                table.Cell().Element(BodyCell).Text(row.MemberCount.ToString(PolishCulture));
+                                table.Cell().Element(BodyCell).AlignRight().Text(FormatMoney(row.PricePerPerson));
+                                table.Cell().Element(BodyCell).AlignRight().Text(FormatMoney(row.TotalAmount));
                             }
                         });
 
@@ -153,7 +157,7 @@ public class ReportService : IReportService
             Content = pdf
         };
     }
-    
+
     public async Task<ReportFileResponse> GenerateCoordinatorGroupSettlementProformaPdfAsync(string currentUserId, DateTime dateFrom, DateTime dateTo)
     {
         if (string.IsNullOrWhiteSpace(currentUserId))
@@ -279,47 +283,55 @@ public class ReportService : IReportService
 
     private async Task<List<GroupSettlementReportRow>> GetGroupSettlementRowsAsync(Guid groupId, DateTime dateFrom, DateTime dateTo)
     {
-        // Dane rozliczeniowe są budowane na podstawie zamówień grupy z wybranego zakresu dat
-        var orders = await _context.Orders
+        // Proforma abonamentowa jest liczona na podstawie dni menu, uczestników grupy i aktywnego pakietu
+        var memberCount = await _context.GroupMembers
             .AsNoTracking()
-            .Include(x => x.GroupMember)
-            .Include(x => x.MenuDay)
-            .Include(x => x.Dish)
-            .Where(x =>
-                x.GroupMember != null &&
-                x.GroupMember.GroupId == groupId &&
-                x.MenuDay != null &&
-                x.MenuDay.MenuDate.Date >= dateFrom &&
-                x.MenuDay.MenuDate.Date <= dateTo)
-            .OrderBy(x => x.MenuDay!.MenuDate)
-            .ToListAsync();
+            .CountAsync(x => x.GroupId == groupId && x.IsActive);
 
-        var userIds = orders.Select(x => x.GroupMember!.UserId).Distinct().ToList();
-        var userEmails = await _context.Users
+        var group = await _context.Groups
             .AsNoTracking()
-            .Where(x => userIds.Contains(x.Id))
-            .ToDictionaryAsync(x => x.Id, x => x.Email);
+            .FirstOrDefaultAsync(x => x.Id == groupId);
+
+        if (group is null)
+            throw new KeyNotFoundException("Group not found");
+
+        var menuDays = await _context.MenuDays
+            .AsNoTracking()
+            .Include(x => x.MenuPeriod)
+            .Where(x =>
+                x.IsActive &&
+                x.MenuPeriod != null &&
+                x.MenuPeriod.IsActive &&
+                x.MenuPeriod.CateringCompanyId == group.CateringCompanyId &&
+                x.MenuDate.Date >= dateFrom &&
+                x.MenuDate.Date <= dateTo)
+            .OrderBy(x => x.MenuDate)
+            .ToListAsync();
 
         var rows = new List<GroupSettlementReportRow>();
 
-        foreach (var order in orders)
+        foreach (var menuDay in menuDays)
         {
-            // Cena w raporcie pochodzi z pakietu aktywnego dla grupy w dniu zamówienia
+            // Cena w raporcie pochodzi z pakietu aktywnego dla grupy w danym dniu menu
             var packageAssignment = await _context.GroupPackageAssignments
                 .AsNoTracking()
                 .Include(x => x.Package)
                 .FirstOrDefaultAsync(x =>
                     x.GroupId == groupId &&
                     x.IsActive &&
-                    x.ActiveFrom.Date <= order.MenuDay!.MenuDate.Date &&
-                    (x.ActiveTo == null || x.ActiveTo.Value.Date >= order.MenuDay!.MenuDate.Date));
+                    x.Package != null &&
+                    x.Package.IsActive &&
+                    x.ActiveFrom.Date <= menuDay.MenuDate.Date &&
+                    (x.ActiveTo == null || x.ActiveTo.Value.Date >= menuDay.MenuDate.Date));
+
+            var pricePerPerson = packageAssignment?.Package?.PricePerPerson ?? 0;
 
             rows.Add(new GroupSettlementReportRow(
-                order.MenuDay!.MenuDate,
-                userEmails.TryGetValue(order.GroupMember!.UserId, out var email) ? email ?? string.Empty : string.Empty,
-                order.Dish?.Name ?? string.Empty,
+                menuDay.MenuDate,
                 packageAssignment?.Package?.Name ?? "Brak pakietu",
-                packageAssignment?.Package?.PricePerPerson ?? 0));
+                memberCount,
+                pricePerPerson,
+                memberCount * pricePerPerson));
         }
 
         return rows;
@@ -362,13 +374,13 @@ public class ReportService : IReportService
         return container
             .BorderBottom(1)
             .BorderColor(Colors.Grey.Lighten2)
-            .Padding(5); 
+            .Padding(5);
     }
 
     private record GroupSettlementReportRow(
         DateTime MenuDate,
-        string CustomerEmail,
-        string DishName,
         string PackageName,
-        decimal PackagePrice);
+        int MemberCount,
+        decimal PricePerPerson,
+        decimal TotalAmount);
 }
