@@ -5,5 +5,6 @@ namespace Food4Groups.Application.Interfaces.Reports;
 public interface IReportService
 {
     Task<ReportFileResponse> GenerateGroupSettlementProformaPdfAsync(Guid groupId, DateTime dateFrom, DateTime dateTo);
+    Task<ReportFileResponse> GenerateCoordinatorGroupSettlementProformaPdfAsync(string currentUserId, DateTime dateFrom, DateTime dateTo);
     Task<ReportFileResponse> GenerateDailyOrdersExcelAsync(Guid menuDayId);
 }

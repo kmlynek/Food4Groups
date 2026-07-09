@@ -149,6 +149,24 @@ public class ReportService : IReportService
             Content = pdf
         };
     }
+    
+    public async Task<ReportFileResponse> GenerateCoordinatorGroupSettlementProformaPdfAsync(string currentUserId, DateTime dateFrom, DateTime dateTo)
+    {
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UnauthorizedAccessException("User is not authenticated");
+
+        // Koordynator może wygenerować proformę wyłącznie dla grupy przypisanej do jego konta
+        var groupId = await _context.Groups
+            .AsNoTracking()
+            .Where(x => x.CoordinatorUserId == currentUserId)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync();
+
+        if (groupId == Guid.Empty)
+            throw new KeyNotFoundException("Coordinator group not found");
+
+        return await GenerateGroupSettlementProformaPdfAsync(groupId, dateFrom, dateTo);
+    }
 
     public async Task<ReportFileResponse> GenerateDailyOrdersExcelAsync(Guid menuDayId)
     {

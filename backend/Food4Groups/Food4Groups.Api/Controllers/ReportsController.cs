@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Food4Groups.Application.Interfaces.Reports;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,6 @@ namespace Food4Groups.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin, CateringEmployee")]
 public class ReportsController : ControllerBase
 {
     private readonly IReportService _reportService;
@@ -17,6 +17,7 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet("group-settlement-proforma")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetGroupSettlementProformaPdf(
         [FromQuery] Guid groupId,
         [FromQuery] DateTime dateFrom,
@@ -42,8 +43,41 @@ public class ReportsController : ControllerBase
             return Conflict(exception.Message);
         }
     }
+    
+    [HttpGet("my-group-settlement-proforma")]
+    [Authorize(Roles = "GroupCoordinator")]
+    public async Task<IActionResult> GetMyGroupSettlementProformaPdf(
+        [FromQuery] DateTime dateFrom,
+        [FromQuery] DateTime dateTo)
+    {
+        try
+        {
+            // Koordynator nie przekazuje identyfikatora grupy, ponieważ backend wyznacza go z przypisania konta
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var report = await _reportService.GenerateCoordinatorGroupSettlementProformaPdfAsync(currentUserId ?? string.Empty, dateFrom, dateTo);
 
+            return File(report.Content, report.ContentType, report.FileName);
+        }
+        catch (ArgumentException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return Unauthorized(exception.Message);
+        }
+        catch (KeyNotFoundException exception)
+        {
+            return NotFound(exception.Message);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return Conflict(exception.Message);
+        }
+    }
+    
     [HttpGet("daily-orders")]
+    [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetDailyOrdersExcel([FromQuery] Guid menuDayId)
     {
         try
