@@ -13,6 +13,7 @@ import { PackagesPage } from './pages/PackagesPage';
 import { MenuPage } from './pages/MenuPage';
 import { UsersPage } from './pages/UsersPage';
 import { OrdersPage } from './pages/OrdersPage';
+import {ReportsPage} from './pages/ReportsPage'
 
 const router = createBrowserRouter([
   {
@@ -98,6 +99,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={[roles.admin, roles.cateringEmployee, roles.groupCoordinator, roles.user]}>
             <OrdersPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'reports',
+        element: (
+          <ProtectedRoute allowedRoles={[roles.admin, roles.cateringEmployee, roles.groupCoordinator]}>
+            <ReportsPage />
           </ProtectedRoute>
         ),
       },

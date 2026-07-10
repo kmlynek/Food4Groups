@@ -1,4 +1,5 @@
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
@@ -43,14 +44,14 @@ const dashboardActions: DashboardAction[] = [
     description: 'Zarządzanie kontami, rolami oraz przypisaniem użytkowników do grup',
     path: '/users',
     icon: <PeopleAltOutlinedIcon />,
-    allowedRoles: [roles.admin, roles.groupCoordinator],
+    allowedRoles: [roles.admin],
   },
   {
     title: 'Grupy',
     description: 'Obsługa grup żywieniowych, koordynatorów oraz członków grup',
     path: '/groups',
     icon: <GroupOutlinedIcon />,
-    allowedRoles: [roles.admin, roles.groupCoordinator],
+    allowedRoles: [roles.admin, roles.cateringEmployee],
   },
   {
     title: 'Dania',
@@ -73,6 +74,14 @@ const dashboardActions: DashboardAction[] = [
     icon: <AssignmentOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator, roles.user],
   },
+  {
+    title: 'Raporty',
+    description: 'Proformy rozliczeniowe oraz dzienne zestawienia zamówień',
+    path: '/reports',
+    icon: <AssessmentOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator],
+  },
+
 ];
 
 export function DashboardPage() {
@@ -86,15 +95,15 @@ export function DashboardPage() {
   const isClient = userRoles.includes(roles.user);
 
   // Sprawdza czy hasło konta startowego zostało zmienione
-const isSeededAccount = auth?.user.email
-  ? seededAccountEmails.includes(auth.user.email.toLowerCase())
-  : false;
+  const isSeededAccount = auth?.user.email
+    ? seededAccountEmails.includes(auth.user.email.toLowerCase())
+    : false;
 
-const isSeededPasswordChanged = auth?.user.email
-  ? hasSeededPasswordChanged(auth.user.email)
-  : false;
+  const isSeededPasswordChanged = auth?.user.email
+    ? hasSeededPasswordChanged(auth.user.email)
+    : false;
 
-const shouldShowSeededAccountAlert = isSeededAccount && !isSeededPasswordChanged;
+  const shouldShowSeededAccountAlert = isSeededAccount && !isSeededPasswordChanged;
 
   return (
 
@@ -135,7 +144,7 @@ const shouldShowSeededAccountAlert = isSeededAccount && !isSeededPasswordChanged
         >
           <strong>Ze względów bezpieczeństwa zalecamy zmianę hasła!</strong>
           <br />
-          
+
         </Alert>
       )}
       {/* Komunikat dla klienta przed przypisaniem do grupy */}

@@ -7,6 +7,7 @@ import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlin
 import type { ReactNode } from 'react';
 import { roles, type UserRole } from './types/authTypes';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 
@@ -72,5 +73,11 @@ export const navigationItems: NavigationItem[] = [
     path: '/orders',
     icon: <ReceiptLongOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator, roles.user],
+  },
+  {
+    label: 'Raporty',
+    path: '/reports',
+    icon: <AssessmentOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator],
   },
 ];
