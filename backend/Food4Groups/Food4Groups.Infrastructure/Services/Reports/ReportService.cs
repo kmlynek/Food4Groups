@@ -158,22 +158,36 @@ public class ReportService : IReportService
         };
     }
 
-    public async Task<ReportFileResponse> GenerateCoordinatorGroupSettlementProformaPdfAsync(string currentUserId, DateTime dateFrom, DateTime dateTo)
+    public async Task<ReportFileResponse> GenerateCoordinatorGroupSettlementProformaPdfAsync(string currentUserId)
     {
         if (string.IsNullOrWhiteSpace(currentUserId))
             throw new UnauthorizedAccessException("User is not authenticated");
 
-        // Koordynator może wygenerować proformę wyłącznie dla grupy przypisanej do jego konta
-        var groupId = await _context.Groups
+        var currentDate = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
+
+        // Koordynator otrzymuje pełną proformę dla aktualnego pakietu przypisanego do jego grupy
+        var packageAssignment = await _context.GroupPackageAssignments
             .AsNoTracking()
-            .Where(x => x.CoordinatorUserId == currentUserId)
-            .Select(x => x.Id)
+            .Include(x => x.Group)
+            .Include(x => x.Package)
+            .Where(x =>
+                x.IsActive &&
+                x.Group != null &&
+                x.Group.CoordinatorUserId == currentUserId &&
+                x.Package != null &&
+                x.Package.IsActive &&
+                x.ActiveFrom.Date <= currentDate &&
+                (x.ActiveTo == null || x.ActiveTo.Value.Date >= currentDate))
+            .OrderByDescending(x => x.ActiveFrom)
             .FirstOrDefaultAsync();
 
-        if (groupId == Guid.Empty)
-            throw new KeyNotFoundException("Coordinator group not found");
+        if (packageAssignment is null || packageAssignment.Group is null)
+            throw new KeyNotFoundException("Active package assignment for coordinator group not found");
 
-        return await GenerateGroupSettlementProformaPdfAsync(groupId, dateFrom, dateTo);
+        var dateFrom = packageAssignment.ActiveFrom;
+        var dateTo = packageAssignment.ActiveTo ?? await GetLastMenuDayDateAsync(packageAssignment.Group.CateringCompanyId, dateFrom);
+
+        return await GenerateGroupSettlementProformaPdfAsync(packageAssignment.GroupId, dateFrom, dateTo);
     }
 
     public async Task<ReportFileResponse> GenerateDailyOrdersExcelAsync(Guid menuDayId)
@@ -279,6 +293,28 @@ public class ReportService : IReportService
             throw new InvalidOperationException("Print template is not configured");
 
         return template;
+    }
+
+    private async Task<DateTime> GetLastMenuDayDateAsync(Guid cateringCompanyId, DateTime dateFrom)
+    {
+        // Otwarty pakiet koordynatora kończy raport na ostatnim aktywnym dniu menu dostępnym w systemie
+        var lastMenuDay = await _context.MenuDays
+            .AsNoTracking()
+            .Include(x => x.MenuPeriod)
+            .Where(x =>
+                x.IsActive &&
+                x.MenuPeriod != null &&
+                x.MenuPeriod.IsActive &&
+                x.MenuPeriod.CateringCompanyId == cateringCompanyId &&
+                x.MenuDate.Date >= dateFrom.Date)
+            .OrderByDescending(x => x.MenuDate)
+            .Select(x => (DateTime?)x.MenuDate)
+            .FirstOrDefaultAsync();
+
+        if (!lastMenuDay.HasValue)
+            throw new InvalidOperationException("Active menu days for coordinator group package were not found");
+
+        return DateTime.SpecifyKind(lastMenuDay.Value.Date, DateTimeKind.Utc);
     }
 
     private async Task<List<GroupSettlementReportRow>> GetGroupSettlementRowsAsync(Guid groupId, DateTime dateFrom, DateTime dateTo)

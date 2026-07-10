@@ -43,18 +43,16 @@ public class ReportsController : ControllerBase
             return Conflict(exception.Message);
         }
     }
-    
+
     [HttpGet("my-group-settlement-proforma")]
     [Authorize(Roles = "GroupCoordinator")]
-    public async Task<IActionResult> GetMyGroupSettlementProformaPdf(
-        [FromQuery] DateTime dateFrom,
-        [FromQuery] DateTime dateTo)
+    public async Task<IActionResult> GetMyGroupSettlementProformaPdf()
     {
         try
         {
-            // Koordynator nie przekazuje identyfikatora grupy, ponieważ backend wyznacza go z przypisania konta
+            // Koordynator nie przekazuje grupy ani dat, ponieważ backend wyznacza je z aktualnego przypisania pakietu
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var report = await _reportService.GenerateCoordinatorGroupSettlementProformaPdfAsync(currentUserId ?? string.Empty, dateFrom, dateTo);
+            var report = await _reportService.GenerateCoordinatorGroupSettlementProformaPdfAsync(currentUserId ?? string.Empty);
 
             return File(report.Content, report.ContentType, report.FileName);
         }
@@ -75,7 +73,7 @@ public class ReportsController : ControllerBase
             return Conflict(exception.Message);
         }
     }
-    
+
     [HttpGet("daily-orders")]
     [Authorize(Roles = "Admin, CateringEmployee")]
     public async Task<IActionResult> GetDailyOrdersExcel([FromQuery] Guid menuDayId)
