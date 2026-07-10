@@ -126,7 +126,13 @@ public static class IdentitySeeder
     {
         // Domyślny szablon raportu rozliczeniowego jest tworzony tylko podczas pierwszej inicjalizacji systemu
         const string titleTemplate = "Dokument rozliczeniowy proforma - {{GroupName}}";
-        const string bodyTemplate = "Podsumowanie abonamentu cateringowego dla grupy {{GroupName}} za okres {{DateFrom}} - {{DateTo}}. Liczba dni menu: {{TotalMenuDays}}, liczba uczestników: {{TotalParticipants}}, liczba osobodni: {{TotalSubscriptionUnits}}, kwota do rozliczenia: {{TotalAmount}}.";
+        const string bodyTemplate =
+            "Grupa: {{GroupName}}\n" +
+            "Okres rozliczeniowy: {{DateFrom}} – {{DateTo}}\n\n" +
+            "Liczba dni menu: {{TotalMenuDays}}\n" +
+            "Liczba uczestników: {{TotalParticipants}}\n" +
+            "Łączna liczba dni abonamentowych: {{TotalSubscriptionUnits}}\n\n" +
+            "Kwota do rozliczenia: {{TotalAmount}}";
         const string footerTemplate = "Dokument ma charakter informacyjny i nie jest fakturą VAT.";
 
         var template = await dbContext.PrintTemplates.FirstOrDefaultAsync(x => x.Code == GroupSettlementProformaTemplateCode);
