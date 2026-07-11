@@ -46,6 +46,9 @@ type OrderStatusChange = {
   status: OrderStatus;
 };
 
+type OrdersSortOption = 'createdDesc' | 'createdAsc' | 'menuDateAsc' | 'menuDateDesc';
+
+
 const orderStatusLabels: Record<string, string> = {
   Created: 'Utworzone',
   Accepted: 'Przyjęte',
@@ -127,11 +130,65 @@ export function OrdersPage() {
   const [orderToConfirm, setOrderToConfirm] = useState<OrderFormValues | null>(null);
   const [statusChangeToConfirm, setStatusChangeToConfirm] = useState<OrderStatusChange | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [selectedStatusName, setSelectedStatusName] = useState('');
+  const [sortOption, setSortOption] = useState<OrdersSortOption>('createdDesc');
 
   const activeStatuses = useMemo(
     () => statuses.filter((status) => status.isActive),
     [statuses],
   );
+
+  const availableStatusNames = useMemo(
+    () => Array.from(new Set(orders.map((order) => order.orderStatusName).filter(Boolean) as string[])),
+    [orders],
+  );
+
+  const filteredOrders = useMemo(() => {
+    const normalizedSearchText = searchText.trim().toLowerCase();
+
+    return orders
+      .filter((order) => {
+        const searchableText = [
+          order.dishName,
+          order.groupName,
+          order.customerEmail,
+          order.orderStatusName ? getStatusLabel(order.orderStatusName) : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        const matchesSearchText =
+          normalizedSearchText.length === 0 || searchableText.includes(normalizedSearchText);
+
+        const matchesStatus =
+          !selectedStatusName || order.orderStatusName === selectedStatusName;
+
+        return matchesSearchText && matchesStatus;
+      })
+      .sort((firstOrder, secondOrder) => {
+        const firstCreatedAt = new Date(firstOrder.createdAt).getTime();
+        const secondCreatedAt = new Date(secondOrder.createdAt).getTime();
+        const firstMenuDate = new Date(firstOrder.menuDate ?? firstOrder.createdAt).getTime();
+        const secondMenuDate = new Date(secondOrder.menuDate ?? secondOrder.createdAt).getTime();
+
+        if (sortOption === 'createdAsc') {
+          return firstCreatedAt - secondCreatedAt;
+        }
+
+        if (sortOption === 'menuDateAsc') {
+          return firstMenuDate - secondMenuDate;
+        }
+
+        if (sortOption === 'menuDateDesc') {
+          return secondMenuDate - firstMenuDate;
+        }
+
+        return secondCreatedAt - firstCreatedAt;
+      });
+  }, [orders, searchText, selectedStatusName, sortOption]);
+
 
   const orderConfirmationDetails = useMemo(() => {
     if (!orderToConfirm || !orderOptions) {
@@ -317,6 +374,57 @@ export function OrdersPage() {
         </Alert>
       )}
 
+      {/* Filtry zamówień działają lokalnie i ułatwiają przegląd pracy operacyjnej */}
+      {!isLoading && orders.length > 0 && (
+        <Card variant="outlined">
+          <CardContent>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              <TextField
+                label="Szukaj zamówienia"
+                value={searchText}
+                onChange={(event) => setSearchText(event.target.value)}
+                placeholder="Danie, grupa lub klient"
+                fullWidth
+              />
+
+              <TextField
+                label="Status"
+                value={selectedStatusName}
+                onChange={(event) => setSelectedStatusName(event.target.value)}
+                select
+                fullWidth
+              >
+                <MenuItem value="">Wszystkie statusy</MenuItem>
+                {availableStatusNames.map((statusName) => (
+                  <MenuItem key={statusName} value={statusName}>
+                    {getStatusLabel(statusName)}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                label="Sortowanie"
+                value={sortOption}
+                onChange={(event) => setSortOption(event.target.value as OrdersSortOption)}
+                select
+                fullWidth
+              >
+                <MenuItem value="createdDesc">Najnowsze zgłoszenia</MenuItem>
+                <MenuItem value="createdAsc">Najstarsze zgłoszenia</MenuItem>
+                <MenuItem value="menuDateAsc">Dzień menu rosnąco</MenuItem>
+                <MenuItem value="menuDateDesc">Dzień menu malejąco</MenuItem>
+              </TextField>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
       {canCreateOrders && !isLoading && orderOptions?.groupMemberId && orderOptions.menuDays.length === 0 && (
         <Alert severity="info" variant="outlined">
           Brak dostępnych zamówień
@@ -335,6 +443,18 @@ export function OrdersPage() {
         </Card>
       )}
 
+      {/* Pusty stan dla aktywnych filtrów zamówień */}
+      {!isLoading && orders.length > 0 && filteredOrders.length === 0 && (
+        <Card variant="outlined">
+          <CardContent>
+            <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
+              <AssignmentOutlinedIcon color="primary" fontSize="large" />
+              <Typography variant="h6">Brak wyników</Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Pusty stan dla sytuacji, w której nie ma jeszcze żadnych zamówień */}
       {!isLoading && orders.length === 0 && (
         <Card variant="outlined">
@@ -348,7 +468,7 @@ export function OrdersPage() {
       )}
 
       {/* Lista zamówień pobrana z backendu */}
-      {!isLoading && orders.length > 0 && (
+      {!isLoading && filteredOrders.length > 0 && (
         <Box
           sx={{
             display: 'grid',
@@ -356,7 +476,7 @@ export function OrdersPage() {
             gap: 2,
           }}
         >
-          {orders.map((order) => {
+          {filteredOrders.map((order) => {
             const currentStatus = statuses.find((status) => status.id === order.orderStatusId);
             const isFinalStatus = currentStatus?.isFinal ?? false;
 
