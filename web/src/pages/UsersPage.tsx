@@ -15,15 +15,19 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
+    MenuItem,
     Stack,
+    TextField,
     Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
 import { deleteUser, getUsers } from '../api/usersApi';
-import { roleLabels } from '../types/authTypes';
+import { allRoles, roleLabels, type UserRole } from '../types/authTypes';
 import type { AdminUser } from '../types/userTypes';
 import { UserRolesDialog } from '../components/users/UserRolesDialog';
+
+type UsersSortOption = 'emailAsc' | 'emailDesc';
 
 export function UsersPage() {
     const [users, setUsers] = useState<AdminUser[]>([]);
@@ -32,6 +36,34 @@ export function UsersPage() {
     const [userRolesToEdit, setUserRolesToEdit] = useState<AdminUser | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [searchText, setSearchText] = useState('');
+    const [selectedRole, setSelectedRole] = useState<UserRole | ''>('');
+    const [sortOption, setSortOption] = useState<UsersSortOption>('emailAsc');
+
+    const filteredUsers = useMemo(() => {
+        const normalizedSearchText = searchText.trim().toLowerCase();
+
+        return users
+            .filter((user) => {
+                const matchesSearchText =
+                    normalizedSearchText.length === 0 ||
+                    (user.email ?? '').toLowerCase().includes(normalizedSearchText);
+
+                const matchesRole =
+                    !selectedRole || user.roles.includes(selectedRole);
+
+                return matchesSearchText && matchesRole;
+            })
+            .sort((firstUser, secondUser) => {
+                const firstEmail = firstUser.email ?? '';
+                const secondEmail = secondUser.email ?? '';
+
+                return sortOption === 'emailAsc'
+                    ? firstEmail.localeCompare(secondEmail)
+                    : secondEmail.localeCompare(firstEmail);
+            });
+    }, [searchText, selectedRole, sortOption, users]);
+
 
     async function loadUsers() {
         setIsLoading(true);
@@ -109,6 +141,55 @@ export function UsersPage() {
 
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
+            {/* Filtry listy użytkowników działają lokalnie na danych pobranych z backendu */}
+            {!isLoading && users.length > 0 && (
+                <Card variant="outlined">
+                    <CardContent>
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr' },
+                                gap: 2,
+                            }}
+                        >
+                            <TextField
+                                label="Szukaj użytkownika"
+                                value={searchText}
+                                onChange={(event) => setSearchText(event.target.value)}
+                                placeholder="Email użytkownika"
+                                fullWidth
+                            />
+
+                            <TextField
+                                label="Rola"
+                                value={selectedRole}
+                                onChange={(event) => setSelectedRole(event.target.value as UserRole | '')}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="">Wszystkie role</MenuItem>
+                                {allRoles.map((role) => (
+                                    <MenuItem key={role} value={role}>
+                                        {roleLabels[role]}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+
+                            <TextField
+                                label="Sortowanie"
+                                value={sortOption}
+                                onChange={(event) => setSortOption(event.target.value as UsersSortOption)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="emailAsc">Email A-Z</MenuItem>
+                                <MenuItem value="emailDesc">Email Z-A</MenuItem>
+                            </TextField>
+                        </Box>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Stan ładowania widoczny podczas pobierania użytkowników */}
             {isLoading && (
                 <Card variant="outlined">
@@ -127,14 +208,26 @@ export function UsersPage() {
                     <CardContent>
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <ManageAccountsOutlinedIcon color="primary" fontSize="large" />
-                            <Typography variant="h6">Brak użytkowników</Typography>                            
+                            <Typography variant="h6">Brak użytkowników</Typography>
+                        </Stack>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Pusty stan dla aktywnych filtrów */}
+            {!isLoading && users.length > 0 && filteredUsers.length === 0 && (
+                <Card variant="outlined">
+                    <CardContent>
+                        <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
+                            <ManageAccountsOutlinedIcon color="primary" fontSize="large" />
+                            <Typography variant="h6">Brak wyników</Typography>
                         </Stack>
                     </CardContent>
                 </Card>
             )}
 
             {/* Lista użytkowników pobrana z backendu */}
-            {!isLoading && users.length > 0 && (
+            {!isLoading && filteredUsers.length > 0 && (
                 <Box
                     sx={{
                         display: 'grid',
@@ -142,7 +235,7 @@ export function UsersPage() {
                         gap: 2,
                     }}
                 >
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                         <Card key={user.id} variant="outlined">
                             <CardContent>
                                 <Stack spacing={2}>
