@@ -20,8 +20,10 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
+    MenuItem,
+    TextField,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
 import { getGroups, createGroup, updateGroup, deleteGroup, getGroupCoordinators } from '../api/groupsApi';
@@ -30,6 +32,8 @@ import { GroupMembersDialog } from '../components/groups/GroupMembersDialog';
 import { GroupPackageAssignmentsDialog } from '../components/groups/GroupPackageAssignmentsDialog';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
 import type { AvailableGroupCoordinator, Group } from '../types/groupTypes';
+
+type GroupsSortOption = 'nameAsc' | 'nameDesc' | 'membersDesc';
 
 function formatDate(value: string) {
     return new Intl.DateTimeFormat('pl-PL', {
@@ -50,6 +54,43 @@ export function GroupsPage() {
     const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [searchText, setSearchText] = useState('');
+    const [selectedCompanyId, setSelectedCompanyId] = useState('');
+    const [sortOption, setSortOption] = useState<GroupsSortOption>('nameAsc');
+
+    const filteredGroups = useMemo(() => {
+        const normalizedSearchText = searchText.trim().toLowerCase();
+
+        return groups
+            .filter((group) => {
+                const searchableText = [
+                    group.name,
+                    group.cateringCompanyName,
+                    group.coordinatorEmail,
+                ]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
+
+                const matchesSearchText =
+                    normalizedSearchText.length === 0 || searchableText.includes(normalizedSearchText);
+
+                const matchesCompany =
+                    !selectedCompanyId || group.cateringCompanyId === selectedCompanyId;
+
+                return matchesSearchText && matchesCompany;
+            })
+            .sort((firstGroup, secondGroup) => {
+                if (sortOption === 'membersDesc') {
+                    return secondGroup.memberCount - firstGroup.memberCount;
+                }
+
+                return sortOption === 'nameAsc'
+                    ? firstGroup.name.localeCompare(secondGroup.name)
+                    : secondGroup.name.localeCompare(firstGroup.name);
+            });
+    }, [groups, searchText, selectedCompanyId, sortOption]);
+
 
     async function loadGroups() {
         setIsLoading(true);
@@ -183,6 +224,56 @@ export function GroupsPage() {
 
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
+            {/* Filtry listy grup pomagają szybko znaleźć grupę po nazwie, firmie lub koordynatorze */}
+            {!isLoading && groups.length > 0 && (
+                <Card variant="outlined">
+                    <CardContent>
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr' },
+                                gap: 2,
+                            }}
+                        >
+                            <TextField
+                                label="Szukaj grupy"
+                                value={searchText}
+                                onChange={(event) => setSearchText(event.target.value)}
+                                placeholder="Nazwa, firma lub koordynator"
+                                fullWidth
+                            />
+
+                            <TextField
+                                label="Firma"
+                                value={selectedCompanyId}
+                                onChange={(event) => setSelectedCompanyId(event.target.value)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="">Wszystkie firmy</MenuItem>
+                                {companies.map((company) => (
+                                    <MenuItem key={company.id} value={company.id}>
+                                        {company.name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+
+                            <TextField
+                                label="Sortowanie"
+                                value={sortOption}
+                                onChange={(event) => setSortOption(event.target.value as GroupsSortOption)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="nameAsc">Nazwa A-Z</MenuItem>
+                                <MenuItem value="nameDesc">Nazwa Z-A</MenuItem>
+                                <MenuItem value="membersDesc">Najwięcej uczestników</MenuItem>
+                            </TextField>
+                        </Box>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Stan ładowania widoczny podczas pobierania danych z API */}
             {isLoading && (
                 <Card variant="outlined">
@@ -206,9 +297,20 @@ export function GroupsPage() {
                     </CardContent>
                 </Card>
             )}
+            {/* Pusty stan dla sytuacji, w której filtry nie zwracają żadnej grupy */}
+            {!isLoading && groups.length > 0 && filteredGroups.length === 0 && (
+                <Card variant="outlined">
+                    <CardContent>
+                        <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
+                            <GroupsOutlinedIcon color="primary" fontSize="large" />
+                            <Typography variant="h6">Brak wyników</Typography>
+                        </Stack>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Lista grup pobrana z backendu */}
-            {!isLoading && groups.length > 0 && (
+            {!isLoading && filteredGroups.length > 0 && (
                 <Box
                     sx={{
                         display: 'grid',
@@ -216,7 +318,7 @@ export function GroupsPage() {
                         gap: 2,
                     }}
                 >
-                    {groups.map((group) => (
+                    {filteredGroups.map((group) => (
                         <Card key={group.id} variant="outlined">
                             <CardContent>
                                 <Stack spacing={2}>
