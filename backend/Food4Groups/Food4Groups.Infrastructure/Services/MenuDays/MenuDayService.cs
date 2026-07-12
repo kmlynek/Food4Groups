@@ -142,26 +142,26 @@ public class MenuDayService : IMenuDayService
     {
         // Dzień menu może zostać utworzony wyłącznie w istniejącym i aktywnym okresie menu
         if (menuPeriodId == Guid.Empty)
-            throw new ArgumentException("MenuPeriodId is required");
+            throw new ArgumentException("Wybierz okres menu");
 
         if (menuDate == default)
-            throw new ArgumentException("MenuDate is required");
+            throw new ArgumentException("Podaj datę dnia menu");
 
         var menuPeriod = await _context.MenuPeriods
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == menuPeriodId);
 
         if (menuPeriod is null)
-            throw new KeyNotFoundException("Menu period not found");
+            throw new KeyNotFoundException("Nie znaleziono okresu menu");
 
         if (!menuPeriod.IsActive)
-            throw new InvalidOperationException("Inactive menu period cannot be used");
+            throw new InvalidOperationException("Nie można dodać dnia do nieaktywnego okresu menu");
 
         var normalizedMenuDate = NormalizeDate(menuDate);
 
         // Dzień menu musi mieścić się w zakresie dat zdefiniowanym dla okresu menu
         if (normalizedMenuDate < menuPeriod.StartDate.Date || normalizedMenuDate > menuPeriod.EndDate.Date)
-            throw new InvalidOperationException("Menu date must be inside menu period date range");
+            throw new InvalidOperationException("Data dnia menu musi mieścić się w okresie menu");
 
         // W ramach jednego okresu menu dana data może wystąpić tylko raz
         var duplicateExists = await _context.MenuDays
@@ -171,7 +171,7 @@ public class MenuDayService : IMenuDayService
                 (!ignoredMenuDayId.HasValue || x.Id != ignoredMenuDayId.Value));
 
         if (duplicateExists)
-            throw new InvalidOperationException("Menu day already exists in this menu period");
+            throw new InvalidOperationException("Dzień menu z tą datą już istnieje w tym okresie");
     }
 
     private async Task EnsureMenuDayIsNotUsedAsync(Guid menuDayId)
@@ -183,6 +183,6 @@ public class MenuDayService : IMenuDayService
             await _context.Orders.AnyAsync(x => x.MenuDayId == menuDayId);
 
         if (isUsed)
-            throw new InvalidOperationException("Menu day is used by menu items, addons or orders and cannot be deleted");
+            throw new InvalidOperationException("Nie można usunąć dnia menu powiązanego z daniami, dodatkami lub zamówieniami");
     }
 }

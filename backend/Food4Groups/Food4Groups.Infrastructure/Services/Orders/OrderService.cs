@@ -31,7 +31,7 @@ public class OrderService : IOrderService
     public async Task<List<OrderResponse>> GetMyOrdersAsync(string currentUserId)
     {
         if (string.IsNullOrWhiteSpace(currentUserId))
-            throw new UnauthorizedAccessException("User is not authenticated");
+            throw new UnauthorizedAccessException("Sesja użytkownika wygasła. Zaloguj się ponownie.");
 
         // Klient widzi wyłącznie zamówienia powiązane z jego członkostwem w grupie
         var orders = await GetOrdersQuery()
@@ -45,7 +45,7 @@ public class OrderService : IOrderService
     public async Task<List<OrderResponse>> GetCoordinatorOrdersAsync(string currentUserId)
     {
         if (string.IsNullOrWhiteSpace(currentUserId))
-            throw new UnauthorizedAccessException("User is not authenticated");
+            throw new UnauthorizedAccessException("Sesja użytkownika wygasła. Zaloguj się ponownie.");
 
         // Koordynator widzi wyłącznie zamówienia grupy, do której został przypisany
         var orders = await GetOrdersQuery()
@@ -87,7 +87,7 @@ public class OrderService : IOrderService
      public async Task<OrderOptionsResponse> GetOptionsAsync(string currentUserId)
     {
         if (string.IsNullOrWhiteSpace(currentUserId))
-            throw new UnauthorizedAccessException("User is not authenticated");
+            throw new UnauthorizedAccessException("Sesja użytkownika wygasła. Zaloguj się ponownie.");
 
         var groupMember = await _context.GroupMembers
             .AsNoTracking()
@@ -163,7 +163,7 @@ public class OrderService : IOrderService
     public async Task<OrderResponse> CreateAsync(string currentUserId, CreateOrderRequest request)
     {
         if (string.IsNullOrWhiteSpace(currentUserId))
-            throw new UnauthorizedAccessException("User is not authenticated");
+            throw new UnauthorizedAccessException("Sesja użytkownika wygasła. Zaloguj się ponownie.");
 
         // Puste identyfikatory dodatków są pomijane, a duplikaty usuwane przed walidacją zamówienia
         var addonIds = request.AddonIds
@@ -212,10 +212,10 @@ public class OrderService : IOrderService
     public async Task<OrderResponse?> ChangeStatusAsync(Guid id, string changedByUserId, ChangeOrderStatusRequest request)
     {
         if (string.IsNullOrWhiteSpace(changedByUserId))
-            throw new UnauthorizedAccessException("User is not authenticated");
+            throw new UnauthorizedAccessException("Sesja użytkownika wygasła. Zaloguj się ponownie.");
 
         if (request.OrderStatusId == Guid.Empty)
-            throw new ArgumentException("OrderStatusId is required");
+            throw new ArgumentException("Wybierz status zamówienia");
 
         var order = await _context.Orders
             .Include(x => x.OrderStatus)
@@ -226,16 +226,16 @@ public class OrderService : IOrderService
 
         // Status finalny blokuje dalszą zmianę zamówienia
         if (order.OrderStatus?.IsFinal == true)
-            throw new InvalidOperationException("Final order status cannot be changed");
+            throw new InvalidOperationException("To zamówienie ma status końcowy. Nie można go już zmienić.");
 
         var newStatus = await _context.OrderStatuses
             .FirstOrDefaultAsync(x => x.Id == request.OrderStatusId);
 
         if (newStatus is null)
-            throw new KeyNotFoundException("Order status not found");
+            throw new KeyNotFoundException("Nie znaleziono statusu zamówienia");
 
         if (!newStatus.IsActive)
-            throw new InvalidOperationException("Inactive order status cannot be used");
+            throw new InvalidOperationException("Nie można ustawić nieaktywnego statusu zamówienia");
 
         order.OrderStatusId = newStatus.Id;
         order.UpdatedAt = DateTime.UtcNow;
@@ -386,43 +386,43 @@ public class OrderService : IOrderService
         List<Guid> addonIds)
     {
         if (groupMemberId == Guid.Empty)
-            throw new ArgumentException("GroupMemberId is required");
+            throw new ArgumentException("Konto nie jest przypisane do grupy");
 
         if (menuDayId == Guid.Empty)
-            throw new ArgumentException("MenuDayId is required");
+            throw new ArgumentException("Wybierz dzień menu");
 
         if (dishId == Guid.Empty)
-            throw new ArgumentException("DishId is required");
+            throw new ArgumentException("Wybierz danie");
 
         var groupMember = await _context.GroupMembers
             .Include(x => x.Group)
             .FirstOrDefaultAsync(x => x.Id == groupMemberId);
 
         if (groupMember is null)
-            throw new KeyNotFoundException("Group member not found");
+            throw new KeyNotFoundException("Nie znaleziono uczestnika grupy");
 
         if (!groupMember.IsActive)
-            throw new InvalidOperationException("Inactive group member cannot create order");
+            throw new InvalidOperationException("Nieaktywne uczestnictwo nie pozwala składać zamówień");
 
         // Użytkownik może utworzyć zamówienie wyłącznie dla własnego członkostwa w grupie
         if (groupMember.UserId != currentUserId)
-            throw new UnauthorizedAccessException("Cannot create order for another group member");
+            throw new UnauthorizedAccessException("Nie możesz złożyć zamówienia za innego uczestnika grupy");
 
         if (groupMember.Group is null)
-            throw new InvalidOperationException("Group member has no group assigned");
+            throw new InvalidOperationException("Konto nie jest przypisane do grupy");
 
         var menuDay = await _context.MenuDays
             .Include(x => x.MenuPeriod)
             .FirstOrDefaultAsync(x => x.Id == menuDayId);
 
         if (menuDay is null)
-            throw new KeyNotFoundException("Menu day not found");
+            throw new KeyNotFoundException("Nie znaleziono dnia menu");
 
         if (!menuDay.IsActive)
-            throw new InvalidOperationException("Inactive menu day cannot be used");
+            throw new InvalidOperationException("Nie można złożyć zamówienia na nieaktywny dzień menu");
 
         if (menuDay.MenuPeriod is null || !menuDay.MenuPeriod.IsActive)
-            throw new InvalidOperationException("Inactive menu period cannot be used");
+            throw new InvalidOperationException("Nie można złożyć zamówienia w nieaktywnym okresie menu");
 
         var menuDate = menuDay.MenuDate.Date;
 
@@ -436,15 +436,15 @@ public class OrderService : IOrderService
                 (x.ActiveTo == null || x.ActiveTo.Value.Date >= menuDate));
 
         if (packageAssignment is null || packageAssignment.Package is null)
-            throw new InvalidOperationException("Group has no active package for selected menu day");
+            throw new InvalidOperationException("Grupa nie ma aktywnego pakietu dla wybranego dnia menu");
 
         if (!packageAssignment.Package.IsActive)
-            throw new InvalidOperationException("Inactive package cannot be used");
+            throw new InvalidOperationException("Nie można złożyć zamówienia z nieaktywnego pakietu");
 
         // Grupa, pakiet i menu muszą należeć do tej samej firmy cateringowej
         if (groupMember.Group.CateringCompanyId != menuDay.MenuPeriod.CateringCompanyId ||
             packageAssignment.Package.CateringCompanyId != menuDay.MenuPeriod.CateringCompanyId)
-            throw new InvalidOperationException("Group, package and menu day must belong to the same catering company");
+            throw new InvalidOperationException("Grupa, pakiet i dzień menu muszą należeć do tej samej firmy cateringowej");
 
         await EnsureDishCanBeOrderedAsync(packageAssignment.PackageId, menuDay.Id, dishId, menuDay.MenuPeriod.CateringCompanyId);
         await EnsureAddonsCanBeOrderedAsync(packageAssignment.PackageId, menuDay.Id, addonIds, menuDay.MenuPeriod.CateringCompanyId);
@@ -460,27 +460,27 @@ public class OrderService : IOrderService
             .FirstOrDefaultAsync(x => x.Id == dishId);
 
         if (dish is null)
-            throw new KeyNotFoundException("Dish not found");
+            throw new KeyNotFoundException("Nie znaleziono dania");
 
         if (!dish.IsActive)
-            throw new InvalidOperationException("Inactive dish cannot be ordered");
+            throw new InvalidOperationException("Nie można zamówić nieaktywnego dania");
 
         if (dish.CateringCompanyId != cateringCompanyId)
-            throw new InvalidOperationException("Dish belongs to another catering company");
+            throw new InvalidOperationException("Wybrane danie należy do innej firmy cateringowej");
 
         // Danie musi być dostępne w wybranym dniu menu
         var dishInMenu = await _context.MenuItems
             .AnyAsync(x => x.MenuDayId == menuDayId && x.DishId == dishId && x.IsActive);
 
         if (!dishInMenu)
-            throw new InvalidOperationException("Dish is not available in selected menu day");
+            throw new InvalidOperationException("Wybrane danie nie jest dostępne w tym dniu menu");
 
         // Danie musi być dozwolone w pakiecie przypisanym do grupy
         var dishInPackage = await _context.PackageDishes
             .AnyAsync(x => x.PackageId == packageId && x.DishId == dishId && x.IsActive);
 
         if (!dishInPackage)
-            throw new InvalidOperationException("Dish is not allowed by group package");
+            throw new InvalidOperationException("Wybrane danie nie jest dostępne w pakiecie grupy");
     }
 
     private async Task EnsureAddonsCanBeOrderedAsync(Guid packageId, Guid menuDayId, List<Guid> addonIds, Guid cateringCompanyId)
@@ -492,27 +492,27 @@ public class OrderService : IOrderService
                 .FirstOrDefaultAsync(x => x.Id == addonId);
 
             if (addon is null)
-                throw new KeyNotFoundException("Addon not found");
+                throw new KeyNotFoundException("Nie znaleziono dodatku");
 
             if (!addon.IsActive)
-                throw new InvalidOperationException("Inactive addon cannot be ordered");
+                throw new InvalidOperationException("Nie można zamówić nieaktywnego dodatku");
 
             if (addon.CateringCompanyId != cateringCompanyId)
-                throw new InvalidOperationException("Addon belongs to another catering company");
+                throw new InvalidOperationException("Wybrany dodatek należy do innej firmy cateringowej");
 
             // Dodatek musi być dostępny w wybranym dniu menu
             var addonInMenu = await _context.MenuDayAddons
                 .AnyAsync(x => x.MenuDayId == menuDayId && x.AddonId == addonId && x.IsActive);
 
             if (!addonInMenu)
-                throw new InvalidOperationException("Addon is not available in selected menu day");
+                throw new InvalidOperationException("Wybrany dodatek nie jest dostępny w tym dniu menu");
 
             // Dodatek musi być dozwolony w pakiecie przypisanym do grupy
             var addonInPackage = await _context.PackageAddons
                 .AnyAsync(x => x.PackageId == packageId && x.AddonId == addonId && x.IsActive);
 
             if (!addonInPackage)
-                throw new InvalidOperationException("Addon is not allowed by group package");
+                throw new InvalidOperationException("Wybrany dodatek nie jest dostępny w pakiecie grupy");
         }
     }
 
@@ -523,7 +523,7 @@ public class OrderService : IOrderService
             .AnyAsync(x => x.GroupMemberId == groupMemberId && x.MenuDayId == menuDayId);
 
         if (exists)
-            throw new InvalidOperationException("Order already exists for this menu day");
+            throw new InvalidOperationException("Zamówienie na ten dzień menu zostało już złożone");
     }
 
     private async Task<OrderStatus> GetCreatedStatusAsync()
@@ -533,7 +533,7 @@ public class OrderService : IOrderService
             .FirstOrDefaultAsync(x => x.Name == CreatedStatusName && x.IsActive);
 
         if (status is null)
-            throw new InvalidOperationException("Default order status is not configured");
+            throw new InvalidOperationException("Nie skonfigurowano początkowego statusu zamówienia");
 
         return status;
     }

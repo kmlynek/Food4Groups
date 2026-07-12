@@ -27,16 +27,16 @@ public class ReportService : IReportService
     {
         // Raport rozliczeniowy może zostać wygenerowany wyłącznie dla wskazanej grupy i poprawnego zakresu dat
         if (groupId == Guid.Empty)
-            throw new ArgumentException("GroupId is required");
+            throw new ArgumentException("Wybierz grupę");
 
         if (dateFrom == default)
-            throw new ArgumentException("DateFrom is required");
+            throw new ArgumentException("Podaj datę początkową");
 
         if (dateTo == default)
-            throw new ArgumentException("DateTo is required");
+            throw new ArgumentException("Podaj datę końcową");
 
         if (dateTo.Date < dateFrom.Date)
-            throw new ArgumentException("DateTo cannot be earlier than DateFrom");
+            throw new ArgumentException("Data końcowa nie może być wcześniejsza niż data początkowa");
 
         var reportDateFrom = DateTime.SpecifyKind(dateFrom.Date, DateTimeKind.Utc);
         var reportDateTo = DateTime.SpecifyKind(dateTo.Date, DateTimeKind.Utc);
@@ -47,7 +47,7 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync(x => x.Id == groupId);
 
         if (group is null)
-            throw new KeyNotFoundException("Group not found");
+            throw new KeyNotFoundException("Nie znaleziono grupy");
 
         var template = await GetActiveTemplateAsync(GroupSettlementProformaTemplateCode);
         var reportRows = await GetGroupSettlementRowsAsync(groupId, reportDateFrom, reportDateTo);
@@ -161,7 +161,7 @@ public class ReportService : IReportService
     public async Task<ReportFileResponse> GenerateCoordinatorGroupSettlementProformaPdfAsync(string currentUserId)
     {
         if (string.IsNullOrWhiteSpace(currentUserId))
-            throw new UnauthorizedAccessException("User is not authenticated");
+            throw new UnauthorizedAccessException("Sesja użytkownika wygasła. Zaloguj się ponownie.");
 
         var currentDate = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
 
@@ -182,7 +182,7 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync();
 
         if (packageAssignment is null || packageAssignment.Group is null)
-            throw new KeyNotFoundException("Active package assignment for coordinator group not found");
+            throw new KeyNotFoundException("Grupa nie ma aktualnie przypisanego aktywnego pakietu");
 
         var dateFrom = packageAssignment.ActiveFrom;
         var dateTo = packageAssignment.ActiveTo ?? await GetLastMenuDayDateAsync(packageAssignment.Group.CateringCompanyId, dateFrom);
@@ -193,7 +193,7 @@ public class ReportService : IReportService
     public async Task<ReportFileResponse> GenerateDailyOrdersExcelAsync(Guid menuDayId)
     {
         if (menuDayId == Guid.Empty)
-            throw new ArgumentException("MenuDayId is required");
+            throw new ArgumentException("Wybierz dzień menu");
 
         var menuDay = await _context.MenuDays
             .AsNoTracking()
@@ -202,7 +202,7 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync(x => x.Id == menuDayId);
 
         if (menuDay is null)
-            throw new KeyNotFoundException("Menu day not found");
+            throw new KeyNotFoundException("Nie znaleziono dnia menu");
 
         // Raport dzienny obejmuje wszystkie zamówienia złożone dla wskazanego dnia menu
         var orders = await _context.Orders
@@ -290,7 +290,7 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync(x => x.Code == code && x.IsActive);
 
         if (template is null)
-            throw new InvalidOperationException("Print template is not configured");
+            throw new InvalidOperationException("Nie skonfigurowano szablonu dokumentu");
 
         return template;
     }
@@ -312,7 +312,7 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync();
 
         if (!lastMenuDay.HasValue)
-            throw new InvalidOperationException("Active menu days for coordinator group package were not found");
+            throw new InvalidOperationException("Brak aktywnych dni menu dla pakietu grupy");
 
         return DateTime.SpecifyKind(lastMenuDay.Value.Date, DateTimeKind.Utc);
     }
@@ -329,7 +329,7 @@ public class ReportService : IReportService
             .FirstOrDefaultAsync(x => x.Id == groupId);
 
         if (group is null)
-            throw new KeyNotFoundException("Group not found");
+            throw new KeyNotFoundException("Nie znaleziono grupy");
 
         var menuDays = await _context.MenuDays
             .AsNoTracking()

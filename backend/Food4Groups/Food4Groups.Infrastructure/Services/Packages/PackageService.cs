@@ -113,18 +113,18 @@ public class PackageService : IPackageService
     {
         // Pakiet musi mieć nazwę, nieujemną cenę oraz istniejącą firmę cateringową
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required");
+            throw new ArgumentException("Podaj nazwę pakietu");
 
         if (cateringCompanyId == Guid.Empty)
-            throw new ArgumentException("CateringCompanyId is required");
+            throw new ArgumentException("Wybierz firmę cateringową");
 
         if (pricePerPerson < 0)
-            throw new ArgumentException("Price per person cannot be negative");
+            throw new ArgumentException("Cena za osobę za dzień nie może być ujemna");
 
         var cateringCompanyExists = await _context.CateringCompanies
             .AnyAsync(x => x.Id == cateringCompanyId);
 
         if (!cateringCompanyExists)
-            throw new KeyNotFoundException("Catering company not found");
+            throw new KeyNotFoundException("Nie znaleziono firmy cateringowej");
     }
 }

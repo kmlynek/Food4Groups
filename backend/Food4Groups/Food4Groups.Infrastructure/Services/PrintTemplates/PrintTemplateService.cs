@@ -82,15 +82,15 @@ public class PrintTemplateService : IPrintTemplateService
     {
         // Każdy szablon musi zawierać komplet sekcji wymaganych do wygenerowania dokumentu
         if (string.IsNullOrWhiteSpace(request.Name))
-            throw new ArgumentException("Name is required");
+            throw new ArgumentException("Podaj nazwę szablonu");
 
         if (string.IsNullOrWhiteSpace(request.TitleTemplate))
-            throw new ArgumentException("TitleTemplate is required");
+            throw new ArgumentException("Podaj tytuł dokumentu");
 
         if (string.IsNullOrWhiteSpace(request.BodyTemplate))
-            throw new ArgumentException("BodyTemplate is required");
+            throw new ArgumentException("Podaj treść dokumentu");
 
         if (string.IsNullOrWhiteSpace(request.FooterTemplate))
-            throw new ArgumentException("FooterTemplate is required");
+            throw new ArgumentException("Podaj stopkę dokumentu");
     }
 }

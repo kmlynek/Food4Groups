@@ -46,23 +46,23 @@ public class AdminUserService : IAdminUserService
     {
         // Przypisanie roli wymaga istnienia zarówno użytkownika, jak i roli w systemie
         if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException("UserId is required");
+            throw new ArgumentException("Wybierz użytkownika");
 
         if (string.IsNullOrWhiteSpace(request.RoleName))
-            throw new ArgumentException("Role name is required");
+            throw new ArgumentException("Wybierz rolę");
 
         var roleName = request.RoleName.Trim();
 
         if (!await _roleManager.RoleExistsAsync(roleName))
-            throw new KeyNotFoundException($"Role '{roleName}' does not exist");
+            throw new KeyNotFoundException($"Rola „{roleName}” nie istnieje");
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null)
-            throw new KeyNotFoundException("User not found");
+            throw new KeyNotFoundException("Nie znaleziono użytkownika");
 
         // Zapobiega ponownemu przypisaniu tej samej roli użytkownikowi
         if (await _userManager.IsInRoleAsync(user, roleName))
-            throw new InvalidOperationException($"User already has role '{roleName}'");
+            throw new InvalidOperationException($"Użytkownik ma już rolę „{roleName}”");
 
         var addResult = await _userManager.AddToRoleAsync(user, roleName);
         if (!addResult.Succeeded)
@@ -73,22 +73,22 @@ public class AdminUserService : IAdminUserService
     {
         // Usunięcie roli jest możliwe tylko wtedy, gdy użytkownik faktycznie ją posiada
         if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException("UserId is required");
+            throw new ArgumentException("Wybierz użytkownika");
 
         if (string.IsNullOrWhiteSpace(roleName))
-            throw new ArgumentException("Role name is required");
+            throw new ArgumentException("Wybierz rolę");
 
         var roleToRemove = roleName.Trim();
 
         if (!await _roleManager.RoleExistsAsync(roleToRemove))
-            throw new KeyNotFoundException($"Role '{roleToRemove}' does not exist");
+            throw new KeyNotFoundException($"Rola „{roleToRemove}” nie istnieje");
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null)
-            throw new KeyNotFoundException("User not found");
+            throw new KeyNotFoundException("Nie znaleziono użytkownika");
 
         if (!await _userManager.IsInRoleAsync(user, roleToRemove))
-            throw new InvalidOperationException($"User does not have role '{roleToRemove}'");
+            throw new InvalidOperationException($"Użytkownik nie ma roli „{roleToRemove}”");
 
         var removeResult = await _userManager.RemoveFromRoleAsync(user, roleToRemove);
         if (!removeResult.Succeeded)
@@ -99,21 +99,21 @@ public class AdminUserService : IAdminUserService
     {
         // Administrator nie powinien mieć możliwości usunięcia własnego konta
         if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException("UserId is required");
+            throw new ArgumentException("Wybierz użytkownika");
 
         if (currentUserId == userId)
-            throw new InvalidOperationException("You cannot delete your own account");
+            throw new InvalidOperationException("Nie możesz usunąć własnego konta");
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null)
-            throw new KeyNotFoundException("User not found");
+            throw new KeyNotFoundException("Nie znaleziono użytkownika");
 
         if (await _userManager.IsInRoleAsync(user, "Admin"))
         {
             // Blokada chroni system przed sytuacją, w której nie zostanie żaden administrator
             var admins = await _userManager.GetUsersInRoleAsync("Admin");
             if (admins.Count <= 1)
-                throw new InvalidOperationException("Cannot delete the last admin user");
+                throw new InvalidOperationException("Nie można usunąć ostatniego administratora");
         }
 
         try
@@ -125,13 +125,13 @@ public class AdminUserService : IAdminUserService
         catch (DbUpdateException)
         {
             // Konflikt oznacza, że użytkownik jest powiązany z innymi danymi domenowymi
-            throw new InvalidOperationException("User cannot be deleted because it is connected with other data");
+            throw new InvalidOperationException("Nie można usunąć użytkownika powiązanego z innymi danymi");
         }
     }
     
     // Kolekcja błędów, errors są wyświetlane kolejno po sobie
     private static string FormatIdentityErrors(IdentityResult result)
     {
-        return string.Join("; ", result.Errors.Select(x => x.Description));
+        return "Nie udało się zmienić ról użytkownika";
     }
 }

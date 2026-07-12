@@ -132,33 +132,33 @@ public class PackageDishService : IPackageDishService
     {
         // Do pakietu może zostać przypisane wyłącznie aktywne danie z tej samej firmy cateringowej
         if (packageId == Guid.Empty)
-            throw new ArgumentException("PackageId is required");
+            throw new ArgumentException("Wybierz pakiet");
 
         if (dishId == Guid.Empty)
-            throw new ArgumentException("DishId is required");
+            throw new ArgumentException("Wybierz danie");
 
         var package = await _context.Packages
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == packageId);
 
         if (package is null)
-            throw new KeyNotFoundException("Package not found");
+            throw new KeyNotFoundException("Nie znaleziono pakietu");
 
         if (!package.IsActive)
-            throw new InvalidOperationException("Inactive package cannot be used");
+            throw new InvalidOperationException("Nie można zmieniać zawartości nieaktywnego pakietu");
 
         var dish = await _context.Dishes
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == dishId);
 
         if (dish is null)
-            throw new KeyNotFoundException("Dish not found");
+            throw new KeyNotFoundException("Nie znaleziono dania");
 
         if (!dish.IsActive)
-            throw new InvalidOperationException("Inactive dish cannot be assigned to package");
+            throw new InvalidOperationException("Nie można dodać nieaktywnego dania do pakietu");
 
         if (package.CateringCompanyId != dish.CateringCompanyId)
-            throw new InvalidOperationException("Package and dish must belong to the same catering company");
+            throw new InvalidOperationException("Pakiet i danie muszą należeć do tej samej firmy cateringowej");
 
         // Jedno danie nie może zostać przypisane wielokrotnie do tego samego pakietu
         var duplicateExists = await _context.PackageDishes
@@ -168,6 +168,6 @@ public class PackageDishService : IPackageDishService
                 (!ignoredPackageDishId.HasValue || x.Id != ignoredPackageDishId.Value));
 
         if (duplicateExists)
-            throw new InvalidOperationException("Dish is already assigned to this package");
+            throw new InvalidOperationException("To danie jest już dodane do pakietu");
     }
 }

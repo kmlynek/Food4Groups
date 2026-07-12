@@ -134,10 +134,10 @@ public class MenuDayAddonService : IMenuDayAddonService
     {
         // Walidacja pilnuje, aby do dnia menu trafił aktywny dodatek z tej samej firmy cateringowej
         if (menuDayId == Guid.Empty)
-            throw new ArgumentException("MenuDayId is required");
+            throw new ArgumentException("Wybierz dzień menu");
 
         if (addonId == Guid.Empty)
-            throw new ArgumentException("AddonId is required");
+            throw new ArgumentException("Wybierz dodatek");
 
         var menuDay = await _context.MenuDays
             .AsNoTracking()
@@ -145,26 +145,26 @@ public class MenuDayAddonService : IMenuDayAddonService
             .FirstOrDefaultAsync(x => x.Id == menuDayId);
 
         if (menuDay is null)
-            throw new KeyNotFoundException("Menu day not found");
+            throw new KeyNotFoundException("Nie znaleziono dnia menu");
 
         if (!menuDay.IsActive)
-            throw new InvalidOperationException("Inactive menu day cannot be used");
+            throw new InvalidOperationException("Nie można zmieniać nieaktywnego dnia menu");
 
         if (menuDay.MenuPeriod is null || !menuDay.MenuPeriod.IsActive)
-            throw new InvalidOperationException("Inactive menu period cannot be used");
+            throw new InvalidOperationException("Nie można zmieniać dnia w nieaktywnym okresie menu");
 
         var addon = await _context.Addons
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == addonId);
 
         if (addon is null)
-            throw new KeyNotFoundException("Addon not found");
+            throw new KeyNotFoundException("Nie znaleziono dodatku");
 
         if (!addon.IsActive)
-            throw new InvalidOperationException("Inactive addon cannot be assigned to menu day");
+            throw new InvalidOperationException("Nie można dodać nieaktywnego dodatku do dnia menu");
 
         if (menuDay.MenuPeriod.CateringCompanyId != addon.CateringCompanyId)
-            throw new InvalidOperationException("Menu day and addon must belong to the same catering company");
+            throw new InvalidOperationException("Dzień menu i dodatek muszą należeć do tej samej firmy cateringowej");
 
         // Jeden dodatek nie może zostać przypisany wielokrotnie do tego samego dnia menu
         var duplicateExists = await _context.MenuDayAddons
@@ -174,7 +174,7 @@ public class MenuDayAddonService : IMenuDayAddonService
                 (!ignoredMenuDayAddonId.HasValue || x.Id != ignoredMenuDayAddonId.Value));
 
         if (duplicateExists)
-            throw new InvalidOperationException("Addon is already assigned to this menu day");
+            throw new InvalidOperationException("Ten dodatek jest już dodany do dnia menu");
     }
 
     private async Task EnsureMenuDayAddonIsNotUsedAsync(Guid menuDayAddonId)
@@ -191,6 +191,6 @@ public class MenuDayAddonService : IMenuDayAddonService
             .AnyAsync(x => x.AddonId == menuDayAddon.AddonId && x.Order != null && x.Order.MenuDayId == menuDayAddon.MenuDayId);
 
         if (isUsed)
-            throw new InvalidOperationException("Menu day addon is used by orders and cannot be deleted");
+            throw new InvalidOperationException("Nie można usunąć dodatku z dnia menu, ponieważ został użyty w zamówieniu");
     }
 }

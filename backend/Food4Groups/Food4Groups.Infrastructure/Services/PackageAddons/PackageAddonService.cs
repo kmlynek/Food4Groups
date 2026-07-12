@@ -132,33 +132,33 @@ public class PackageAddonService : IPackageAddonService
     {
         // Do pakietu może zostać przypisany wyłącznie aktywny dodatek z tej samej firmy cateringowej
         if (packageId == Guid.Empty)
-            throw new ArgumentException("PackageId is required");
+            throw new ArgumentException("Wybierz pakiet");
 
         if (addonId == Guid.Empty)
-            throw new ArgumentException("AddonId is required");
+            throw new ArgumentException("Wybierz dodatek");
 
         var package = await _context.Packages
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == packageId);
 
         if (package is null)
-            throw new KeyNotFoundException("Package not found");
+            throw new KeyNotFoundException("Nie znaleziono pakietu");
 
         if (!package.IsActive)
-            throw new InvalidOperationException("Inactive package cannot be used");
+            throw new InvalidOperationException("Nie można zmieniać zawartości nieaktywnego pakietu");
 
         var addon = await _context.Addons
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == addonId);
 
         if (addon is null)
-            throw new KeyNotFoundException("Addon not found");
+            throw new KeyNotFoundException("Nie znaleziono dodatku");
 
         if (!addon.IsActive)
-            throw new InvalidOperationException("Inactive addon cannot be assigned to package");
+            throw new InvalidOperationException("Nie można dodać nieaktywnego dodatku do pakietu");
 
         if (package.CateringCompanyId != addon.CateringCompanyId)
-            throw new InvalidOperationException("Package and addon must belong to the same catering company");
+            throw new InvalidOperationException("Pakiet i dodatek muszą należeć do tej samej firmy cateringowej");
 
         // Jeden dodatek nie może zostać przypisany wielokrotnie do tego samego pakietu
         var duplicateExists = await _context.PackageAddons
@@ -168,6 +168,6 @@ public class PackageAddonService : IPackageAddonService
                 (!ignoredPackageAddonId.HasValue || x.Id != ignoredPackageAddonId.Value));
 
         if (duplicateExists)
-            throw new InvalidOperationException("Addon is already assigned to this package");
+            throw new InvalidOperationException("Ten dodatek jest już dodany do pakietu");
     }
 }

@@ -143,17 +143,17 @@ public class GroupService : IGroupService
     {
         // Walidacja po stronie serwisu zabezpiecza logikę aplikacji niezależnie od źródła danych
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required");
+            throw new ArgumentException("Podaj nazwę grupy");
 
         if (cateringCompanyId == Guid.Empty)
-            throw new ArgumentException("CateringCompanyId is required");
+            throw new ArgumentException("Wybierz firmę cateringową");
 
         // Grupa może zostać przypisana wyłącznie do istniejącej firmy cateringowej
         var cateringCompanyExists = await _context.CateringCompanies
             .AnyAsync(x => x.Id == cateringCompanyId);
 
         if (!cateringCompanyExists)
-            throw new KeyNotFoundException("Catering company not found");
+            throw new KeyNotFoundException("Nie znaleziono firmy cateringowej");
 
         if (string.IsNullOrWhiteSpace(coordinatorUserId))
             return null;
@@ -162,11 +162,11 @@ public class GroupService : IGroupService
 
         var coordinator = await _userManager.FindByIdAsync(trimmedCoordinatorUserId);
         if (coordinator is null)
-            throw new KeyNotFoundException("Coordinator user not found");
+            throw new KeyNotFoundException("Nie znaleziono koordynatora");
 
         var isCoordinator = await _userManager.IsInRoleAsync(coordinator, "GroupCoordinator");
         if (!isCoordinator)
-            throw new ArgumentException("Only users with GroupCoordinator role can be assigned as group coordinator");
+            throw new ArgumentException("Jako koordynatora można przypisać tylko użytkownika z rolą koordynatora grupy");
 
         // Jeden koordynator może być przypisany tylko do jednej grupy
         var coordinatorAlreadyAssigned = await _context.Groups.AnyAsync(x =>
@@ -174,7 +174,7 @@ public class GroupService : IGroupService
             (!currentGroupId.HasValue || x.Id != currentGroupId.Value));
 
         if (coordinatorAlreadyAssigned)
-            throw new InvalidOperationException("This coordinator is already assigned to another group");
+            throw new InvalidOperationException("Ten koordynator jest już przypisany do innej grupy");
 
         return trimmedCoordinatorUserId;
     }

@@ -146,26 +146,26 @@ public class MenuPeriodService : IMenuPeriodService
     {
         // Okres menu może zostać przypisany wyłącznie do istniejącej firmy cateringowej
         if (cateringCompanyId == Guid.Empty)
-            throw new ArgumentException("CateringCompanyId is required");
+            throw new ArgumentException("Wybierz firmę cateringową");
 
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required");
+            throw new ArgumentException("Podaj nazwę okresu menu");
 
         if (startDate == default)
-            throw new ArgumentException("StartDate is required");
+            throw new ArgumentException("Podaj datę rozpoczęcia");
 
         if (endDate == default)
-            throw new ArgumentException("EndDate is required");
+            throw new ArgumentException("Podaj datę zakończenia");
 
         // Data zakończenia okresu menu nie może być wcześniejsza niż data rozpoczęcia
         if (endDate.Date < startDate.Date)
-            throw new ArgumentException("EndDate cannot be earlier than StartDate");
+            throw new ArgumentException("Data zakończenia nie może być wcześniejsza niż data rozpoczęcia");
 
         var cateringCompanyExists = await _context.CateringCompanies
             .AnyAsync(x => x.Id == cateringCompanyId);
 
         if (!cateringCompanyExists)
-            throw new KeyNotFoundException("Catering company not found");
+            throw new KeyNotFoundException("Nie znaleziono firmy cateringowej");
     }
 
     private async Task EnsureMenuPeriodIsNotUsedAsync(Guid menuPeriodId)
@@ -174,6 +174,6 @@ public class MenuPeriodService : IMenuPeriodService
         var isUsed = await _context.MenuDays.AnyAsync(x => x.MenuPeriodId == menuPeriodId);
 
         if (isUsed)
-            throw new InvalidOperationException("Menu period is used by menu days and cannot be deleted");
+            throw new InvalidOperationException("Nie można usunąć okresu menu, który zawiera dni menu");
     }
 }

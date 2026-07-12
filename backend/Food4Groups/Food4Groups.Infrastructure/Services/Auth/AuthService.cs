@@ -23,7 +23,7 @@ public class AuthService : IAuthService
         // Weryfikacja czy konto o podanym adresie email nie istnieje już w systemie
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing is not null)
-            throw new ArgumentException("User with this email already exists");
+            throw new ArgumentException("Konto z tym adresem e-mail już istnieje");
 
         // Utworzenie nowego użytkownika w oparciu o Identity
         var user = new IdentityUser
@@ -50,12 +50,12 @@ public class AuthService : IAuthService
         // Wyszukanie użytkownika na podstawie email
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null)
-            throw new UnauthorizedAccessException("User not found");
+            throw new UnauthorizedAccessException("Nieprawidłowy adres e-mail lub hasło");
 
         // Weryfikacja poprawności hasła przy użyciu Identity
         var validPassword = await _userManager.CheckPasswordAsync(user, request.Password);
         if (!validPassword)
-            throw new UnauthorizedAccessException("Invalid password");
+            throw new UnauthorizedAccessException("Nieprawidłowy adres e-mail lub hasło");
 
         // Po pomyślnej autentykacji generowany jest token JWT
         var (token, expiresAt) = await _jwtTokenService.GenerateTokenAsync(user);
@@ -74,7 +74,7 @@ public class AuthService : IAuthService
         // Zmiana hasła jest wykonywana dla aktualnie zalogowanego użytkownika
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null)
-            throw new KeyNotFoundException("User not found");
+            throw new KeyNotFoundException("Nie znaleziono użytkownika");
 
         var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
         if (!result.Succeeded)
@@ -85,32 +85,42 @@ public class AuthService : IAuthService
     {
         // Walidacja po stronie serwisu zabezpiecza logikę aplikacji niezależnie od źródła danych
         if (string.IsNullOrWhiteSpace(request.Email))
-            throw new ArgumentException("Email is required");
+            throw new ArgumentException("Podaj adres e-mail");
 
         if (string.IsNullOrWhiteSpace(request.Password))
-            throw new ArgumentException("Password is required");
+            throw new ArgumentException("Podaj hasło");
     }
 
     private static void ValidateLoginRequest(LoginRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email))
-            throw new ArgumentException("Email is required");
+            throw new ArgumentException("Podaj adres e-mail");
 
         if (string.IsNullOrWhiteSpace(request.Password))
-            throw new ArgumentException("Password is required");
+            throw new ArgumentException("Podaj hasło");
     }
 
     private static void ValidateChangePasswordRequest(ChangePasswordRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.CurrentPassword))
-            throw new ArgumentException("Current password is required");
+            throw new ArgumentException("Podaj obecne hasło");
 
         if (string.IsNullOrWhiteSpace(request.NewPassword))
-            throw new ArgumentException("New password is required");
+            throw new ArgumentException("Podaj nowe hasło");
     }
 
     private static string FormatIdentityErrors(IdentityResult result)
     {
-        return string.Join("; ", result.Errors.Select(x => x.Description));
+        return string.Join("; ", result.Errors.Select(x => x.Code switch
+        {
+            "PasswordTooShort" => "Hasło jest za krótkie",
+            "PasswordRequiresNonAlphanumeric" => "Hasło musi zawierać znak specjalny",
+            "PasswordRequiresDigit" => "Hasło musi zawierać cyfrę",
+            "PasswordRequiresLower" => "Hasło musi zawierać małą literę",
+            "PasswordRequiresUpper" => "Hasło musi zawierać wielką literę",
+            "DuplicateEmail" or "DuplicateUserName" => "Konto z tym adresem e-mail już istnieje",
+            "PasswordMismatch" => "Obecne hasło jest nieprawidłowe",
+            _ => "Nie udało się zapisać danych konta. Sprawdź wprowadzone dane."
+        }));
     }
 }

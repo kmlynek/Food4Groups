@@ -148,16 +148,16 @@ public class DishService : IDishService
     {
         // Walidacja po stronie API zabezpiecza logikę aplikacji niezależnie od źródła danych
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required");
+            throw new ArgumentException("Podaj nazwę dania");
 
         if (cateringCompanyId == Guid.Empty)
-            throw new ArgumentException("CateringCompanyId is required");
+            throw new ArgumentException("Wybierz firmę cateringową");
 
         // Danie może zostać przypisane wyłącznie do istniejącej firmy cateringowej
         var cateringCompanyExists = await _context.CateringCompanies
             .AnyAsync(x => x.Id == cateringCompanyId);
 
         if (!cateringCompanyExists)
-            throw new KeyNotFoundException("Catering company not found");
+            throw new KeyNotFoundException("Nie znaleziono firmy cateringowej");
     }
 }

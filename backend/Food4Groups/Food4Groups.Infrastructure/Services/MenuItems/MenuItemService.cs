@@ -134,10 +134,10 @@ public class MenuItemService : IMenuItemService
     {
         // Do dnia menu może zostać przypisane wyłącznie aktywne danie z tej samej firmy cateringowej
         if (menuDayId == Guid.Empty)
-            throw new ArgumentException("MenuDayId is required");
+            throw new ArgumentException("Wybierz dzień menu");
 
         if (dishId == Guid.Empty)
-            throw new ArgumentException("DishId is required");
+            throw new ArgumentException("Wybierz danie");
 
         var menuDay = await _context.MenuDays
             .AsNoTracking()
@@ -145,26 +145,26 @@ public class MenuItemService : IMenuItemService
             .FirstOrDefaultAsync(x => x.Id == menuDayId);
 
         if (menuDay is null)
-            throw new KeyNotFoundException("Menu day not found");
+            throw new KeyNotFoundException("Nie znaleziono dnia menu");
 
         if (!menuDay.IsActive)
-            throw new InvalidOperationException("Inactive menu day cannot be used");
+            throw new InvalidOperationException("Nie można zmieniać nieaktywnego dnia menu");
 
         if (menuDay.MenuPeriod is null || !menuDay.MenuPeriod.IsActive)
-            throw new InvalidOperationException("Inactive menu period cannot be used");
+            throw new InvalidOperationException("Nie można zmieniać dnia w nieaktywnym okresie menu");
 
         var dish = await _context.Dishes
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == dishId);
 
         if (dish is null)
-            throw new KeyNotFoundException("Dish not found");
+            throw new KeyNotFoundException("Nie znaleziono dania");
 
         if (!dish.IsActive)
-            throw new InvalidOperationException("Inactive dish cannot be assigned to menu day");
+            throw new InvalidOperationException("Nie można dodać nieaktywnego dania do dnia menu");
 
         if (menuDay.MenuPeriod.CateringCompanyId != dish.CateringCompanyId)
-            throw new InvalidOperationException("Menu day and dish must belong to the same catering company");
+            throw new InvalidOperationException("Dzień menu i danie muszą należeć do tej samej firmy cateringowej");
 
         // Jedno danie nie może zostać przypisane wielokrotnie do tego samego dnia menu
         var duplicateExists = await _context.MenuItems
@@ -174,7 +174,7 @@ public class MenuItemService : IMenuItemService
                 (!ignoredMenuItemId.HasValue || x.Id != ignoredMenuItemId.Value));
 
         if (duplicateExists)
-            throw new InvalidOperationException("Dish is already assigned to this menu day");
+            throw new InvalidOperationException("To danie jest już dodane do dnia menu");
     }
 
     private async Task EnsureMenuItemIsNotUsedAsync(Guid menuItemId)
@@ -191,6 +191,6 @@ public class MenuItemService : IMenuItemService
             .AnyAsync(x => x.MenuDayId == menuItem.MenuDayId && x.DishId == menuItem.DishId);
 
         if (isUsed)
-            throw new InvalidOperationException("Menu item is used by orders and cannot be deleted");
+            throw new InvalidOperationException("Nie można usunąć dania z dnia menu, ponieważ zostało użyte w zamówieniu");
     }
 }

@@ -166,37 +166,37 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
     {
         // Przypisanie pakietu wymaga istniejącej grupy, aktywnego pakietu oraz poprawnego zakresu dat
         if (groupId == Guid.Empty)
-            throw new ArgumentException("GroupId is required");
+            throw new ArgumentException("Wybierz grupę");
 
         if (packageId == Guid.Empty)
-            throw new ArgumentException("PackageId is required");
+            throw new ArgumentException("Wybierz pakiet");
 
         if (activeFrom == default)
-            throw new ArgumentException("ActiveFrom is required");
+            throw new ArgumentException("Podaj datę rozpoczęcia");
 
         if (activeTo.HasValue && activeTo.Value < activeFrom)
-            throw new ArgumentException("ActiveTo cannot be earlier than ActiveFrom");
+            throw new ArgumentException("Data końcowa nie może być wcześniejsza niż data początkowa");
 
         var group = await _context.Groups
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == groupId);
 
         if (group is null)
-            throw new KeyNotFoundException("Group not found");
+            throw new KeyNotFoundException("Nie znaleziono grupy");
 
         var package = await _context.Packages
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == packageId);
 
         if (package is null)
-            throw new KeyNotFoundException("Package not found");
+            throw new KeyNotFoundException("Nie znaleziono pakietu");
 
         if (!package.IsActive)
-            throw new InvalidOperationException("Inactive package cannot be assigned to group");
+            throw new InvalidOperationException("Nie można przypisać nieaktywnego pakietu do grupy");
 
         // Grupa i pakiet muszą należeć do tej samej firmy cateringowej
         if (group.CateringCompanyId != package.CateringCompanyId)
-            throw new InvalidOperationException("Group and package must belong to the same catering company");
+            throw new InvalidOperationException("Grupa i pakiet muszą należeć do tej samej firmy cateringowej");
     }
 
     private async Task EnsureNoActiveOverlapAsync(Guid groupId, DateTime activeFrom, DateTime? activeTo, Guid? ignoredAssignmentId)
@@ -213,6 +213,6 @@ public class GroupPackageAssignmentService : IGroupPackageAssignmentService
                 (x.ActiveTo == null || x.ActiveTo >= activeFrom));
 
         if (overlapExists)
-            throw new InvalidOperationException("Group already has active package assignment in this period");
+            throw new InvalidOperationException("Grupa ma już aktywny pakiet w tym okresie");
     }
 }

@@ -105,7 +105,7 @@ public class CateringCompanyService : ICateringCompanyService
     {
         // Walidacja po stronie serwisu zabezpiecza logikę aplikacji niezależnie od źródła danych
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required");
+            throw new ArgumentException("Podaj nazwę firmy cateringowej");
     }
 
     private async Task EnsureCompanyIsNotUsedAsync(Guid companyId)
@@ -120,6 +120,6 @@ public class CateringCompanyService : ICateringCompanyService
             await _context.SettlementPeriods.AnyAsync(x => x.CateringCompanyId == companyId);
 
         if (isUsed)
-            throw new InvalidOperationException("Catering company is used by other records and cannot be deleted");
+            throw new InvalidOperationException("Nie można usunąć firmy cateringowej powiązanej z innymi danymi");
     }
 }

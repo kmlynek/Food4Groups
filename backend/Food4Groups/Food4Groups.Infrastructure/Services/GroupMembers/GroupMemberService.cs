@@ -124,7 +124,7 @@ public class GroupMemberService : IGroupMemberService
         var hasOrders = await _context.Orders.AnyAsync(x => x.GroupMemberId == memberId);
 
         if (hasOrders)
-            throw new InvalidOperationException("User cannot be deleted because have existing orders. Deactivate the membership instead of deleting.");
+            throw new InvalidOperationException("Nie można usunąć uczestnika, ponieważ ma zamówienia. Zamiast tego wyłącz uczestnictwo.");
     }
     
     private IQueryable<GroupMemberResponse> GetGroupMembersQuery()
@@ -151,26 +151,26 @@ public class GroupMemberService : IGroupMemberService
     {
         // Walidacja po stronie serwisu zabezpiecza logikę aplikacji niezależnie od źródła danych
         if (groupId == Guid.Empty)
-            throw new ArgumentException("GroupId is required");
+            throw new ArgumentException("Wybierz grupę");
 
         if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException("UserId is required");
+            throw new ArgumentException("Wybierz klienta");
 
         var trimmedUserId = userId.Trim();
 
         // Członek grupy może zostać dodany tylko do istniejącej grupy
         var groupExists = await _context.Groups.AnyAsync(x => x.Id == groupId);
         if (!groupExists)
-            throw new KeyNotFoundException("Group not found");
+            throw new KeyNotFoundException("Nie znaleziono grupy");
 
         // Przypisywany klient musi istnieć w systemie Identity
         var user = await _userManager.FindByIdAsync(trimmedUserId);
         if (user is null)
-            throw new KeyNotFoundException("User not found");
+            throw new KeyNotFoundException("Nie znaleziono użytkownika");
 
         var isClient = await _userManager.IsInRoleAsync(user, "User");
         if (!isClient)
-            throw new ArgumentException("Only users with User role can be assigned as group members");
+            throw new ArgumentException("Do grupy można przypisać tylko użytkownika z rolą klienta");
 
         // Jeden klient może należeć tylko do jednej grupy
         var userAlreadyAssigned = await _context.GroupMembers.AnyAsync(x =>
@@ -178,7 +178,7 @@ public class GroupMemberService : IGroupMemberService
             (!currentMemberId.HasValue || x.Id != currentMemberId.Value));
 
         if (userAlreadyAssigned)
-            throw new InvalidOperationException("This user already belongs to a group");
+            throw new InvalidOperationException("Ten klient należy już do grupy");
 
         return trimmedUserId;
     }
