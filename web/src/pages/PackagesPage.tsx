@@ -17,10 +17,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  MenuItem,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
 import { getAddons } from '../api/addonsApi';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
@@ -34,6 +36,9 @@ import { roles } from '../types/authTypes';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
 import type { Dish } from '../types/dishTypes';
 import type { Package } from '../types/packageTypes';
+
+type PackageStatusFilter = 'all' | 'active' | 'inactive';
+type PackageSortOption = 'nameAsc' | 'nameDesc' | 'priceAsc' | 'priceDesc';
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('pl-PL', {
@@ -70,6 +75,62 @@ export function PackagesPage() {
   const [packageContent, setPackageContent] = useState<Package | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+  const [statusFilter, setStatusFilter] = useState<PackageStatusFilter>('all');
+  const [sortOption, setSortOption] = useState<PackageSortOption>('nameAsc');
+
+  const packageCompanyOptions = useMemo(() => {
+    const companyMap = new Map<string, string>();
+
+    packages.forEach((packageItem) => {
+      if (packageItem.cateringCompanyId && packageItem.cateringCompanyName) {
+        companyMap.set(packageItem.cateringCompanyId, packageItem.cateringCompanyName);
+      }
+    });
+
+    return Array.from(companyMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((firstCompany, secondCompany) => firstCompany.name.localeCompare(secondCompany.name));
+  }, [packages]);
+
+  const filteredPackages = useMemo(() => {
+    const normalizedSearchText = searchText.trim().toLowerCase();
+
+    return packages
+      .filter((packageItem) => {
+        const searchableText = [packageItem.name, packageItem.cateringCompanyName]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        const matchesSearchText =
+          normalizedSearchText.length === 0 || searchableText.includes(normalizedSearchText);
+
+        const matchesCompany =
+          !selectedCompanyId || packageItem.cateringCompanyId === selectedCompanyId;
+
+        const matchesStatus =
+          statusFilter === 'all' ||
+          (statusFilter === 'active' && packageItem.isActive) ||
+          (statusFilter === 'inactive' && !packageItem.isActive);
+
+        return matchesSearchText && matchesCompany && matchesStatus;
+      })
+      .sort((firstPackage, secondPackage) => {
+        if (sortOption === 'priceAsc') {
+          return firstPackage.pricePerPerson - secondPackage.pricePerPerson;
+        }
+
+        if (sortOption === 'priceDesc') {
+          return secondPackage.pricePerPerson - firstPackage.pricePerPerson;
+        }
+
+        return sortOption === 'nameAsc'
+          ? firstPackage.name.localeCompare(secondPackage.name)
+          : secondPackage.name.localeCompare(firstPackage.name);
+      });
+  }, [packages, searchText, selectedCompanyId, sortOption, statusFilter]);
 
   async function loadPackages() {
     setIsLoading(true);
@@ -224,6 +285,69 @@ export function PackagesPage() {
 
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
+      {/* Filtry pakietów ułatwiają przegląd wariantów oferty i ich dostępności */}
+      {!isLoading && packages.length > 0 && (
+        <Card variant="outlined">
+          <CardContent>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              <TextField
+                label="Szukaj pakietu"
+                value={searchText}
+                onChange={(event) => setSearchText(event.target.value)}
+                placeholder="Nazwa lub firma"
+                fullWidth
+              />
+
+              <TextField
+                label="Firma"
+                value={selectedCompanyId}
+                onChange={(event) => setSelectedCompanyId(event.target.value)}
+                select
+                fullWidth
+              >
+                <MenuItem value="">Wszystkie firmy</MenuItem>
+                {packageCompanyOptions.map((company) => (
+                  <MenuItem key={company.id} value={company.id}>
+                    {company.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                label="Status"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as PackageStatusFilter)}
+                select
+                fullWidth
+              >
+                <MenuItem value="all">Wszystkie</MenuItem>
+                <MenuItem value="active">Aktywne</MenuItem>
+                <MenuItem value="inactive">Nieaktywne</MenuItem>
+              </TextField>
+
+              <TextField
+                label="Sortowanie"
+                value={sortOption}
+                onChange={(event) => setSortOption(event.target.value as PackageSortOption)}
+                select
+                fullWidth
+              >
+                <MenuItem value="nameAsc">Nazwa A-Z</MenuItem>
+                <MenuItem value="nameDesc">Nazwa Z-A</MenuItem>
+                <MenuItem value="priceAsc">Cena rosnąco</MenuItem>
+                <MenuItem value="priceDesc">Cena malejąco</MenuItem>
+              </TextField>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stan ładowania widoczny podczas pobierania danych z API */}
       {isLoading && (
         <Card variant="outlined">
@@ -243,13 +367,28 @@ export function PackagesPage() {
             <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
               <Inventory2OutlinedIcon color="primary" fontSize="large" />
               <Typography variant="h6">Brak pakietów</Typography>
+              <Typography color="text.secondary">
+                Po dodaniu pakietów będą one widoczne w tym miejscu
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pusty stan dla aktywnych filtrów pakietów */}
+      {!isLoading && packages.length > 0 && filteredPackages.length === 0 && (
+        <Card variant="outlined">
+          <CardContent>
+            <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
+              <Inventory2OutlinedIcon color="primary" fontSize="large" />
+              <Typography variant="h6">Brak wyników</Typography>
             </Stack>
           </CardContent>
         </Card>
       )}
 
       {/* Lista pakietów pobrana z backendu */}
-      {!isLoading && packages.length > 0 && (
+      {!isLoading && filteredPackages.length > 0 && (
         <Box
           sx={{
             display: 'grid',
@@ -257,7 +396,7 @@ export function PackagesPage() {
             gap: 2,
           }}
         >
-          {packages.map((packageItem) => (
+          {filteredPackages.map((packageItem) => (
             <Card key={packageItem.id} variant="outlined">
               <CardContent>
                 <Stack spacing={2}>
@@ -331,7 +470,7 @@ export function PackagesPage() {
       <PackageForm
         open={isFormOpen}
         title={selectedPackage ? 'Edytuj pakiet' : 'Dodaj pakiet'}
-        submitLabel={selectedPackage ? 'Zapisz' : 'Dodaj pakiet'}
+        submitLabel={selectedPackage ? 'Zapisz zmiany' : 'Dodaj pakiet'}
         isSubmitting={isSubmitting}
         canEditStatus={Boolean(selectedPackage)}
         companies={companies}
@@ -353,7 +492,8 @@ export function PackagesPage() {
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{packageToDelete?.name}</strong>?
+            Czy na pewno chcesz usunąć <strong>{packageToDelete?.name}</strong>? Tej operacji nie
+            można cofnąć.
           </DialogContentText>
         </DialogContent>
 
