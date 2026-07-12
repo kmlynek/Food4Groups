@@ -3,7 +3,6 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import PlaylistAddCheckOutlinedIcon from '@mui/icons-material/PlaylistAddCheckOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
   Alert,
   Box,
@@ -174,17 +173,8 @@ export function MenuDaysDialog({ open, menuPeriod, onClose }: MenuDaysDialogProp
           <Stack spacing={3} sx={{ pt: 1 }}>
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-            {/* Pasek akcji dla odświeżenia i dodania dnia menu */}
+            {/* Główna akcja dodania dnia menu */}
             <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-              <Button
-                variant="outlined"
-                startIcon={<RefreshOutlinedIcon />}
-                onClick={loadDays}
-                disabled={isLoading}
-              >
-                Odśwież
-              </Button>
-
               <Button
                 variant="contained"
                 startIcon={<AddOutlinedIcon />}
@@ -201,7 +191,7 @@ export function MenuDaysDialog({ open, menuPeriod, onClose }: MenuDaysDialogProp
                 <CardContent>
                   <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
                     <CircularProgress />
-                    <Typography color="text.secondary">Pobieranie dni menu...</Typography>
+                    <Typography color="text.secondary">Pobieranie dni menu…</Typography>
                   </Stack>
                 </CardContent>
               </Card>
@@ -255,7 +245,7 @@ export function MenuDaysDialog({ open, menuPeriod, onClose }: MenuDaysDialogProp
                           startIcon={<PlaylistAddCheckOutlinedIcon />}
                           onClick={() => setDayContent(day)}
                         >
-                          Zawartość
+                          Dania i dodatki
                         </Button>
 
                         <Button
@@ -317,7 +307,8 @@ export function MenuDaysDialog({ open, menuPeriod, onClose }: MenuDaysDialogProp
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{dayToDelete ? formatDate(dayToDelete.menuDate) : ''}</strong>?            
+            Usunąć dzień menu z <strong>{dayToDelete ? formatDate(dayToDelete.menuDate) : ''}</strong>?
+            Dnia powiązanego z daniami, dodatkami lub zamówieniami nie można usunąć.
           </DialogContentText>
         </DialogContent>
 
@@ -326,7 +317,7 @@ export function MenuDaysDialog({ open, menuPeriod, onClose }: MenuDaysDialogProp
             Anuluj
           </Button>
           <Button color="error" variant="contained" onClick={handleDeleteDay} disabled={isSubmitting}>
-            {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+            {isSubmitting ? 'Usuwanie…' : 'Usuń'}
           </Button>
         </DialogActions>
       </Dialog>

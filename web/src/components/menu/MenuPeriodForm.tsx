@@ -94,7 +94,7 @@ export function MenuPeriodForm({
           <Stack spacing={2.5} sx={{ pt: 1 }}>
             {/* Podstawowe dane okresu menu widoczne w module planowania */}
             <TextField
-              label="Nazwa"
+              label="Nazwa okresu menu"
               value={name}
               onChange={(event) => setName(event.target.value)}
               required
@@ -140,7 +140,10 @@ export function MenuPeriodForm({
                 onChange={(event) => setEndDate(event.target.value)}
                 required
                 fullWidth
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                  htmlInput: { min: startDate },
+                }}
               />
             </Stack>
 
@@ -153,7 +156,7 @@ export function MenuPeriodForm({
                     onChange={(event) => setIsActive(event.target.checked)}
                   />
                 }
-                label="Aktywny"
+                label="Okres menu aktywny"
               />
             )}
           </Stack>
@@ -164,7 +167,7 @@ export function MenuPeriodForm({
             Anuluj
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting || companies.length === 0}>
-            {isSubmitting ? 'Zapisywanie...' : submitLabel}
+            {isSubmitting ? 'Zapisywanie…' : submitLabel}
           </Button>
         </DialogActions>
       </Box>

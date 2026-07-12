@@ -38,7 +38,7 @@ export function RegisterPage() {
         setErrorMessage('');
 
         if (password !== confirmPassword) {
-            setErrorMessage('Potwierdzone hasło nie jest zgodne');
+            setErrorMessage('Hasła nie są takie same');
             return;
         }
 
@@ -91,7 +91,7 @@ export function RegisterPage() {
                             <Box>
                                 <Typography variant="h5">Rejestracja konta</Typography>
                                 <Typography  sx={{pt: 1}} variant="body2" color="text.secondary">
-                                    Dostęp do odpowiednich funkcji systemu zostanie nadany po przypisanu do grupy
+                                    Możliwość składania zamówień uzyskasz po przypisaniu konta do grupy
                                 </Typography>
                             </Box>
                         </Stack>
@@ -105,7 +105,7 @@ export function RegisterPage() {
                         <Box component="form" onSubmit={handleSubmit}>
                             <Stack spacing={2.25}>
                                 <TextField
-                                    label="Email"
+                                    label="Adres e-mail"
                                     type="email"
                                     value={email}
                                     onChange={(event) => setEmail(event.target.value)}
@@ -122,6 +122,7 @@ export function RegisterPage() {
                                     required
                                     fullWidth
                                     autoComplete="new-password"
+                                    helperText="Co najmniej 6 znaków, w tym mała i wielka litera, cyfra oraz znak specjalny"
                                 />
 
                                 <TextField
@@ -135,7 +136,7 @@ export function RegisterPage() {
                                 />
 
                                 <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Tworzenie konta...' : 'Utwórz konto'}
+                                    {isSubmitting ? 'Tworzenie konta…' : 'Utwórz konto'}
                                 </Button>
                             </Stack>
                         </Box>

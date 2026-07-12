@@ -80,7 +80,7 @@ export function MenuDayForm({
           <Stack spacing={2.5} sx={{ pt: 1 }}>
             {/* Data dnia menu musi mieścić się w zakresie wybranego okresu menu */}
             <TextField
-              label="Data menu"
+              label="Data dnia menu"
               type="date"
               value={menuDate}
               onChange={(event) => setMenuDate(event.target.value)}
@@ -116,7 +116,7 @@ export function MenuDayForm({
             Anuluj
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting || !menuPeriod}>
-            {isSubmitting ? 'Zapisywanie...' : submitLabel}
+            {isSubmitting ? 'Zapisywanie…' : submitLabel}
           </Button>
         </DialogActions>
       </Box>

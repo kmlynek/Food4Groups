@@ -2,7 +2,6 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
   Alert,
   Box,
@@ -195,34 +194,25 @@ export function GroupPackageAssignmentsDialog({ open, group, onClose }: GroupPac
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-      <DialogTitle>Pakiet grupy</DialogTitle>
+      <DialogTitle>Pakiety grupy</DialogTitle>
 
       <DialogContent>
         <Stack spacing={3} sx={{ pt: 1 }}>
           <Box>
             <Typography variant="h6">{group?.name}</Typography>
             <Typography color="text.secondary">
-              Pakiet przypisany do grupy decyduje, które dania i dodatki klient może zamówić
+              Pakiety przypisane do grupy określają dania i dodatki dostępne uczestnikom w podanych okresach
             </Typography>
           </Box>
 
           <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshOutlinedIcon />}
-              onClick={loadData}
-              disabled={isLoading}
-            >
-              Odśwież
-            </Button>
-
             <Button
               variant="contained"
               startIcon={<AddOutlinedIcon />}
               onClick={openCreateForm}
               disabled={availablePackages.length === 0}
             >
-              Dodaj pakiet
+              Przypisz pakiet
             </Button>
           </Stack>
 
@@ -240,7 +230,7 @@ export function GroupPackageAssignmentsDialog({ open, group, onClose }: GroupPac
               <CardContent>
                 <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
                   <CircularProgress />
-                  <Typography color="text.secondary">Pobieranie pakietów grupy...</Typography>
+                  <Typography color="text.secondary">Pobieranie pakietów grupy…</Typography>
                 </Stack>
               </CardContent>
             </Card>
@@ -322,8 +312,8 @@ export function GroupPackageAssignmentsDialog({ open, group, onClose }: GroupPac
 
       <GroupPackageAssignmentForm
         open={isFormOpen}
-        title={selectedAssignment ? 'Edytuj pakiet grupy' : 'Dodaj pakiet grupy'}
-        submitLabel={selectedAssignment ? 'Zapisz zmiany' : 'Dodaj pakiet'}
+        title={selectedAssignment ? 'Edytuj przypisanie pakietu' : 'Przypisz pakiet'}
+        submitLabel={selectedAssignment ? 'Zapisz zmiany' : 'Przypisz pakiet'}
         isSubmitting={isSubmitting}
         group={group}
         packages={availablePackages}
@@ -333,11 +323,12 @@ export function GroupPackageAssignmentsDialog({ open, group, onClose }: GroupPac
       />
 
       <Dialog open={Boolean(assignmentToDelete)} onClose={() => setAssignmentToDelete(null)}>
-        <DialogTitle>Usuń pakiet grupy</DialogTitle>
+        <DialogTitle>Usuń przypisanie pakietu</DialogTitle>
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{assignmentToDelete?.packageName}</strong>?
+            Usunąć przypisanie pakietu <strong>{assignmentToDelete?.packageName}</strong> do grupy{' '}
+            <strong>{group?.name}</strong>? Sam pakiet pozostanie w katalogu.
           </DialogContentText>
         </DialogContent>
 
@@ -346,7 +337,7 @@ export function GroupPackageAssignmentsDialog({ open, group, onClose }: GroupPac
             Anuluj
           </Button>
           <Button color="error" variant="contained" onClick={handleDeleteAssignment} disabled={isSubmitting}>
-            {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+            {isSubmitting ? 'Usuwanie…' : 'Usuń przypisanie'}
           </Button>
         </DialogActions>
       </Dialog>

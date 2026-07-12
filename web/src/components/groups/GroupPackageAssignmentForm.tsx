@@ -116,7 +116,7 @@ export function GroupPackageAssignmentForm({
             {/* Zakres dat wskazuje, kiedy pakiet obowiązuje dla wybranej grupy */}
             <Stack direction="row" spacing={2}>
               <TextField
-                label="Data od"
+                label="Obowiązuje od"
                 type="date"
                 value={activeFrom}
                 onChange={(event) => setActiveFrom(event.target.value)}
@@ -128,13 +128,14 @@ export function GroupPackageAssignmentForm({
               />
 
               <TextField
-                label="Data do"
+                label="Obowiązuje do (opcjonalnie)"
                 type="date"
                 value={activeTo}
                 onChange={(event) => setActiveTo(event.target.value)}
                 fullWidth
                 slotProps={{
                   inputLabel: { shrink: true },
+                  htmlInput: { min: activeFrom },
                 }}
               />
             </Stack>
@@ -159,7 +160,7 @@ export function GroupPackageAssignmentForm({
             Anuluj
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting || !group || !packageId || !activeFrom}>
-            {isSubmitting ? 'Zapisywanie...' : submitLabel}
+            {isSubmitting ? 'Zapisywanie…' : submitLabel}
           </Button>
         </DialogActions>
       </Box>

@@ -139,7 +139,12 @@ export function AppLayout() {
             >
                 <Toolbar>
                     {!isDesktop && (
-                        <IconButton edge="start" onClick={() => setIsDrawerOpen(true)} sx={{ mr: 2 }}>
+                        <IconButton
+                            edge="start"
+                            onClick={() => setIsDrawerOpen(true)}
+                            aria-label="Otwórz menu główne"
+                            sx={{ mr: 2 }}
+                        >
                             <MenuIcon />
                         </IconButton>
                     )}
@@ -181,7 +186,7 @@ export function AppLayout() {
                     ml: { md: `${drawerWidth}px` },
                     px: { xs: 2, md: 4 },
                     py: 4,
-                    pt: 12,
+                    pt: { xs: 12, md: 4 },
                 }}
             >
                 <Outlet />

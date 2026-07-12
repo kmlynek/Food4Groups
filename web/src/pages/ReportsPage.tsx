@@ -1,6 +1,5 @@
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import {
   Alert,
@@ -237,17 +236,6 @@ export function ReportsPage() {
           </Typography>
         </Box>
 
-        <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-          <Button
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={loadReportFilters}
-            disabled={isLoading || isSubmitting}
-          >
-            Odśwież
-          </Button>
-        </Stack>
-
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
         {isLoading && canGenerateOperationalReports && (
@@ -255,7 +243,7 @@ export function ReportsPage() {
             <CardContent>
               <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
                 <CircularProgress />
-                <Typography color="text.secondary">Pobieranie danych raportów...</Typography>
+                <Typography color="text.secondary">Pobieranie danych raportów…</Typography>
               </Stack>
             </CardContent>
           </Card>
@@ -268,16 +256,16 @@ export function ReportsPage() {
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                 <PictureAsPdfOutlinedIcon color="primary" />
                 <Box>
-                  <Typography variant="h6">Proforma rozliczenia grupy</Typography>
+                  <Typography variant="h6">Pro forma rozliczenia grupy</Typography>
                   <Typography color="text.secondary">
-                    Dokument PDF z abonamentowym podsumowaniem kosztów usługi
+                    Dokument PDF z podsumowaniem kosztów pakietu w wybranym okresie
                   </Typography>
                 </Box>
               </Stack>
 
               {isGroupCoordinator && !canGenerateOperationalReports && (
                 <Alert severity="info" variant="outlined">
-                  Proforma obejmuje aktualny okres pakietu przypisanego do Twojej grupy
+                  Pro forma obejmuje aktualny okres pakietu przypisanego do Twojej grupy
                 </Alert>
               )}
 
@@ -349,7 +337,7 @@ export function ReportsPage() {
                                   {assignment.packageName ?? 'Pakiet'}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                  {formatPrice(assignment.packagePricePerPerson)} / osoba / dzień
+                                  {formatPrice(assignment.packagePricePerPerson)} za osobę dziennie
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
                                   Obowiązuje od {formatDate(assignment.activeFrom)}
@@ -382,7 +370,7 @@ export function ReportsPage() {
                     (canGenerateOperationalReports && !selectedGroupId)
                   }
                 >
-                  {isSubmitting ? 'Generowanie...' : 'Pobierz PDF'}
+                  {isSubmitting ? 'Generowanie…' : 'Pobierz PDF'}
                 </Button>
               </Stack>
             </Stack>
@@ -449,7 +437,7 @@ export function ReportsPage() {
                     onClick={handleDownloadDailyOrdersReport}
                     disabled={isSubmitting || !selectedMenuDayId}
                   >
-                    {isSubmitting ? 'Generowanie...' : 'Pobierz Excel'}
+                    {isSubmitting ? 'Generowanie…' : 'Pobierz Excel'}
                   </Button>
                 </Stack>
               </Stack>

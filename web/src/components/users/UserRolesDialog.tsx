@@ -126,7 +126,7 @@ export function UserRolesDialog({ open, user, onClose, onChanged }: UserRolesDia
           {/* Przypisanie nowej roli spośród ról, których użytkownik jeszcze nie posiada */}
           <Stack direction="row" spacing={1.5}>
             <TextField
-              label="Nowa rola"
+              label="Rola do przypisania"
               value={selectedRole}
               onChange={(event) => setSelectedRole(event.target.value as UserRole)}
               select
@@ -146,7 +146,7 @@ export function UserRolesDialog({ open, user, onClose, onChanged }: UserRolesDia
               onClick={handleAssignRole}
               disabled={!selectedRole || isSubmitting}
             >
-              Dodaj
+              Przypisz rolę
             </Button>
           </Stack>
         </Stack>

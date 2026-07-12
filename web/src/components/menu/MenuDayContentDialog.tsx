@@ -194,7 +194,7 @@ export function MenuDayContentDialog({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Zawartość dnia menu {formatDate(menuDay?.menuDate)}</DialogTitle>
+      <DialogTitle>Dania i dodatki w dniu menu: {formatDate(menuDay?.menuDate)}</DialogTitle>
 
       <DialogContent>
         <Stack spacing={3} sx={{ pt: 1 }}>
@@ -202,7 +202,7 @@ export function MenuDayContentDialog({
 
           {/* Sekcja przypisywania dań dostępnych dla firmy dnia menu */}
           <Stack spacing={1.5}>
-            <Typography variant="h6">Dania dostępne tego dnia</Typography>
+            <Typography variant="h6">Dania w menu na ten dzień</Typography>
 
             <Stack direction="row" spacing={1.5}>
               <TextField
@@ -226,7 +226,7 @@ export function MenuDayContentDialog({
                 onClick={handleAddDish}
                 disabled={!selectedDishId || isSubmitting}
               >
-                Dodaj
+                Dodaj danie
               </Button>
             </Stack>
 
@@ -265,7 +265,7 @@ export function MenuDayContentDialog({
                     onClick={() => handleDeleteMenuItem(item)}
                     disabled={isSubmitting}
                   >
-                    Usuń
+                    Usuń z dnia menu
                   </Button>
                 </Box>
               ))}
@@ -276,7 +276,7 @@ export function MenuDayContentDialog({
 
           {/* Sekcja przypisywania dodatków dostępnych dla firmy dnia menu */}
           <Stack spacing={1.5}>
-            <Typography variant="h6">Dodatki dostępne tego dnia</Typography>
+            <Typography variant="h6">Dodatki w menu na ten dzień</Typography>
 
             <Stack direction="row" spacing={1.5}>
               <TextField
@@ -300,7 +300,7 @@ export function MenuDayContentDialog({
                 onClick={handleAddAddon}
                 disabled={!selectedAddonId || isSubmitting}
               >
-                Dodaj
+                Dodaj dodatek
               </Button>
             </Stack>
 
@@ -328,7 +328,7 @@ export function MenuDayContentDialog({
                     <Chip
                       size="small"
                       variant="outlined"
-                      label={item.isActive ? 'Aktywne' : 'Nieaktywne'}
+                      label={item.isActive ? 'Aktywny' : 'Nieaktywny'}
                     />
                   </Stack>
 
@@ -339,7 +339,7 @@ export function MenuDayContentDialog({
                     onClick={() => handleDeleteMenuDayAddon(item)}
                     disabled={isSubmitting}
                   >
-                    Usuń
+                    Usuń z dnia menu
                   </Button>
                 </Box>
               ))}

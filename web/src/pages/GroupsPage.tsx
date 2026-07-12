@@ -3,7 +3,6 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {
     Alert,
@@ -40,6 +39,10 @@ function formatDate(value: string) {
         dateStyle: 'medium',
         timeStyle: 'short',
     }).format(new Date(value));
+}
+
+function formatParticipantCount(count: number) {
+    return count === 1 ? '1 uczestnik' : `${count} uczestników`;
 }
 
 export function GroupsPage() {
@@ -201,17 +204,8 @@ export function GroupsPage() {
                 </Typography>
             </Box>
 
-            {/* Pasek akcji dla odświeżenia danych i dodania nowej grupy */}
+            {/* Główna akcja dodania nowej grupy */}
             <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-                <Button
-                    variant="outlined"
-                    startIcon={<RefreshOutlinedIcon />}
-                    onClick={loadGroups}
-                    disabled={isLoading}
-                >
-                    Odśwież
-                </Button>
-
                 <Button
                     variant="contained"
                     startIcon={<AddOutlinedIcon />}
@@ -280,7 +274,7 @@ export function GroupsPage() {
                     <CardContent>
                         <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
                             <CircularProgress />
-                            <Typography color="text.secondary">Pobieranie grup...</Typography>
+                            <Typography color="text.secondary">Pobieranie grup…</Typography>
                         </Stack>
                     </CardContent>
                 </Card>
@@ -292,7 +286,10 @@ export function GroupsPage() {
                     <CardContent>
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <GroupsOutlinedIcon color="primary" fontSize="large" />
-                            <Typography variant="h6">Brak grup</Typography>
+                            <Typography variant="h6">Nie dodano jeszcze grup</Typography>
+                            <Typography color="text.secondary">
+                                Dodaj pierwszą grupę, aby przypisać uczestników i pakiet
+                            </Typography>
                         </Stack>
                     </CardContent>
                 </Card>
@@ -335,7 +332,7 @@ export function GroupsPage() {
                                             )}
                                         </Box>
 
-                                        <Chip color="primary" variant="outlined" label={`Liczba uczestników: ${group.memberCount}`} />
+                                        <Chip color="primary" variant="outlined" label={formatParticipantCount(group.memberCount)} />
                                     </Stack>
 
                                     <Typography variant="body2" color="text.secondary">
@@ -417,7 +414,7 @@ export function GroupsPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{groupToDelete?.name}</strong>?
+                        Usunąć grupę <strong>{groupToDelete?.name}</strong>? Tej operacji nie można cofnąć.
                     </DialogContentText>
                 </DialogContent>
 
@@ -426,7 +423,7 @@ export function GroupsPage() {
                         Anuluj
                     </Button>
                     <Button color="error" variant="contained" onClick={handleDeleteGroup} disabled={isSubmitting}>
-                        {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+                        {isSubmitting ? 'Usuwanie…' : 'Usuń'}
                     </Button>
                 </DialogActions>
             </Dialog>

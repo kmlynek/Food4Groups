@@ -79,7 +79,7 @@ export function GroupMemberForm({
 
             {/* Konto użytkownika przypisywane do grupy */}
             <TextField
-              label="Użytkownik"
+              label="Klient"
               value={userId}
               onChange={(event) => setUserId(event.target.value)}
               required
@@ -103,7 +103,7 @@ export function GroupMemberForm({
                     onChange={(event) => setIsActive(event.target.checked)}
                   />
                 }
-                label="Aktywność"
+                label="Uczestnictwo aktywne"
               />
             )}
           </Stack>
@@ -114,7 +114,7 @@ export function GroupMemberForm({
             Anuluj
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting || !group || !userId}>
-            {isSubmitting ? 'Zapisywanie...' : submitLabel}
+            {isSubmitting ? 'Zapisywanie…' : submitLabel}
           </Button>
         </DialogActions>
       </Box>

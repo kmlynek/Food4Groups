@@ -1,6 +1,5 @@
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
   Alert,
   Box,
@@ -120,6 +119,12 @@ export function OrdersPage() {
   const isGroupCoordinator = userRoles.includes(roles.groupCoordinator);
   const canCreateOrders = isClient && !canManageOrders && !isGroupCoordinator;
   const canSeeOrderContext = canManageOrders || isGroupCoordinator;
+
+  const pageDescription = canManageOrders
+    ? 'Przeglądaj zamówienia i zarządzaj ich realizacją'
+    : isGroupCoordinator
+      ? 'Przeglądaj zamówienia uczestników swojej grupy'
+      : 'Składaj zamówienia i sprawdzaj ich status';
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [statuses, setStatuses] = useState<OrderStatus[]>([]);
@@ -339,22 +344,13 @@ export function OrdersPage() {
           Zamówienia
         </Typography>
         <Typography color="text.secondary">
-          Składanie zamówień przez klientów oraz obsługa statusów realizacji
+          {pageDescription}
         </Typography>
       </Box>
 
-      {/* Pasek akcji dla odświeżenia danych i utworzenia zamówienia klienta */}
-      <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshOutlinedIcon />}
-          onClick={loadOrders}
-          disabled={isLoading}
-        >
-          Odśwież
-        </Button>
-
-        {canCreateOrders && (
+      {/* Główna akcja utworzenia zamówienia klienta */}
+      {canCreateOrders && (
+        <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
           <Button
             variant="contained"
             startIcon={<AddOutlinedIcon />}
@@ -363,14 +359,15 @@ export function OrdersPage() {
           >
             Złóż zamówienie
           </Button>
-        )}
-      </Stack>
+        </Stack>
+      )}
 
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
       {canCreateOrders && !isLoading && !orderOptions?.groupMemberId && (
         <Alert severity="info" variant="outlined">
-          Konto jeszcze nie zostało przypisane do grupy - po przypisaniu pojawi się możliwość złożenia zamówienia.
+          Twoje konto nie jest przypisane do grupy. Aby uzyskać
+          dostęp do zamówień skontaktuj się z pracownikiem cateringu.
         </Alert>
       )}
 
@@ -415,10 +412,10 @@ export function OrdersPage() {
                 select
                 fullWidth
               >
-                <MenuItem value="createdDesc">Najnowsze zgłoszenia</MenuItem>
-                <MenuItem value="createdAsc">Najstarsze zgłoszenia</MenuItem>
-                <MenuItem value="menuDateAsc">Dzień menu rosnąco</MenuItem>
-                <MenuItem value="menuDateDesc">Dzień menu malejąco</MenuItem>
+                <MenuItem value="createdDesc">Najnowsze zamówienia</MenuItem>
+                <MenuItem value="createdAsc">Najstarsze zamówienia</MenuItem>
+                <MenuItem value="menuDateAsc">Data menu: od najwcześniejszej</MenuItem>
+                <MenuItem value="menuDateDesc">Data menu: od najpóźniejszej</MenuItem>
               </TextField>
             </Box>
           </CardContent>
@@ -427,7 +424,7 @@ export function OrdersPage() {
 
       {canCreateOrders && !isLoading && orderOptions?.groupMemberId && orderOptions.menuDays.length === 0 && (
         <Alert severity="info" variant="outlined">
-          Brak dostępnych zamówień
+          Brak dostępnego menu. Nie możesz teraz złożyć zamówienia.
         </Alert>
       )}
 
@@ -437,7 +434,7 @@ export function OrdersPage() {
           <CardContent>
             <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
               <CircularProgress />
-              <Typography color="text.secondary">Pobieranie zamówień...</Typography>
+              <Typography color="text.secondary">Pobieranie zamówień…</Typography>
             </Stack>
           </CardContent>
         </Card>
@@ -489,7 +486,7 @@ export function OrdersPage() {
                         <Typography variant="h6">{order.dishName ?? 'Brak nazwy dania'}</Typography>
                         {order.menuDate && (
                           <Typography variant="body2" color="text.secondary">
-                            Menu z dnia: {formatDate(order.menuDate)}
+                            Dzień menu: {formatDate(order.menuDate)}
                           </Typography>
                         )}
                       </Box>
@@ -510,7 +507,7 @@ export function OrdersPage() {
                         )}
                         {order.customerEmail && (
                           <Typography variant="body2" color="text.secondary">
-                            Klient: {order.customerEmail}
+                            Zamawiający: {order.customerEmail}
                           </Typography>
                         )}
                       </Stack>
@@ -573,14 +570,14 @@ export function OrdersPage() {
         <DialogContent>
           <Stack spacing={2}>
             <DialogContentText>
-              Czy na pewno chcesz złożyć zamówienie <strong>{orderConfirmationDetails?.dishName}</strong>
+              Złożyć zamówienie na <strong>{orderConfirmationDetails?.dishName}</strong>
               {orderConfirmationDetails?.menuDate ? (
                 <>
                   {' '}
-                  na dzień <strong>{formatDate(orderConfirmationDetails.menuDate)}</strong>
+                  na <strong>{formatDate(orderConfirmationDetails.menuDate)}</strong>
                 </>
               ) : null}
-              ? <br /> Po złożeniu zamówienia nie będzie możliwości edycji.
+              ? <br /> Po złożeniu nie będzie można zmienić dania ani dodatków.
             </DialogContentText>
 
             {orderConfirmationDetails?.addonNames.length ? (
@@ -604,7 +601,7 @@ export function OrdersPage() {
             Anuluj
           </Button>
           <Button variant="contained" onClick={handleConfirmOrder} disabled={isSubmitting}>
-            {isSubmitting ? 'Zapisywanie...' : 'Potwierdź'}
+            {isSubmitting ? 'Zapisywanie…' : 'Złóż zamówienie'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -613,9 +610,9 @@ export function OrdersPage() {
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz zmienić status zamówienia <strong>{statusChangeToConfirm?.order.dishName}</strong>
-            {' '}na <strong>{getStatusLabel(statusChangeToConfirm?.status.name)}</strong>? <br />Po zmianie statusu
-            nie będzie możliwości edycji zamówienia
+            Ustawić status <strong>{getStatusLabel(statusChangeToConfirm?.status.name)}</strong> dla zamówienia{' '}
+            <strong>{statusChangeToConfirm?.order.dishName}</strong>? To status końcowy — po zapisaniu nie będzie
+            można ponownie zmienić statusu.
           </DialogContentText>
         </DialogContent>
 
@@ -624,7 +621,7 @@ export function OrdersPage() {
             Anuluj
           </Button>
           <Button variant="contained" color="warning" onClick={handleConfirmFinalStatusChange} disabled={isSubmitting}>
-            {isSubmitting ? 'Zapisywanie...' : 'Zmień status'}
+            {isSubmitting ? 'Zapisywanie…' : 'Zmień status'}
           </Button>
         </DialogActions>
       </Dialog>

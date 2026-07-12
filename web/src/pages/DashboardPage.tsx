@@ -4,7 +4,6 @@ import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import {
   Box,
   Card,
@@ -92,8 +91,6 @@ export function DashboardPage() {
     action.allowedRoles.some((role) => userRoles.includes(role)),
   );
 
-  const isClient = userRoles.includes(roles.user);
-
   // Sprawdza czy hasło konta startowego zostało zmienione
   const isSeededAccount = auth?.user.email
     ? seededAccountEmails.includes(auth.user.email.toLowerCase())
@@ -142,26 +139,10 @@ export function DashboardPage() {
             </Button>
           }
         >
-          <strong>Ze względów bezpieczeństwa zalecamy zmianę hasła!</strong>
-          <br />
-
+          To konto korzysta z hasła startowego. <strong>Ustaw własne
+          hasło</strong>, aby zabezpieczyć konto.
         </Alert>
       )}
-      {/* Komunikat dla klienta przed przypisaniem do grupy */}
-      {isClient && (
-        <Card sx={{ borderColor: 'primary.light' }} variant="outlined">
-          <CardContent>
-            <Stack spacing={1}>
-              <Typography variant="h6">Status konta klienta</Typography>
-              <Typography color="text.secondary">
-                Jeśli konto nie zostało jeszcze przypisane do grupy, dostęp do menu i zamówień
-                pojawi się po przypisaniu przez administratora lub koordynatora grupy
-              </Typography>
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Karty z zakresem funkcji dostępnych dla aktualnego użytkownika */}
       <Box
         sx={{
@@ -205,17 +186,6 @@ export function DashboardPage() {
         ))}
       </Box>
 
-      {/* Sekcja podsumowania najważniejszych obszarów systemu */}
-      <Card variant="outlined">
-        <CardContent>
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-            <SettingsOutlinedIcon color="primary" />
-            <Box>
-              <Typography variant="h6">Podsumowanie systemu</Typography>
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
     </Stack>
   );
 }

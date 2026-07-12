@@ -26,17 +26,17 @@ const businessHighlights = [
   {
     icon: GroupsIcon,
     title: 'Obsługa wielu ról',
-    description: 'Administratorzy, firmy cateringowe, dietetycy, koordynatorzy i klienci w jednym spójnym środowisku.',
+    description: 'Administratorzy, firmy cateringowe, dietetycy, koordynatorzy i klienci w jednym spójnym środowisku',
   },
   {
     icon: RestaurantMenuIcon,
     title: 'Łatwe zarządzanie menu',
-    description: 'Twórz odpowiednie pakiety menu, edytuj dania i dodatki na każdy dzień.',
+    description: 'Twórz odpowiednie pakiety menu, edytuj dania i dodatki na każdy dzień',
   },
   {
     icon: CheckCircleOutlinedIcon,
     title: 'Obsługa zamówień grupowych',
-    description: 'System wspiera składanie, przeglądanie i obsługę zamówień dla grup.',
+    description: 'System wspiera składanie, przeglądanie i obsługę zamówień dla grup',
   },
 ];
 
@@ -68,7 +68,7 @@ export function LoginPage() {
     } catch (error) {
       // Komunikat błędu logowania pochodzi z odpowiedzi backendu
       setErrorMessage(
-        getApiErrorMessage(error, 'Nie udało się zalogować. Sprawdź adres email i hasło.'),
+        getApiErrorMessage(error, 'Nie udało się zalogować. Sprawdź adres e-mail i hasło.'),
       );
     } finally {
       setIsSubmitting(false);
@@ -178,7 +178,7 @@ export function LoginPage() {
                   </Avatar>
 
                   <Box>
-                    <Typography variant="h5">Logowanie do panelu</Typography>
+                    <Typography variant="h5">Zaloguj się</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Dostęp wyłącznie dla uprawnionych użytkowników systemu
                     </Typography>
@@ -193,7 +193,7 @@ export function LoginPage() {
                 <Box component="form" onSubmit={handleSubmit}>
                   <Stack spacing={2.25}>
                     <TextField
-                      label="Email"
+                      label="Adres e-mail"
                       type="email"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
@@ -213,7 +213,7 @@ export function LoginPage() {
                     />
 
                     <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
-                      {isSubmitting ? 'Logowanie...' : 'Zaloguj'}
+                      {isSubmitting ? 'Logowanie…' : 'Zaloguj'}
                     </Button>
                   </Stack>
                 </Box>
@@ -229,7 +229,7 @@ export function LoginPage() {
                   <VerifiedUserIcon color="success" fontSize="small" />
 
                   <Typography variant="caption">
-                    Po zalogowaniu zostaniesz przekierowany do odpowiednich funkcjonalności systemu
+                    Po zalogowaniu zobaczysz funkcje dostępne dla Twojej roli
                   </Typography>
                 </Stack>
               </Stack>

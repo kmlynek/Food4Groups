@@ -2,7 +2,6 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import RestaurantMenuOutlinedIcon from '@mui/icons-material/RestaurantMenuOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
     Alert,
     Box,
@@ -218,18 +217,9 @@ export function DishesPage() {
                 </Typography>
             </Box>
 
-            {/* Pasek akcji dla odświeżenia danych i zarządzania katalogiem dań */}
-            <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-                <Button
-                    variant="outlined"
-                    startIcon={<RefreshOutlinedIcon />}
-                    onClick={loadDishes}
-                    disabled={isLoading}
-                >
-                    Odśwież
-                </Button>
-
-                {canManageDishes && (
+            {/* Główna akcja zarządzania katalogiem dań */}
+            {canManageDishes && (
+                <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
                     <Button
                         variant="contained"
                         startIcon={<AddOutlinedIcon />}
@@ -238,8 +228,8 @@ export function DishesPage() {
                     >
                         Dodaj danie
                     </Button>
-                )}
-            </Stack>
+                </Stack>
+            )}
 
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
@@ -310,7 +300,7 @@ export function DishesPage() {
                     <CardContent>
                         <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
                             <CircularProgress />
-                            <Typography color="text.secondary">Pobieranie dań...</Typography>
+                            <Typography color="text.secondary">Pobieranie dań…</Typography>
                         </Stack>
                     </CardContent>
                 </Card>
@@ -431,7 +421,7 @@ export function DishesPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{dishToDelete?.name}?</strong> Tej operacji nie można cofnąć.
+                        Usunąć danie <strong>{dishToDelete?.name}</strong>? Tej operacji nie można cofnąć.
                     </DialogContentText>
                 </DialogContent>
 
@@ -440,7 +430,7 @@ export function DishesPage() {
                         Anuluj
                     </Button>
                     <Button color="error" variant="contained" onClick={handleDeleteDish} disabled={isSubmitting}>
-                        {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+                        {isSubmitting ? 'Usuwanie…' : 'Usuń'}
                     </Button>
                 </DialogActions>
             </Dialog>

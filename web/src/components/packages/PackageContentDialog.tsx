@@ -182,7 +182,7 @@ export function PackageContentDialog({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Zawartość pakietu {packageItem?.name}</DialogTitle>
+      <DialogTitle>Dania i dodatki w pakiecie: {packageItem?.name}</DialogTitle>
 
       <DialogContent>
         <Stack spacing={3} sx={{ pt: 1 }}>
@@ -214,7 +214,7 @@ export function PackageContentDialog({
                 onClick={handleAddDish}
                 disabled={!selectedDishId || isSubmitting}
               >
-                Dodaj
+                Dodaj danie
               </Button>
             </Stack>
 
@@ -253,7 +253,7 @@ export function PackageContentDialog({
                     onClick={() => handleDeleteDishAssignment(assignment)}
                     disabled={isSubmitting}
                   >
-                    Usuń
+                    Usuń z pakietu
                   </Button>
                 </Box>
               ))}
@@ -288,7 +288,7 @@ export function PackageContentDialog({
                 onClick={handleAddAddon}
                 disabled={!selectedAddonId || isSubmitting}
               >
-                Dodaj
+                Dodaj dodatek
               </Button>
             </Stack>
 
@@ -316,7 +316,7 @@ export function PackageContentDialog({
                     <Chip
                       size="small"
                       variant="outlined"
-                      label={assignment.isActive ? 'Aktywne' : 'Nieaktywne'}
+                      label={assignment.isActive ? 'Aktywny' : 'Nieaktywny'}
                     />
                   </Stack>
 
@@ -327,7 +327,7 @@ export function PackageContentDialog({
                     onClick={() => handleDeleteAddonAssignment(assignment)}
                     disabled={isSubmitting}
                   >
-                    Usuń
+                    Usuń z pakietu
                   </Button>
                 </Box>
               ))}

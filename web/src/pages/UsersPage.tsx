@@ -1,6 +1,5 @@
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import {
     Alert,
@@ -127,18 +126,6 @@ export function UsersPage() {
                 </Typography>
             </Box>
 
-            {/* Pasek akcji dla odświeżenia danych użytkowników */}
-            <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-                <Button
-                    variant="outlined"
-                    startIcon={<RefreshOutlinedIcon />}
-                    onClick={loadUsers}
-                    disabled={isLoading}
-                >
-                    Odśwież
-                </Button>
-            </Stack>
-
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
             {/* Filtry listy użytkowników działają lokalnie na danych pobranych z backendu */}
@@ -156,7 +143,7 @@ export function UsersPage() {
                                 label="Szukaj użytkownika"
                                 value={searchText}
                                 onChange={(event) => setSearchText(event.target.value)}
-                                placeholder="Email użytkownika"
+                                placeholder="Adres e-mail użytkownika"
                                 fullWidth
                             />
 
@@ -182,8 +169,8 @@ export function UsersPage() {
                                 select
                                 fullWidth
                             >
-                                <MenuItem value="emailAsc">Email A-Z</MenuItem>
-                                <MenuItem value="emailDesc">Email Z-A</MenuItem>
+                                <MenuItem value="emailAsc">Adres e-mail A-Z</MenuItem>
+                                <MenuItem value="emailDesc">Adres e-mail Z-A</MenuItem>
                             </TextField>
                         </Box>
                     </CardContent>
@@ -196,7 +183,7 @@ export function UsersPage() {
                     <CardContent>
                         <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
                             <CircularProgress />
-                            <Typography color="text.secondary">Pobieranie użytkowników...</Typography>
+                            <Typography color="text.secondary">Pobieranie użytkowników…</Typography>
                         </Stack>
                     </CardContent>
                 </Card>
@@ -241,10 +228,7 @@ export function UsersPage() {
                                 <Stack spacing={2}>
                                     <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'space-between', gap: 2 }}>
                                         <Box>
-                                            <Typography variant="h6">{user.email ?? 'Brak adresu email'}</Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                ID: {user.id}
-                                            </Typography>
+                                            <Typography variant="h6">{user.email ?? 'Brak adresu e-mail'}</Typography>
                                         </Box>
                                     </Stack>
 
@@ -261,7 +245,7 @@ export function UsersPage() {
                                             startIcon={<AdminPanelSettingsOutlinedIcon />}
                                             onClick={() => setUserRolesToEdit(user)}
                                         >
-                                            Role
+                                            Zarządzaj rolami
                                         </Button>
                                         <Button
                                             variant="outlined"
@@ -290,7 +274,7 @@ export function UsersPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{userToDelete?.email}</strong>?
+                        Usunąć konto <strong>{userToDelete?.email}</strong>? Tej operacji nie można cofnąć.
                     </DialogContentText>
                 </DialogContent>
 
@@ -299,7 +283,7 @@ export function UsersPage() {
                         Anuluj
                     </Button>
                     <Button color="error" variant="contained" onClick={handleDeleteUser} disabled={isSubmitting}>
-                        {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+                        {isSubmitting ? 'Usuwanie…' : 'Usuń'}
                     </Button>
                 </DialogActions>
             </Dialog>

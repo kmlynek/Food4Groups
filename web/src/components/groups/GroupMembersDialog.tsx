@@ -2,7 +2,6 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
   Alert,
   Box,
@@ -218,21 +217,12 @@ export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMem
 
           <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
             <Button
-              variant="outlined"
-              startIcon={<RefreshOutlinedIcon />}
-              onClick={loadData}
-              disabled={isLoading}
-            >
-              Odśwież
-            </Button>
-
-            <Button
               variant="contained"
               startIcon={<AddOutlinedIcon />}
               onClick={openCreateForm}
               disabled={availableUsers.length === 0}
             >
-              Dodaj uczestnika
+              Przypisz uczestnika
             </Button>
           </Stack>
 
@@ -250,7 +240,7 @@ export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMem
               <CardContent>
                 <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
                   <CircularProgress />
-                  <Typography color="text.secondary">Pobieranie uczestników...</Typography>
+                  <Typography color="text.secondary">Pobieranie uczestników…</Typography>
                 </Stack>
               </CardContent>
             </Card>
@@ -327,8 +317,8 @@ export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMem
 
       <GroupMemberForm
         open={isFormOpen}
-        title={selectedMember ? 'Edytuj uczestnika' : 'Dodaj uczestnika'}
-        submitLabel={selectedMember ? 'Zapisz zmiany' : 'Dodaj uczestnika'}
+        title={selectedMember ? 'Edytuj uczestnika' : 'Przypisz uczestnika'}
+        submitLabel={selectedMember ? 'Zapisz zmiany' : 'Przypisz do grupy'}
         isSubmitting={isSubmitting}
         canEditStatus={Boolean(selectedMember)}
         group={group}
@@ -339,11 +329,12 @@ export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMem
       />
 
       <Dialog open={Boolean(memberToDelete)} onClose={() => setMemberToDelete(null)}>
-        <DialogTitle>Usuń uczestnika</DialogTitle>
+        <DialogTitle>Usuń uczestnika z grupy</DialogTitle>
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{memberToDelete?.userEmail}</strong>?
+            Usunąć <strong>{memberToDelete?.userEmail}</strong> z grupy <strong>{group?.name}</strong>?
+            Konto użytkownika pozostanie w systemie.
           </DialogContentText>
         </DialogContent>
 
@@ -352,7 +343,7 @@ export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMem
             Anuluj
           </Button>
           <Button color="error" variant="contained" onClick={handleDeleteMember} disabled={isSubmitting}>
-            {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+            {isSubmitting ? 'Usuwanie…' : 'Usuń z grupy'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -3,7 +3,6 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import PlaylistAddCheckOutlinedIcon from '@mui/icons-material/PlaylistAddCheckOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
   Alert,
   Box,
@@ -260,18 +259,9 @@ export function PackagesPage() {
         </Typography>
       </Box>
 
-      {/* Pasek akcji dla odświeżenia danych i zarządzania pakietami */}
-      <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshOutlinedIcon />}
-          onClick={loadPackages}
-          disabled={isLoading}
-        >
-          Odśwież
-        </Button>
-
-        {canManagePackages && (
+      {/* Główna akcja zarządzania pakietami */}
+      {canManagePackages && (
+        <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
           <Button
             variant="contained"
             startIcon={<AddOutlinedIcon />}
@@ -280,8 +270,8 @@ export function PackagesPage() {
           >
             Dodaj pakiet
           </Button>
-        )}
-      </Stack>
+        </Stack>
+      )}
 
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
@@ -354,7 +344,7 @@ export function PackagesPage() {
           <CardContent>
             <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
               <CircularProgress />
-              <Typography color="text.secondary">Pobieranie pakietów...</Typography>
+              <Typography color="text.secondary">Pobieranie pakietów…</Typography>
             </Stack>
           </CardContent>
         </Card>
@@ -416,7 +406,7 @@ export function PackagesPage() {
                   </Stack>
 
                   <Typography color="text.secondary">
-                    Cena za osobę: {formatPrice(packageItem.pricePerPerson)}
+                    {formatPrice(packageItem.pricePerPerson)} za osobę dziennie
                   </Typography>
 
                   <Typography variant="body2" color="text.secondary">
@@ -432,7 +422,7 @@ export function PackagesPage() {
                           startIcon={<PlaylistAddCheckOutlinedIcon />}
                           onClick={() => setPackageContent(packageItem)}
                         >
-                          Zawartość
+                          Dania i dodatki
                         </Button>
                       )}
 
@@ -492,7 +482,7 @@ export function PackagesPage() {
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{packageToDelete?.name}</strong>? Tej operacji nie
+            Usunąć pakiet <strong>{packageToDelete?.name}</strong>? Tej operacji nie
             można cofnąć.
           </DialogContentText>
         </DialogContent>
@@ -502,7 +492,7 @@ export function PackagesPage() {
             Anuluj
           </Button>
           <Button color="error" variant="contained" onClick={handleDeletePackage} disabled={isSubmitting}>
-            {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+            {isSubmitting ? 'Usuwanie…' : 'Usuń'}
           </Button>
         </DialogActions>
       </Dialog>

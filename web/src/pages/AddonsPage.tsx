@@ -2,7 +2,6 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import {
     Alert,
     Box,
@@ -215,22 +214,13 @@ export function AddonsPage() {
                     Dodatki
                 </Typography>
                 <Typography color="text.secondary">
-                    Katalog dodatków wykorzystywanych przy budowaniu menu i uzupełnianiu zamówień
+                    Katalog dodatków wykorzystywanych przy budowaniu menu i składaniu zamówień
                 </Typography>
             </Box>
 
-            {/* Pasek akcji dla odświeżenia danych i zarządzania katalogiem dodatków */}
-            <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-                <Button
-                    variant="outlined"
-                    startIcon={<RefreshOutlinedIcon />}
-                    onClick={loadAddons}
-                    disabled={isLoading}
-                >
-                    Odśwież
-                </Button>
-
-                {canManageAddons && (
+            {/* Główna akcja zarządzania katalogiem dodatków */}
+            {canManageAddons && (
+                <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
                     <Button
                         variant="contained"
                         startIcon={<AddOutlinedIcon />}
@@ -239,8 +229,8 @@ export function AddonsPage() {
                     >
                         Dodaj dodatek
                     </Button>
-                )}
-            </Stack>
+                </Stack>
+            )}
 
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
@@ -311,7 +301,7 @@ export function AddonsPage() {
                     <CardContent>
                         <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
                             <CircularProgress />
-                            <Typography color="text.secondary">Pobieranie dodatków...</Typography>
+                            <Typography color="text.secondary">Pobieranie dodatków…</Typography>
                         </Stack>
                     </CardContent>
                 </Card>
@@ -433,7 +423,7 @@ export function AddonsPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{addonToDelete?.name}</strong>? Tej operacji nie można cofnąć.
+                        Usunąć dodatek <strong>{addonToDelete?.name}</strong>? Tej operacji nie można cofnąć.
                     </DialogContentText>
                 </DialogContent>
 
@@ -442,7 +432,7 @@ export function AddonsPage() {
                         Anuluj
                     </Button>
                     <Button color="error" variant="contained" onClick={handleDeleteAddon} disabled={isSubmitting}>
-                        {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+                        {isSubmitting ? 'Usuwanie…' : 'Usuń'}
                     </Button>
                 </DialogActions>
             </Dialog>

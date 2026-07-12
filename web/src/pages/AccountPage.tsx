@@ -58,7 +58,7 @@ export function AccountPage() {
                 markSeededPasswordChanged(auth.user.email);
             }
             
-            setSuccessMessage('Hasło zostało pomyślnie zmienione');
+            setSuccessMessage('Hasło zostało zmienione');
         } catch (error) {
             // Komunikat błędu zmiany hasła pochodzi z odpowiedzi backendu
             setErrorMessage(getApiErrorMessage(error, 'Nie udało się zmienić hasła'));
@@ -75,7 +75,7 @@ export function AccountPage() {
                     Moje konto
                 </Typography>
                 <Typography color="text.secondary">
-                    Szczegóły konta z możliwością zmiany aktualnego hasła
+                    Dane konta i zmiana hasła
                 </Typography>
             </Box>
 
@@ -100,14 +100,14 @@ export function AccountPage() {
                             <Stack spacing={1.5}>
                                 <Box>
                                     <Typography variant="caption" color="text.secondary">
-                                        Email
+                                        Adres e-mail
                                     </Typography>
                                     <Typography>{auth?.user.email}</Typography>
                                 </Box>
 
                                 <Box>
                                     <Typography variant="caption" color="text.secondary">
-                                        Rola
+                                        Role
                                     </Typography>
                                     <Typography>
                                         {auth?.user.roles.map((role) => roleLabels[role]).join(', ')}
@@ -165,7 +165,7 @@ export function AccountPage() {
                                     />
 
                                     <Button type="submit" variant="contained" disabled={isSubmitting}>
-                                        {isSubmitting ? 'Zapisywanie...' : 'Zmień hasło'}
+                                        {isSubmitting ? 'Zapisywanie…' : 'Zmień hasło'}
                                     </Button>
                                 </Stack>
                             </Box>

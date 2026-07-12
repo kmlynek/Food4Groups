@@ -2,7 +2,6 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import {
   Alert,
@@ -226,24 +225,15 @@ export function MenuPage() {
         </Typography>
       </Box>
 
-      {/* Pasek akcji dla odświeżenia danych i tworzenia okresu menu */}
+      {/* Główna akcja tworzenia okresu menu */}
       <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshOutlinedIcon />}
-          onClick={loadPeriods}
-          disabled={isLoading}
-        >
-          Odśwież
-        </Button>
-
         <Button
           variant="contained"
           startIcon={<AddOutlinedIcon />}
           onClick={openCreateForm}
           disabled={companies.length === 0}
         >
-          Dodaj okres
+          Dodaj okres menu
         </Button>
       </Stack>
 
@@ -261,7 +251,7 @@ export function MenuPage() {
               }}
             >
               <TextField
-                label="Szukaj okresu"
+                label="Szukaj okresu menu"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
                 placeholder="Nazwa lub firma"
@@ -318,7 +308,7 @@ export function MenuPage() {
           <CardContent>
             <Stack spacing={2} sx={{ alignItems: 'center', py: 4 }}>
               <CircularProgress />
-              <Typography color="text.secondary">Pobieranie okresów menu...</Typography>
+              <Typography color="text.secondary">Pobieranie okresów menu…</Typography>
             </Stack>
           </CardContent>
         </Card>
@@ -380,7 +370,7 @@ export function MenuPage() {
                   </Stack>
 
                   <Typography color="text.secondary">
-                    Okres: {formatDate(period.startDate)} - {formatDate(period.endDate)}
+                    Okres: {formatDate(period.startDate)} – {formatDate(period.endDate)}
                   </Typography>
 
                   <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
@@ -420,8 +410,8 @@ export function MenuPage() {
 
       <MenuPeriodForm
         open={isFormOpen}
-        title={selectedPeriod ? 'Edytuj okres menu' : 'Dodaj okres obowiązywania menu'}
-        submitLabel={selectedPeriod ? 'Zapisz zmiany' : 'Dodaj'}
+        title={selectedPeriod ? 'Edytuj okres menu' : 'Dodaj okres menu'}
+        submitLabel={selectedPeriod ? 'Zapisz zmiany' : 'Dodaj okres menu'}
         isSubmitting={isSubmitting}
         canEditStatus={Boolean(selectedPeriod)}
         companies={companies}
@@ -439,7 +429,7 @@ export function MenuPage() {
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{periodToDelete?.name}</strong>? Tej operacji nie
+            Usunąć okres menu <strong>{periodToDelete?.name}</strong>? Tej operacji nie
             można cofnąć.
           </DialogContentText>
         </DialogContent>
@@ -449,7 +439,7 @@ export function MenuPage() {
             Anuluj
           </Button>
           <Button color="error" variant="contained" onClick={handleDeletePeriod} disabled={isSubmitting}>
-            {isSubmitting ? 'Usuwanie...' : 'Usuń'}
+            {isSubmitting ? 'Usuwanie…' : 'Usuń'}
           </Button>
         </DialogActions>
       </Dialog>

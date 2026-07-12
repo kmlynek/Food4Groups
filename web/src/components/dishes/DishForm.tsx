@@ -91,7 +91,7 @@ export function DishForm({
             />
 
             <TextField
-              label="Opis"
+              label="Opis (opcjonalnie)"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               fullWidth
@@ -136,7 +136,7 @@ export function DishForm({
             Anuluj
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting || companies.length === 0}>
-            {isSubmitting ? 'Zapisywanie...' : submitLabel}
+            {isSubmitting ? 'Zapisywanie…' : submitLabel}
           </Button>
         </DialogActions>
       </Box>
