@@ -16,10 +16,12 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
+    MenuItem,
     Stack,
+    TextField,
     Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
 import { createDish, deleteDish, getDishes, updateDish } from '../api/dishesApi';
@@ -28,6 +30,9 @@ import { useAuth } from '../hooks/useAuth';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
 import type { Dish } from '../types/dishTypes';
 import { roles } from '../types/authTypes';
+
+type DishStatusFilter = 'all' | 'active' | 'inactive';
+type DishSortOption = 'nameAsc' | 'nameDesc';
 
 function formatDate(value?: string) {
     if (!value) {
@@ -53,6 +58,54 @@ export function DishesPage() {
     const [dishToDelete, setDishToDelete] = useState<Dish | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [searchText, setSearchText] = useState('');
+    const [selectedCompanyId, setSelectedCompanyId] = useState('');
+    const [statusFilter, setStatusFilter] = useState<DishStatusFilter>('all');
+    const [sortOption, setSortOption] = useState<DishSortOption>('nameAsc');
+
+    const dishCompanyOptions = useMemo(() => {
+        const companyMap = new Map<string, string>();
+
+        dishes.forEach((dish) => {
+            if (dish.cateringCompanyId && dish.cateringCompanyName) {
+                companyMap.set(dish.cateringCompanyId, dish.cateringCompanyName);
+            }
+        });
+
+        return Array.from(companyMap.entries())
+            .map(([id, name]) => ({ id, name }))
+            .sort((firstCompany, secondCompany) => firstCompany.name.localeCompare(secondCompany.name));
+    }, [dishes]);
+
+    const filteredDishes = useMemo(() => {
+        const normalizedSearchText = searchText.trim().toLowerCase();
+
+        return dishes
+            .filter((dish) => {
+                const searchableText = [dish.name, dish.description, dish.cateringCompanyName]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
+
+                const matchesSearchText =
+                    normalizedSearchText.length === 0 || searchableText.includes(normalizedSearchText);
+
+                const matchesCompany =
+                    !selectedCompanyId || dish.cateringCompanyId === selectedCompanyId;
+
+                const matchesStatus =
+                    statusFilter === 'all' ||
+                    (statusFilter === 'active' && dish.isActive) ||
+                    (statusFilter === 'inactive' && !dish.isActive);
+
+                return matchesSearchText && matchesCompany && matchesStatus;
+            })
+            .sort((firstDish, secondDish) =>
+                sortOption === 'nameAsc'
+                    ? firstDish.name.localeCompare(secondDish.name)
+                    : secondDish.name.localeCompare(firstDish.name),
+            );
+    }, [dishes, searchText, selectedCompanyId, sortOption, statusFilter]);
 
     async function loadDishes() {
         setIsLoading(true);
@@ -190,6 +243,67 @@ export function DishesPage() {
 
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
+            {/* Filtry katalogu dań działają lokalnie na danych pobranych z backendu */}
+            {!isLoading && dishes.length > 0 && (
+                <Card variant="outlined">
+                    <CardContent>
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1fr' },
+                                gap: 2,
+                            }}
+                        >
+                            <TextField
+                                label="Szukaj dania"
+                                value={searchText}
+                                onChange={(event) => setSearchText(event.target.value)}
+                                placeholder="Nazwa, opis lub firma"
+                                fullWidth
+                            />
+
+                            <TextField
+                                label="Firma"
+                                value={selectedCompanyId}
+                                onChange={(event) => setSelectedCompanyId(event.target.value)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="">Wszystkie firmy</MenuItem>
+                                {dishCompanyOptions.map((company) => (
+                                    <MenuItem key={company.id} value={company.id}>
+                                        {company.name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+
+                            <TextField
+                                label="Status"
+                                value={statusFilter}
+                                onChange={(event) => setStatusFilter(event.target.value as DishStatusFilter)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="all">Wszystkie</MenuItem>
+                                <MenuItem value="active">Aktywne</MenuItem>
+                                <MenuItem value="inactive">Nieaktywne</MenuItem>
+                            </TextField>
+
+                            <TextField
+                                label="Sortowanie"
+                                value={sortOption}
+                                onChange={(event) => setSortOption(event.target.value as DishSortOption)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="nameAsc">Nazwa A-Z</MenuItem>
+                                <MenuItem value="nameDesc">Nazwa Z-A</MenuItem>
+                            </TextField>
+                        </Box>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Stan ładowania widoczny podczas pobierania danych z API */}
             {isLoading && (
                 <Card variant="outlined">
@@ -209,13 +323,28 @@ export function DishesPage() {
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <RestaurantMenuOutlinedIcon color="primary" fontSize="large" />
                             <Typography variant="h6">Brak dań</Typography>
+                            <Typography color="text.secondary">
+                                Po dodaniu dań będą one widoczne w tym miejscu
+                            </Typography>
+                        </Stack>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Pusty stan dla aktywnych filtrów dań */}
+            {!isLoading && dishes.length > 0 && filteredDishes.length === 0 && (
+                <Card variant="outlined">
+                    <CardContent>
+                        <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
+                            <RestaurantMenuOutlinedIcon color="primary" fontSize="large" />
+                            <Typography variant="h6">Brak wyników</Typography>
                         </Stack>
                     </CardContent>
                 </Card>
             )}
 
             {/* Lista dań pobrana z backendu */}
-            {!isLoading && dishes.length > 0 && (
+            {!isLoading && filteredDishes.length > 0 && (
                 <Box
                     sx={{
                         display: 'grid',
@@ -223,7 +352,7 @@ export function DishesPage() {
                         gap: 2,
                     }}
                 >
-                    {dishes.map((dish) => (
+                    {filteredDishes.map((dish) => (
                         <Card key={dish.id} variant="outlined">
                             <CardContent>
                                 <Stack spacing={2}>
@@ -288,7 +417,7 @@ export function DishesPage() {
             <DishForm
                 open={isFormOpen}
                 title={selectedDish ? 'Edytuj danie' : 'Dodaj danie'}
-                submitLabel={selectedDish ? 'Zapisz' : 'Dodaj danie'}
+                submitLabel={selectedDish ? 'Zapisz zmiany' : 'Dodaj danie'}
                 isSubmitting={isSubmitting}
                 canEditStatus={Boolean(selectedDish)}
                 companies={companies}
@@ -302,7 +431,7 @@ export function DishesPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{dishToDelete?.name}?</strong>
+                        Czy na pewno chcesz usunąć <strong>{dishToDelete?.name}?</strong> Tej operacji nie można cofnąć.
                     </DialogContentText>
                 </DialogContent>
 
