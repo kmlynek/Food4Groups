@@ -265,7 +265,7 @@ export function MenuDayContentDialog({
                     onClick={() => handleDeleteMenuItem(item)}
                     disabled={isSubmitting}
                   >
-                    Usuń z dnia menu
+                    Usuń
                   </Button>
                 </Box>
               ))}
@@ -339,7 +339,7 @@ export function MenuDayContentDialog({
                     onClick={() => handleDeleteMenuDayAddon(item)}
                     disabled={isSubmitting}
                   >
-                    Usuń z dnia menu
+                    Usuń
                   </Button>
                 </Box>
               ))}

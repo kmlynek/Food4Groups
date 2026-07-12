@@ -201,7 +201,7 @@ export function GroupPackageAssignmentsDialog({ open, group, onClose }: GroupPac
           <Box>
             <Typography variant="h6">{group?.name}</Typography>
             <Typography color="text.secondary">
-              Pakiety przypisane do grupy określają dania i dodatki dostępne uczestnikom w podanych okresach
+              Pakiety przypisane do grupy określają dania i dodatki dostępne dla uczestników w podanych okresach
             </Typography>
           </Box>
 

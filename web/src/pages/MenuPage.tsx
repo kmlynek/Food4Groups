@@ -251,7 +251,7 @@ export function MenuPage() {
               }}
             >
               <TextField
-                label="Szukaj okresu menu"
+                label="Szukaj menu"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
                 placeholder="Nazwa lub firma"
@@ -292,8 +292,8 @@ export function MenuPage() {
                 select
                 fullWidth
               >
-                <MenuItem value="startDateDesc">Najnowsze okresy</MenuItem>
-                <MenuItem value="startDateAsc">Najstarsze okresy</MenuItem>
+                <MenuItem value="startDateDesc">Najnowsze</MenuItem>
+                <MenuItem value="startDateAsc">Najstarsze</MenuItem>
                 <MenuItem value="nameAsc">Nazwa A-Z</MenuItem>
                 <MenuItem value="nameDesc">Nazwa Z-A</MenuItem>
               </TextField>

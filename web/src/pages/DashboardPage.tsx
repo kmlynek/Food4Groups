@@ -68,7 +68,7 @@ const dashboardActions: DashboardAction[] = [
   },
   {
     title: 'Zamówienia',
-    description: 'Składanie zamówień, przegląd realizacji oraz statusy zamówień',
+    description: 'Składanie zamówień, przegląd realizacji oraz statusów',
     path: '/orders',
     icon: <AssignmentOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator, roles.user],

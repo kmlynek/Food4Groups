@@ -117,13 +117,15 @@ export function OrdersPage() {
   const canManageOrders = userRoles.includes(roles.admin) || userRoles.includes(roles.cateringEmployee);
   const isClient = userRoles.includes(roles.user);
   const isGroupCoordinator = userRoles.includes(roles.groupCoordinator);
-  const canCreateOrders = isClient && !canManageOrders && !isGroupCoordinator;
+  const canCreateOrders = isClient && !canManageOrders;
   const canSeeOrderContext = canManageOrders || isGroupCoordinator;
 
   const pageDescription = canManageOrders
     ? 'Przeglądaj zamówienia i zarządzaj ich realizacją'
     : isGroupCoordinator
-      ? 'Przeglądaj zamówienia uczestników swojej grupy'
+      ? canCreateOrders
+        ? 'Przeglądaj zamówienia swojej grupy i składaj własne zamówienia'
+        : 'Przeglądaj zamówienia uczestników swojej grupy'
       : 'Składaj zamówienia i sprawdzaj ich status';
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -225,8 +227,25 @@ export function OrdersPage() {
       }
 
       if (isGroupCoordinator) {
-        const ordersData = await getCoordinatorOrders();
-        setOrders(ordersData);
+        if (canCreateOrders) {
+          // Koordynator z rolą klienta widzi zamówienia grupy oraz własne zamówienia bez duplikatów
+          const [coordinatorOrders, myOrders, optionsData] = await Promise.all([
+            getCoordinatorOrders(),
+            getMyOrders(),
+            getOrderOptions(),
+          ]);
+          const ordersById = new Map(
+            [...coordinatorOrders, ...myOrders].map((order) => [order.id, order]),
+          );
+
+          setOrders(Array.from(ordersById.values()));
+          setStatuses([]);
+          setOrderOptions(optionsData);
+          return;
+        }
+
+        const coordinatorOrders = await getCoordinatorOrders();
+        setOrders(coordinatorOrders);
         setStatuses([]);
         setOrderOptions(null);
         return;
@@ -366,8 +385,9 @@ export function OrdersPage() {
 
       {canCreateOrders && !isLoading && !orderOptions?.groupMemberId && (
         <Alert severity="info" variant="outlined">
-          Twoje konto nie jest przypisane do grupy. Aby uzyskać
-          dostęp do zamówień, skontaktuj się z pracownikiem cateringu.
+          {isGroupCoordinator
+            ? 'Aby złożyć własne zamówienie, konto musi być przypisane do grupy.'
+            : 'Twoje konto nie jest przypisane do grupy. Aby uzyskać dostęp do zamówień, skontaktuj się z pracownikiem cateringu'}
         </Alert>
       )}
 
