@@ -367,7 +367,7 @@ export function OrdersPage() {
       {canCreateOrders && !isLoading && !orderOptions?.groupMemberId && (
         <Alert severity="info" variant="outlined">
           Twoje konto nie jest przypisane do grupy. Aby uzyskać
-          dostęp do zamówień skontaktuj się z pracownikiem cateringu.
+          dostęp do zamówień, skontaktuj się z pracownikiem cateringu.
         </Alert>
       )}
 

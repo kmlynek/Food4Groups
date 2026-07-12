@@ -48,6 +48,8 @@ export function DishesPage() {
     const { auth } = useAuth();
     const userRoles = auth?.user.roles ?? [];
     const canManageDishes = userRoles.includes(roles.admin) || userRoles.includes(roles.dietitian);
+    const canUseCatalogFilters =
+        canManageDishes || userRoles.includes(roles.cateringEmployee);
 
     const [dishes, setDishes] = useState<Dish[]>([]);
     const [companies, setCompanies] = useState<CateringCompany[]>([]);
@@ -240,7 +242,9 @@ export function DishesPage() {
                         <Box
                             sx={{
                                 display: 'grid',
-                                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1fr' },
+                                gridTemplateColumns: canUseCatalogFilters
+                                    ? { xs: '1fr', md: '2fr 1fr 1fr 1fr' }
+                                    : '1fr',
                                 gap: 2,
                             }}
                         >
@@ -252,43 +256,47 @@ export function DishesPage() {
                                 fullWidth
                             />
 
-                            <TextField
-                                label="Firma"
-                                value={selectedCompanyId}
-                                onChange={(event) => setSelectedCompanyId(event.target.value)}
-                                select
-                                fullWidth
-                            >
-                                <MenuItem value="">Wszystkie firmy</MenuItem>
-                                {dishCompanyOptions.map((company) => (
-                                    <MenuItem key={company.id} value={company.id}>
-                                        {company.name}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
+                            {canUseCatalogFilters && (
+                                <>
+                                    <TextField
+                                        label="Firma"
+                                        value={selectedCompanyId}
+                                        onChange={(event) => setSelectedCompanyId(event.target.value)}
+                                        select
+                                        fullWidth
+                                    >
+                                        <MenuItem value="">Wszystkie firmy</MenuItem>
+                                        {dishCompanyOptions.map((company) => (
+                                            <MenuItem key={company.id} value={company.id}>
+                                                {company.name}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
 
-                            <TextField
-                                label="Status"
-                                value={statusFilter}
-                                onChange={(event) => setStatusFilter(event.target.value as DishStatusFilter)}
-                                select
-                                fullWidth
-                            >
-                                <MenuItem value="all">Wszystkie</MenuItem>
-                                <MenuItem value="active">Aktywne</MenuItem>
-                                <MenuItem value="inactive">Nieaktywne</MenuItem>
-                            </TextField>
+                                    <TextField
+                                        label="Status"
+                                        value={statusFilter}
+                                        onChange={(event) => setStatusFilter(event.target.value as DishStatusFilter)}
+                                        select
+                                        fullWidth
+                                    >
+                                        <MenuItem value="all">Wszystkie</MenuItem>
+                                        <MenuItem value="active">Aktywne</MenuItem>
+                                        <MenuItem value="inactive">Nieaktywne</MenuItem>
+                                    </TextField>
 
-                            <TextField
-                                label="Sortowanie"
-                                value={sortOption}
-                                onChange={(event) => setSortOption(event.target.value as DishSortOption)}
-                                select
-                                fullWidth
-                            >
-                                <MenuItem value="nameAsc">Nazwa A-Z</MenuItem>
-                                <MenuItem value="nameDesc">Nazwa Z-A</MenuItem>
-                            </TextField>
+                                    <TextField
+                                        label="Sortowanie"
+                                        value={sortOption}
+                                        onChange={(event) => setSortOption(event.target.value as DishSortOption)}
+                                        select
+                                        fullWidth
+                                    >
+                                        <MenuItem value="nameAsc">Nazwa A-Z</MenuItem>
+                                        <MenuItem value="nameDesc">Nazwa Z-A</MenuItem>
+                                    </TextField>
+                                </>
+                            )}
                         </Box>
                     </CardContent>
                 </Card>
