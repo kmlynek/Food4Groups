@@ -20,8 +20,13 @@ public class DishesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetAll()
     {
-        // Klienci oraz koordynatorzy grup otrzymują wyłącznie aktywne dania
-        if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
+        // Role operacyjne otrzymują pełny katalog, a klienci i koordynatorzy wyłącznie aktywne dania
+        var canViewFullCatalog =
+            User.IsInRole("Admin") ||
+            User.IsInRole("Dietitian") ||
+            User.IsInRole("CateringEmployee");
+
+        if (!canViewFullCatalog)
         {
             var activeDishes = await _dishService.GetAllActiveAsync();
             return Ok(activeDishes);
@@ -35,8 +40,13 @@ public class DishesController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetById(Guid id)
     {
-        // Dostęp do szczegółów dla klientów ograniczony jest do aktywnych dań
-        if (User.IsInRole("User") || User.IsInRole("GroupCoordinator"))
+        // Role operacyjne otrzymują pełne dane, a klienci i koordynatorzy wyłącznie aktywne dania
+        var canViewFullCatalog =
+            User.IsInRole("Admin") ||
+            User.IsInRole("Dietitian") ||
+            User.IsInRole("CateringEmployee");
+
+        if (!canViewFullCatalog)
         {
             var activeDish = await _dishService.GetActiveByIdAsync(id);
             return activeDish is null ? NotFound() : Ok(activeDish);
