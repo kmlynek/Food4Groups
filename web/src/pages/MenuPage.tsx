@@ -17,10 +17,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  MenuItem,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
 import {
@@ -33,6 +35,9 @@ import { MenuPeriodForm } from '../components/menu/MenuPeriodForm';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
 import type { MenuPeriod } from '../types/menuTypes';
 import { MenuDaysDialog } from '../components/menu/MenuDaysDialog';
+
+type MenuStatusFilter = 'all' | 'active' | 'inactive';
+type MenuSortOption = 'startDateDesc' | 'startDateAsc' | 'nameAsc' | 'nameDesc';
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('pl-PL', {
@@ -50,6 +55,67 @@ export function MenuPage() {
   const [periodDays, setPeriodDays] = useState<MenuPeriod | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+  const [statusFilter, setStatusFilter] = useState<MenuStatusFilter>('all');
+  const [sortOption, setSortOption] = useState<MenuSortOption>('startDateDesc');
+
+  const periodCompanyOptions = useMemo(() => {
+    const companyMap = new Map<string, string>();
+
+    periods.forEach((period) => {
+      if (period.cateringCompanyId && period.cateringCompanyName) {
+        companyMap.set(period.cateringCompanyId, period.cateringCompanyName);
+      }
+    });
+
+    return Array.from(companyMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((firstCompany, secondCompany) => firstCompany.name.localeCompare(secondCompany.name));
+  }, [periods]);
+
+  const filteredPeriods = useMemo(() => {
+    const normalizedSearchText = searchText.trim().toLowerCase();
+
+    return periods
+      .filter((period) => {
+        const searchableText = [period.name, period.cateringCompanyName]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        const matchesSearchText =
+          normalizedSearchText.length === 0 || searchableText.includes(normalizedSearchText);
+
+        const matchesCompany =
+          !selectedCompanyId || period.cateringCompanyId === selectedCompanyId;
+
+        const matchesStatus =
+          statusFilter === 'all' ||
+          (statusFilter === 'active' && period.isActive) ||
+          (statusFilter === 'inactive' && !period.isActive);
+
+        return matchesSearchText && matchesCompany && matchesStatus;
+      })
+      .sort((firstPeriod, secondPeriod) => {
+        const firstStartDate = new Date(firstPeriod.startDate).getTime();
+        const secondStartDate = new Date(secondPeriod.startDate).getTime();
+
+        if (sortOption === 'startDateAsc') {
+          return firstStartDate - secondStartDate;
+        }
+
+        if (sortOption === 'nameAsc') {
+          return firstPeriod.name.localeCompare(secondPeriod.name);
+        }
+
+        if (sortOption === 'nameDesc') {
+          return secondPeriod.name.localeCompare(firstPeriod.name);
+        }
+
+        return secondStartDate - firstStartDate;
+      });
+  }, [periods, searchText, selectedCompanyId, sortOption, statusFilter]);
 
   async function loadPeriods() {
     setIsLoading(true);
@@ -183,6 +249,69 @@ export function MenuPage() {
 
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
+      {/* Filtry okresów menu pomagają znaleźć harmonogram dla wybranej firmy i statusu */}
+      {!isLoading && periods.length > 0 && (
+        <Card variant="outlined">
+          <CardContent>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              <TextField
+                label="Szukaj okresu"
+                value={searchText}
+                onChange={(event) => setSearchText(event.target.value)}
+                placeholder="Nazwa lub firma"
+                fullWidth
+              />
+
+              <TextField
+                label="Firma"
+                value={selectedCompanyId}
+                onChange={(event) => setSelectedCompanyId(event.target.value)}
+                select
+                fullWidth
+              >
+                <MenuItem value="">Wszystkie firmy</MenuItem>
+                {periodCompanyOptions.map((company) => (
+                  <MenuItem key={company.id} value={company.id}>
+                    {company.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                label="Status"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as MenuStatusFilter)}
+                select
+                fullWidth
+              >
+                <MenuItem value="all">Wszystkie</MenuItem>
+                <MenuItem value="active">Aktywne</MenuItem>
+                <MenuItem value="inactive">Nieaktywne</MenuItem>
+              </TextField>
+
+              <TextField
+                label="Sortowanie"
+                value={sortOption}
+                onChange={(event) => setSortOption(event.target.value as MenuSortOption)}
+                select
+                fullWidth
+              >
+                <MenuItem value="startDateDesc">Najnowsze okresy</MenuItem>
+                <MenuItem value="startDateAsc">Najstarsze okresy</MenuItem>
+                <MenuItem value="nameAsc">Nazwa A-Z</MenuItem>
+                <MenuItem value="nameDesc">Nazwa Z-A</MenuItem>
+              </TextField>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stan ładowania widoczny podczas pobierania okresów menu */}
       {isLoading && (
         <Card variant="outlined">
@@ -202,13 +331,28 @@ export function MenuPage() {
             <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
               <CalendarMonthOutlinedIcon color="primary" fontSize="large" />
               <Typography variant="h6">Brak okresów menu</Typography>
+              <Typography color="text.secondary">
+                Po dodaniu okresów menu będą one widoczne w tym miejscu
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pusty stan dla aktywnych filtrów menu */}
+      {!isLoading && periods.length > 0 && filteredPeriods.length === 0 && (
+        <Card variant="outlined">
+          <CardContent>
+            <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
+              <CalendarMonthOutlinedIcon color="primary" fontSize="large" />
+              <Typography variant="h6">Brak wyników</Typography>
             </Stack>
           </CardContent>
         </Card>
       )}
 
       {/* Lista okresów menu pobrana z backendu */}
-      {!isLoading && periods.length > 0 && (
+      {!isLoading && filteredPeriods.length > 0 && (
         <Box
           sx={{
             display: 'grid',
@@ -216,7 +360,7 @@ export function MenuPage() {
             gap: 2,
           }}
         >
-          {periods.map((period) => (
+          {filteredPeriods.map((period) => (
             <Card key={period.id} variant="outlined">
               <CardContent>
                 <Stack spacing={2}>
@@ -277,7 +421,7 @@ export function MenuPage() {
       <MenuPeriodForm
         open={isFormOpen}
         title={selectedPeriod ? 'Edytuj okres menu' : 'Dodaj okres obowiązywania menu'}
-        submitLabel={selectedPeriod ? 'Zapisz' : 'Dodaj'}
+        submitLabel={selectedPeriod ? 'Zapisz zmiany' : 'Dodaj'}
         isSubmitting={isSubmitting}
         canEditStatus={Boolean(selectedPeriod)}
         companies={companies}
@@ -295,7 +439,8 @@ export function MenuPage() {
 
         <DialogContent>
           <DialogContentText>
-            Czy na pewno chcesz usunąć <strong>{periodToDelete?.name}</strong>?
+            Czy na pewno chcesz usunąć <strong>{periodToDelete?.name}</strong>? Tej operacji nie
+            można cofnąć.
           </DialogContentText>
         </DialogContent>
 
