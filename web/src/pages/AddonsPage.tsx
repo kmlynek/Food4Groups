@@ -16,10 +16,12 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
+    MenuItem,
     Stack,
+    TextField,
     Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getApiErrorMessage } from '../api/apiError';
 import { createAddon, deleteAddon, getAddons, updateAddon } from '../api/addonsApi';
 import { getCateringCompanies } from '../api/cateringCompaniesApi';
@@ -28,6 +30,9 @@ import { useAuth } from '../hooks/useAuth';
 import type { Addon } from '../types/addonTypes';
 import type { CateringCompany } from '../types/cateringCompanyTypes';
 import { roles } from '../types/authTypes';
+
+type AddonStatusFilter = 'all' | 'active' | 'inactive';
+type AddonSortOption = 'nameAsc' | 'nameDesc';
 
 function formatDate(value?: string) {
     if (!value) {
@@ -53,6 +58,55 @@ export function AddonsPage() {
     const [addonToDelete, setAddonToDelete] = useState<Addon | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [searchText, setSearchText] = useState('');
+    const [selectedCompanyId, setSelectedCompanyId] = useState('');
+    const [statusFilter, setStatusFilter] = useState<AddonStatusFilter>('all');
+    const [sortOption, setSortOption] = useState<AddonSortOption>('nameAsc');
+
+    const addonCompanyOptions = useMemo(() => {
+        const companyMap = new Map<string, string>();
+
+        addons.forEach((addon) => {
+            if (addon.cateringCompanyId && addon.cateringCompanyName) {
+                companyMap.set(addon.cateringCompanyId, addon.cateringCompanyName);
+            }
+        });
+
+        return Array.from(companyMap.entries())
+            .map(([id, name]) => ({ id, name }))
+            .sort((firstCompany, secondCompany) => firstCompany.name.localeCompare(secondCompany.name));
+    }, [addons]);
+
+    const filteredAddons = useMemo(() => {
+        const normalizedSearchText = searchText.trim().toLowerCase();
+
+        return addons
+            .filter((addon) => {
+                const searchableText = [addon.name, addon.description, addon.cateringCompanyName]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
+
+                const isActive = addon.isActive ?? true;
+                const matchesSearchText =
+                    normalizedSearchText.length === 0 || searchableText.includes(normalizedSearchText);
+
+                const matchesCompany =
+                    !selectedCompanyId || addon.cateringCompanyId === selectedCompanyId;
+
+                const matchesStatus =
+                    statusFilter === 'all' ||
+                    (statusFilter === 'active' && isActive) ||
+                    (statusFilter === 'inactive' && !isActive);
+
+                return matchesSearchText && matchesCompany && matchesStatus;
+            })
+            .sort((firstAddon, secondAddon) =>
+                sortOption === 'nameAsc'
+                    ? firstAddon.name.localeCompare(secondAddon.name)
+                    : secondAddon.name.localeCompare(firstAddon.name),
+            );
+    }, [addons, searchText, selectedCompanyId, sortOption, statusFilter]);
 
     async function loadAddons() {
         setIsLoading(true);
@@ -190,6 +244,67 @@ export function AddonsPage() {
 
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
+            {/* Filtry katalogu dodatków działają lokalnie na danych pobranych z backendu */}
+            {!isLoading && addons.length > 0 && (
+                <Card variant="outlined">
+                    <CardContent>
+                        <Box
+                            sx={{
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1fr' },
+                                gap: 2,
+                            }}
+                        >
+                            <TextField
+                                label="Szukaj dodatku"
+                                value={searchText}
+                                onChange={(event) => setSearchText(event.target.value)}
+                                placeholder="Nazwa, opis lub firma"
+                                fullWidth
+                            />
+
+                            <TextField
+                                label="Firma"
+                                value={selectedCompanyId}
+                                onChange={(event) => setSelectedCompanyId(event.target.value)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="">Wszystkie firmy</MenuItem>
+                                {addonCompanyOptions.map((company) => (
+                                    <MenuItem key={company.id} value={company.id}>
+                                        {company.name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+
+                            <TextField
+                                label="Status"
+                                value={statusFilter}
+                                onChange={(event) => setStatusFilter(event.target.value as AddonStatusFilter)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="all">Wszystkie</MenuItem>
+                                <MenuItem value="active">Aktywne</MenuItem>
+                                <MenuItem value="inactive">Nieaktywne</MenuItem>
+                            </TextField>
+
+                            <TextField
+                                label="Sortowanie"
+                                value={sortOption}
+                                onChange={(event) => setSortOption(event.target.value as AddonSortOption)}
+                                select
+                                fullWidth
+                            >
+                                <MenuItem value="nameAsc">Nazwa A-Z</MenuItem>
+                                <MenuItem value="nameDesc">Nazwa Z-A</MenuItem>
+                            </TextField>
+                        </Box>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Stan ładowania widoczny podczas pobierania danych z API */}
             {isLoading && (
                 <Card variant="outlined">
@@ -209,13 +324,28 @@ export function AddonsPage() {
                         <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
                             <ExtensionOutlinedIcon color="primary" fontSize="large" />
                             <Typography variant="h6">Brak dodatków</Typography>
+                            <Typography color="text.secondary">
+                                Po dodaniu dodatków będą one widoczne w tym miejscu
+                            </Typography>
+                        </Stack>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Pusty stan dla aktywnych filtrów dodatków */}
+            {!isLoading && addons.length > 0 && filteredAddons.length === 0 && (
+                <Card variant="outlined">
+                    <CardContent>
+                        <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
+                            <ExtensionOutlinedIcon color="primary" fontSize="large" />
+                            <Typography variant="h6">Brak wyników</Typography>
                         </Stack>
                     </CardContent>
                 </Card>
             )}
 
             {/* Lista dodatków pobrana z backendu */}
-            {!isLoading && addons.length > 0 && (
+            {!isLoading && filteredAddons.length > 0 && (
                 <Box
                     sx={{
                         display: 'grid',
@@ -223,7 +353,7 @@ export function AddonsPage() {
                         gap: 2,
                     }}
                 >
-                    {addons.map((addon) => (
+                    {filteredAddons.map((addon) => (
                         <Card key={addon.id} variant="outlined">
                             <CardContent>
                                 <Stack spacing={2}>
@@ -289,7 +419,7 @@ export function AddonsPage() {
             <AddonForm
                 open={isFormOpen}
                 title={selectedAddon ? 'Edytuj dodatek' : 'Dodaj dodatek'}
-                submitLabel={selectedAddon ? 'Zapisz' : 'Dodaj dodatek'}
+                submitLabel={selectedAddon ? 'Zapisz zmiany' : 'Dodaj dodatek'}
                 isSubmitting={isSubmitting}
                 canEditStatus={Boolean(selectedAddon)}
                 companies={companies}
@@ -303,7 +433,7 @@ export function AddonsPage() {
 
                 <DialogContent>
                     <DialogContentText>
-                        Czy na pewno chcesz usunąć <strong>{addonToDelete?.name}</strong>?
+                        Czy na pewno chcesz usunąć <strong>{addonToDelete?.name}</strong>? Tej operacji nie można cofnąć.
                     </DialogContentText>
                 </DialogContent>
 
