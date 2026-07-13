@@ -608,8 +608,8 @@ export function DashboardPage() {
             </Button>
           }
         >
-          To konto korzysta z hasła startowego{' '}
-          <strong>Ustaw własne hasło</strong>, aby zabezpieczyć konto
+          Konto korzysta z hasła startowego.{' '}
+          <strong>Zalecamy jego zmianę</strong>
         </Alert>
       )}
 

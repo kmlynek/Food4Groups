@@ -229,7 +229,7 @@ export function LoginPage() {
                   <VerifiedUserIcon color="success" fontSize="small" />
 
                   <Typography variant="caption">
-                    Po zalogowaniu zobaczysz dostępne funkcje
+                    Po zalogowaniu uzyskasz dostęp do odpowiednich funkcji systemu
                   </Typography>
                 </Stack>
               </Stack>
