@@ -26,11 +26,11 @@ export const navigationItems: NavigationItem[] = [
     icon: <DashboardOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
   },
-  {
-    label: 'Moje konto',
-    path: '/account',
-    icon: <AccountCircleOutlinedIcon />,
-    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
+    {
+    label: 'Zamówienia',
+    path: '/orders',
+    icon: <ReceiptLongOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator, roles.user],
   },
   {
     label: 'Użytkownicy',
@@ -69,15 +69,15 @@ export const navigationItems: NavigationItem[] = [
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian],
   },
   {
-    label: 'Zamówienia',
-    path: '/orders',
-    icon: <ReceiptLongOutlinedIcon />,
-    allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator, roles.user],
-  },
-  {
     label: 'Raporty',
     path: '/reports',
     icon: <AssessmentOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.groupCoordinator],
+  },
+    {
+    label: 'Moje konto',
+    path: '/account',
+    icon: <AccountCircleOutlinedIcon />,
+    allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian, roles.groupCoordinator, roles.user],
   },
 ];

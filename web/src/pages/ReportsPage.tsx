@@ -256,7 +256,7 @@ export function ReportsPage() {
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                 <PictureAsPdfOutlinedIcon color="primary" />
                 <Box>
-                  <Typography variant="h6">Pro forma rozliczenia grupy</Typography>
+                  <Typography variant="h6">Proforma rozliczenia grupy</Typography>
                   <Typography color="text.secondary">
                     Dokument PDF z podsumowaniem kosztów pakietu w wybranym okresie
                   </Typography>
@@ -265,7 +265,7 @@ export function ReportsPage() {
 
               {isGroupCoordinator && !canGenerateOperationalReports && (
                 <Alert severity="info" variant="outlined">
-                  Pro forma obejmuje aktualny okres pakietu przypisanego do Twojej grupy
+                  Proforma obejmuje aktualny okres pakietu przypisanego do Twojej grupy
                 </Alert>
               )}
 
