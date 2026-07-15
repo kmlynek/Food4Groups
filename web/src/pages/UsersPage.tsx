@@ -169,8 +169,8 @@ export function UsersPage() {
                                 select
                                 fullWidth
                             >
-                                <MenuItem value="emailAsc">Nazwa A-Z</MenuItem>
-                                <MenuItem value="emailDesc">Nazwa Z-A</MenuItem>
+                                <MenuItem value="emailAsc">Adres e-mail A-Z</MenuItem>
+                                <MenuItem value="emailDesc">Adres e-mail Z-A</MenuItem>
                             </TextField>
                         </Box>
                     </CardContent>

@@ -38,7 +38,7 @@ export function RegisterPage() {
         setErrorMessage('');
 
         if (password !== confirmPassword) {
-            setErrorMessage('Hasła nie są takie same');
+            setErrorMessage('Hasła nie są zgodne');
             return;
         }
 

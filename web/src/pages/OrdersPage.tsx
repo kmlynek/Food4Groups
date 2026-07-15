@@ -49,10 +49,10 @@ type OrdersSortOption = 'createdDesc' | 'createdAsc' | 'menuDateAsc' | 'menuDate
 
 
 const orderStatusLabels: Record<string, string> = {
-  Created: 'Utworzone',
+  Created: 'Złożone',
   Accepted: 'Przyjęte',
   Prepared: 'Przygotowane',
-  Completed: 'Zakończone',
+  Completed: 'Zrealizowane',
   Cancelled: 'Anulowane',
 };
 
@@ -277,7 +277,7 @@ export function OrdersPage() {
 
   async function handleConfirmOrder() {
     if (!orderOptions?.groupMemberId || !orderToConfirm) {
-      setErrorMessage('Konto klienta nie jest przypisane do aktywnej grupy');
+      setErrorMessage('Konto nie jest aktywnym uczestnikiem grupy');
       return;
     }
 
@@ -406,7 +406,7 @@ export function OrdersPage() {
                 label="Szukaj zamówienia"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
-                placeholder="Danie, grupa lub klient"
+                placeholder="Danie, grupa lub zamawiający"
                 fullWidth
               />
 
@@ -594,7 +594,7 @@ export function OrdersPage() {
               {orderConfirmationDetails?.menuDate ? (
                 <>
                   {' '}
-                  na <strong>{formatDate(orderConfirmationDetails.menuDate)}</strong>
+                  w dniu <strong>{formatDate(orderConfirmationDetails.menuDate)}</strong>
                 </>
               ) : null}
               ? <br /> Po złożeniu nie będzie można zmienić dania ani dodatków.

@@ -214,7 +214,7 @@ export function PackageContentDialog({
                 onClick={handleAddDish}
                 disabled={!selectedDishId || isSubmitting}
               >
-                Dodaj danie
+                Przypisz danie
               </Button>
             </Stack>
 
@@ -288,7 +288,7 @@ export function PackageContentDialog({
                 onClick={handleAddAddon}
                 disabled={!selectedAddonId || isSubmitting}
               >
-                Dodaj dodatek
+                Przypisz dodatek
               </Button>
             </Stack>
 

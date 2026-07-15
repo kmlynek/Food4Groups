@@ -256,7 +256,7 @@ export function ReportsPage() {
               <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                 <PictureAsPdfOutlinedIcon color="primary" />
                 <Box>
-                  <Typography variant="h6">Proforma rozliczenia grupy</Typography>
+                  <Typography variant="h6">Dokument proforma dla grupy</Typography>
                   <Typography color="text.secondary">
                     Dokument PDF z podsumowaniem kosztów pakietu w wybranym okresie
                   </Typography>
@@ -437,7 +437,7 @@ export function ReportsPage() {
                     onClick={handleDownloadDailyOrdersReport}
                     disabled={isSubmitting || !selectedMenuDayId}
                   >
-                    {isSubmitting ? 'Generowanie…' : 'Pobierz Excel'}
+                    {isSubmitting ? 'Generowanie…' : 'Pobierz XLSX'}
                   </Button>
                 </Stack>
               </Stack>

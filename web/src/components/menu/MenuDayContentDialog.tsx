@@ -226,7 +226,7 @@ export function MenuDayContentDialog({
                 onClick={handleAddDish}
                 disabled={!selectedDishId || isSubmitting}
               >
-                Dodaj danie
+                Przypisz danie
               </Button>
             </Stack>
 
@@ -265,7 +265,7 @@ export function MenuDayContentDialog({
                     onClick={() => handleDeleteMenuItem(item)}
                     disabled={isSubmitting}
                   >
-                    Usuń
+                    Usuń z dnia menu
                   </Button>
                 </Box>
               ))}
@@ -300,7 +300,7 @@ export function MenuDayContentDialog({
                 onClick={handleAddAddon}
                 disabled={!selectedAddonId || isSubmitting}
               >
-                Dodaj dodatek
+                Przypisz dodatek
               </Button>
             </Stack>
 
@@ -339,7 +339,7 @@ export function MenuDayContentDialog({
                     onClick={() => handleDeleteMenuDayAddon(item)}
                     disabled={isSubmitting}
                   >
-                    Usuń
+                    Usuń z dnia menu
                   </Button>
                 </Box>
               ))}

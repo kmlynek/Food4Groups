@@ -251,7 +251,7 @@ export function MenuPage() {
               }}
             >
               <TextField
-                label="Szukaj menu"
+                label="Szukaj okresu menu"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
                 placeholder="Nazwa lub firma"

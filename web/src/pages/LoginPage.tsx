@@ -26,7 +26,7 @@ const businessHighlights = [
   {
     icon: GroupsIcon,
     title: 'Obsługa wielu ról',
-    description: 'Administratorzy, firmy cateringowe, dietetycy, koordynatorzy i klienci w jednym spójnym środowisku',
+    description: 'Administratorzy, firmy cateringowe, dietetycy, koordynatorzy i klienci w jednym systemie',
   },
   {
     icon: RestaurantMenuIcon,
@@ -125,7 +125,7 @@ export function LoginPage() {
             </Typography>
 
             <Typography sx={{ maxWidth: 560, color: '#cbd5d1' }}>
-              Wszystko, czego potrzebujesz do zarządzania ofertą, menu, grupami i zamówieniami.
+              Zarządzanie ofertą, menu, grupami i zamówieniami w jednym systemie
             </Typography>
           </Stack>
 

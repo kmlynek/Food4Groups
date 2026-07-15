@@ -33,7 +33,7 @@ export function AccountPage() {
         setErrorMessage('');
 
         if (newPassword !== confirmNewPassword) {
-            setErrorMessage('Potwierdzenie hasła nie jest zgodne z nowym hasłem');
+            setErrorMessage('Hasła nie są zgodne');
             return;
         }
 

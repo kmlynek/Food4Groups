@@ -107,9 +107,9 @@ export function PackageForm({
               ))}
             </TextField>
 
-            {/* Cena za osobę za dzień jest wykorzystywana później przy rozliczeniach i zamówieniach */}
+            {/* Cena za osobę dziennie jest wykorzystywana później przy rozliczeniach i zamówieniach */}
             <TextField
-              label="Cena za osobę za dzień"
+              label="Cena za osobę dziennie"
               type="number"
               value={pricePerPerson}
               onChange={(event) => setPricePerPerson(event.target.value)}

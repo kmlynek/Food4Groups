@@ -63,10 +63,10 @@ type RecentOfferItem = {
 
 // Polskie etykiety statusów zamówień
 const orderStatusLabels: Record<string, string> = {
-  Created: 'Utworzone',
+  Created: 'Złożone',
   Accepted: 'Przyjęte',
   Prepared: 'Przygotowane',
-  Completed: 'Zakończone',
+  Completed: 'Zrealizowane',
   Cancelled: 'Anulowane',
 };
 
@@ -102,14 +102,14 @@ const dashboardActions: DashboardAction[] = [
   },
   {
     title: 'Grupy',
-    description: 'Obsługa grup żywieniowych, koordynatorów oraz członków grup',
+    description: 'Obsługa grup żywieniowych, koordynatorów oraz uczestników grup',
     path: '/groups',
     icon: <GroupOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee],
   },
   {
     title: 'Dania',
-    description: 'Katalog dań, informacje dietetyczne oraz dostępność pozycji w ofercie',
+    description: 'Katalog dań i zarządzanie ich dostępnością w ofercie',
     path: '/dishes',
     icon: <RestaurantMenuOutlinedIcon />,
     allowedRoles: [roles.admin, roles.cateringEmployee, roles.dietitian],
@@ -894,7 +894,7 @@ export function DashboardPage() {
                             variant="body2"
                             color="text.secondary"
                           >
-                            Aktywne: {item.active} / razem:{' '}
+                            Aktywne: {item.active} z {' '}
                             {item.total}
                           </Typography>
                         </Stack>

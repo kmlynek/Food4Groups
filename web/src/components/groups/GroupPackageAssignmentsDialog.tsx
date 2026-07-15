@@ -259,7 +259,7 @@ export function GroupPackageAssignmentsDialog({ open, group, onClose }: GroupPac
                         <Box>
                           <Typography variant="h6">{assignment.packageName}</Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {formatPrice(assignment.packagePricePerPerson)} za osobę
+                            {formatPrice(assignment.packagePricePerPerson)} za osobę dziennie
                           </Typography>
                         </Box>
 
