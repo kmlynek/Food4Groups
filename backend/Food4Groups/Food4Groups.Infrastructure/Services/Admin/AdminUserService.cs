@@ -1,5 +1,6 @@
 using Food4Groups.Application.DTOs.Admin;
 using Food4Groups.Application.Interfaces.Admin;
+using Food4Groups.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,11 +10,16 @@ public class AdminUserService : IAdminUserService
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly ApplicationDbContext _dbContext;
 
-    public AdminUserService(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+    public AdminUserService(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _dbContext = dbContext;
     }
 
     public async Task<List<AdminUserResponse>> GetUsersAsync()
@@ -42,9 +48,9 @@ public class AdminUserService : IAdminUserService
         return result;
     }
 
-    public async Task AssignRoleAsync(string userId, AssignUserRoleRequest request)
+    public async Task SetRoleAsync(string userId, SetUserRoleRequest request)
     {
-        // Przypisanie roli wymaga istnienia zarówno użytkownika, jak i roli w systemie
+        // Zmiana roli wymaga istnienia zarówno użytkownika, jak i wybranej roli w systemie
         if (string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException("Wybierz użytkownika");
 
@@ -60,39 +66,30 @@ public class AdminUserService : IAdminUserService
         if (user is null)
             throw new KeyNotFoundException("Nie znaleziono użytkownika");
 
-        // Zapobiega ponownemu przypisaniu tej samej roli użytkownikowi
-        if (await _userManager.IsInRoleAsync(user, roleName))
-            throw new InvalidOperationException($"Użytkownik ma już rolę „{roleName}”");
+        var currentRoles = await _userManager.GetRolesAsync(user);
+
+        // Ponowny zapis tej samej, pojedynczej roli nie wymaga zmian w bazie
+        if (currentRoles.Count == 1 &&
+            string.Equals(currentRoles[0], roleName, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // Transakcja zapobiega pozostawieniu konta bez roli, gdy przypisanie nowej roli się nie powiedzie
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+        if (currentRoles.Count > 0)
+        {
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+                throw new ArgumentException(FormatIdentityErrors(removeResult));
+        }
 
         var addResult = await _userManager.AddToRoleAsync(user, roleName);
         if (!addResult.Succeeded)
             throw new ArgumentException(FormatIdentityErrors(addResult));
-    }
 
-    public async Task RemoveRoleAsync(string userId, string roleName)
-    {
-        // Usunięcie roli jest możliwe tylko wtedy, gdy użytkownik faktycznie ją posiada
-        if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException("Wybierz użytkownika");
-
-        if (string.IsNullOrWhiteSpace(roleName))
-            throw new ArgumentException("Wybierz rolę");
-
-        var roleToRemove = roleName.Trim();
-
-        if (!await _roleManager.RoleExistsAsync(roleToRemove))
-            throw new KeyNotFoundException($"Rola „{roleToRemove}” nie istnieje");
-
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user is null)
-            throw new KeyNotFoundException("Nie znaleziono użytkownika");
-
-        if (!await _userManager.IsInRoleAsync(user, roleToRemove))
-            throw new InvalidOperationException($"Użytkownik nie ma roli „{roleToRemove}”");
-
-        var removeResult = await _userManager.RemoveFromRoleAsync(user, roleToRemove);
-        if (!removeResult.Succeeded)
-            throw new ArgumentException(FormatIdentityErrors(removeResult));
+        await transaction.CommitAsync();
     }
 
     public async Task DeleteUserAsync(string userId, string? currentUserId)
@@ -129,9 +126,8 @@ public class AdminUserService : IAdminUserService
         }
     }
     
-    // Kolekcja błędów, errors są wyświetlane kolejno po sobie
-    private static string FormatIdentityErrors(IdentityResult result)
+    private static string FormatIdentityErrors(IdentityResult _)
     {
-        return "Nie udało się zmienić ról użytkownika";
+        return "Nie udało się zmienić roli użytkownika";
     }
 }

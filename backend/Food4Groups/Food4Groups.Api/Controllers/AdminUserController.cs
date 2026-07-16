@@ -23,35 +23,13 @@ public class AdminUserController : ControllerBase
         return Ok(users);
     }
 
-    [HttpPost("{userId}/roles")]
-    public async Task<IActionResult> AssignRole(string userId, [FromBody] AssignUserRoleRequest request)
+    [HttpPut("{userId}/role")]
+    public async Task<IActionResult> SetRole(string userId, [FromBody] SetUserRoleRequest request)
     {
         try
         {
-            // Kontroler deleguje zarządzanie rolami do serwisu, sam mapuje tylko wynik na odpowiedź HTTP
-            await _adminUserService.AssignRoleAsync(userId, request);
-            return NoContent();
-        }
-        catch (ArgumentException exception)
-        {
-            return BadRequest(exception.Message);
-        }
-        catch (KeyNotFoundException exception)
-        {
-            return NotFound(exception.Message);
-        }
-        catch (InvalidOperationException exception)
-        {
-            return Conflict(exception.Message);
-        }
-    }
-
-    [HttpDelete("{userId}/roles/{roleName}")]
-    public async Task<IActionResult> RemoveRole(string userId, string roleName)
-    {
-        try
-        {
-            await _adminUserService.RemoveRoleAsync(userId, roleName);
+            // Jedna operacja zastępuje dotychczasowe role użytkownika wybraną rolą
+            await _adminUserService.SetRoleAsync(userId, request);
             return NoContent();
         }
         catch (ArgumentException exception)

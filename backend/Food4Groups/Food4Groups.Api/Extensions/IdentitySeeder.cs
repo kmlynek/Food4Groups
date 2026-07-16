@@ -61,7 +61,7 @@ public static class IdentitySeeder
         // Utworzenie kont testowych przypisanych do poszczególnych ról
         foreach (var user in Users)
         {
-            await SeedUserAsync(userManager, user.Email, user.Password, user.Role);
+            await SeedUserAsync(dbContext, userManager, user.Email, user.Password, user.Role);
         }
         
         await SeedOrderStatusesAsync(dbContext);
@@ -70,11 +70,14 @@ public static class IdentitySeeder
     }
 
     private static async Task SeedUserAsync(
+        ApplicationDbContext dbContext,
         UserManager<IdentityUser> userManager,
         string email,
         string password,
         string role)
     {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
         var user = await userManager.FindByNameAsync(email);
         if (user == null)
         {
@@ -89,16 +92,31 @@ public static class IdentitySeeder
             var createResult = await userManager.CreateAsync(user, password);
             if (!createResult.Succeeded)
             {
-                return;
+                throw new InvalidOperationException($"Nie udało się utworzyć konta testowego „{email}”");
             }
         }
-        
-        // Zapobiega wielokrotnemu przypisaniu tej samej roli użytkownikowi
-        if (!await userManager.IsInRoleAsync(user, role))
+
+        var currentRoles = await userManager.GetRolesAsync(user);
+        if (currentRoles.Count == 1 &&
+            string.Equals(currentRoles[0], role, StringComparison.OrdinalIgnoreCase))
         {
-            await userManager.AddToRoleAsync(user, role);
+            await transaction.CommitAsync();
+            return;
         }
-        
+
+        // Konta demonstracyjne zachowują jedną rolę zgodną z konfiguracją seedera
+        if (currentRoles.Count > 0)
+        {
+            var removeResult = await userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+                throw new InvalidOperationException($"Nie udało się zaktualizować roli konta testowego „{email}”");
+        }
+
+        var addResult = await userManager.AddToRoleAsync(user, role);
+        if (!addResult.Succeeded)
+            throw new InvalidOperationException($"Nie udało się przypisać roli do konta testowego „{email}”");
+
+        await transaction.CommitAsync();
     }
 
     private static async Task SeedOrderStatusesAsync(ApplicationDbContext dbContext)
