@@ -147,8 +147,19 @@ export function OrdersPage() {
   );
 
   const availableStatusNames = useMemo(
-    () => Array.from(new Set(orders.map((order) => order.orderStatusName).filter(Boolean) as string[])),
-    [orders],
+    () => {
+      const statusNames = new Set(
+        orders.map((order) => order.orderStatusName).filter(Boolean) as string[],
+      );
+
+      // Zachowuje wybrany status na liście również wtedy, gdy ostatnie pasujące zamówienie zmieniło status
+      if (selectedStatusName) {
+        statusNames.add(selectedStatusName);
+      }
+
+      return Array.from(statusNames);
+    },
+    [orders, selectedStatusName],
   );
 
   const filteredOrders = useMemo(() => {
@@ -313,8 +324,12 @@ export function OrdersPage() {
     setErrorMessage('');
 
     try {
-      await changeOrderStatus(orderId, { orderStatusId });
-      await loadOrders();
+      const updatedOrder = await changeOrderStatus(orderId, { orderStatusId });
+
+      // Podmiana jednego zamówienia zachowuje pozycję użytkownika i aktywne filtry
+      setOrders((currentOrders) =>
+        currentOrders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order)),
+      );
     } catch (error) {
       // Komunikat błędu zmiany statusu pochodzi z odpowiedzi backendu
       setErrorMessage(getApiErrorMessage(error, 'Nie udało się zmienić statusu zamówienia'));
@@ -340,6 +355,11 @@ export function OrdersPage() {
     }
 
     void handleChangeOrderStatus(order.id, nextStatus.id);
+  }
+
+  function handleClearFilters() {
+    setSearchText('');
+    setSelectedStatusName('');
   }
 
   async function handleConfirmFinalStatusChange() {
@@ -467,6 +487,12 @@ export function OrdersPage() {
             <Stack spacing={1.5} sx={{ alignItems: 'center', py: 4, textAlign: 'center' }}>
               <AssignmentOutlinedIcon color="primary" fontSize="large" />
               <Typography variant="h6">Brak wyników</Typography>
+              <Typography color="text.secondary">
+                Brak zamówień spełniających wybrane kryteria
+              </Typography>
+              <Button variant="outlined" onClick={handleClearFilters}>
+                Wyczyść filtry
+              </Button>
             </Stack>
           </CardContent>
         </Card>
@@ -597,7 +623,7 @@ export function OrdersPage() {
                   w dniu <strong>{formatDate(orderConfirmationDetails.menuDate)}</strong>
                 </>
               ) : null}
-              ? <br /> Po złożeniu nie będzie można zmienić dania ani dodatków.
+              ? <br /> Po złożeniu zamówienia, nie będzie możliwości zmiany wybranego dania oraz dodatków.
             </DialogContentText>
 
             {orderConfirmationDetails?.addonNames.length ? (
@@ -631,8 +657,7 @@ export function OrdersPage() {
         <DialogContent>
           <DialogContentText>
             Ustawić status <strong>{getStatusLabel(statusChangeToConfirm?.status.name)}</strong> dla zamówienia{' '}
-            <strong>{statusChangeToConfirm?.order.dishName}</strong>? To status końcowy — po zapisaniu nie będzie
-            można ponownie zmienić statusu.
+            <strong>{statusChangeToConfirm?.order.dishName}</strong>? Po zapisaniu ponowna zmiana statusu nie będzie możliwa.
           </DialogContentText>
         </DialogContent>
 
