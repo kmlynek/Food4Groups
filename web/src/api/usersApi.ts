@@ -1,5 +1,5 @@
 import { httpClient } from './httpClient';
-import type { AssignUserRoleRequest, AdminUser } from '../types/userTypes';
+import type { AdminUser, SetUserRoleRequest } from '../types/userTypes';
 
 export async function getUsers() {
   // Pobiera listę użytkowników wraz z przypisanymi rolami
@@ -8,14 +8,9 @@ export async function getUsers() {
   return response.data;
 }
 
-export async function assignUserRole(userId: string, request: AssignUserRoleRequest) {
-  // Przypisuje wybraną rolę użytkownikowi
-  await httpClient.post(`/adminuser/${userId}/roles`, request);
-}
-
-export async function removeUserRole(userId: string, roleName: string) {
-  // Usuwa wybraną rolę użytkownika
-  await httpClient.delete(`/adminuser/${userId}/roles/${roleName}`);
+export async function setUserRole(userId: string, request: SetUserRoleRequest) {
+  // Zastępuje dotychczasowe role użytkownika jedną wybraną rolą
+  await httpClient.put(`/adminuser/${userId}/role`, request);
 }
 
 export async function deleteUser(userId: string) {

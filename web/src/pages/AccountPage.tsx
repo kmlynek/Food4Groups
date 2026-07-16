@@ -107,7 +107,7 @@ export function AccountPage() {
 
                                 <Box>
                                     <Typography variant="caption" color="text.secondary">
-                                        Role
+                                        Rola
                                     </Typography>
                                     <Typography>
                                         {auth?.user.roles.map((role) => roleLabels[role]).join(', ')}

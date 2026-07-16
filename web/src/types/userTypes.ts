@@ -6,6 +6,6 @@ export type AdminUser = {
   roles: UserRole[];
 };
 
-export type AssignUserRoleRequest = {
+export type SetUserRoleRequest = {
   roleName: UserRole;
 };

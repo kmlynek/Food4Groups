@@ -569,7 +569,7 @@ export function DashboardPage() {
         </Typography>
       </Box>
 
-      {/* Role użytkownika są prezentowane za pomocą czytelnych etykiet */}
+       {/* Rola użytkownika jest prezentowana za pomocą czytelnej etykiety */}
       <Stack
         direction="row"
         spacing={1}

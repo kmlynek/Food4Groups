@@ -24,7 +24,7 @@ import { getApiErrorMessage } from '../api/apiError';
 import { deleteUser, getUsers } from '../api/usersApi';
 import { allRoles, roleLabels, type UserRole } from '../types/authTypes';
 import type { AdminUser } from '../types/userTypes';
-import { UserRolesDialog } from '../components/users/UserRolesDialog';
+import { UserRoleDialog } from '../components/users/UserRoleDialog';
 
 type UsersSortOption = 'emailAsc' | 'emailDesc';
 
@@ -32,7 +32,7 @@ export function UsersPage() {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
-    const [userRolesToEdit, setUserRolesToEdit] = useState<AdminUser | null>(null);
+    const [userRoleToEdit, setUserRoleToEdit] = useState<AdminUser | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [searchText, setSearchText] = useState('');
@@ -79,15 +79,10 @@ export function UsersPage() {
         }
     }
 
-    // Aktualizuje stan ról po edycji 
-    async function handleUserRolesChanged() {
+    // Aktualizuje rolę na liście po jej zmianie
+    async function handleUserRoleChanged() {
         const data = await getUsers();
         setUsers(data);
-
-        if (userRolesToEdit) {
-            const updatedUser = data.find((user) => user.id === userRolesToEdit.id) ?? null;
-            setUserRolesToEdit(updatedUser);
-        }
     }
 
     async function handleDeleteUser() {
@@ -243,9 +238,9 @@ export function UsersPage() {
                                             variant="outlined"
                                             size="small"
                                             startIcon={<AdminPanelSettingsOutlinedIcon />}
-                                            onClick={() => setUserRolesToEdit(user)}
+                                            onClick={() => setUserRoleToEdit(user)}
                                         >
-                                            Zarządzaj rolami
+                                            Zmień rolę
                                         </Button>
                                         <Button
                                             variant="outlined"
@@ -263,11 +258,11 @@ export function UsersPage() {
                     ))}
                 </Box>
             )}
-            <UserRolesDialog
-                open={Boolean(userRolesToEdit)}
-                user={userRolesToEdit}
-                onClose={() => setUserRolesToEdit(null)}
-                onChanged={handleUserRolesChanged}
+            <UserRoleDialog
+                open={Boolean(userRoleToEdit)}
+                user={userRoleToEdit}
+                onClose={() => setUserRoleToEdit(null)}
+                onChanged={handleUserRoleChanged}
             />
             <Dialog open={Boolean(userToDelete)} onClose={() => setUserToDelete(null)}>
                 <DialogTitle>Usuń użytkownika</DialogTitle>
