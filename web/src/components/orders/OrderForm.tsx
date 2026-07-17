@@ -100,7 +100,7 @@ export function OrderForm({ open, isSubmitting, options, onClose, onSubmit }: Or
 
         <DialogContent>
           <Stack spacing={2.5} sx={{ pt: 1 }}>
-            {/* Grupa klienta wyznacza dostępny pakiet i menu */}
+            {/* Grupa uczestnika wyznacza dostępny pakiet i menu */}
             <TextField label="Grupa" value={options?.groupName ?? ''} fullWidth disabled />
 
             {/* Dzień menu zawęża listę dostępnych dań i dodatków */}

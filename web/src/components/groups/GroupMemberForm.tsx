@@ -11,7 +11,7 @@ import {
   Switch,
   TextField,
 } from '@mui/material';
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import type { AvailableGroupMemberUser, GroupMember } from '../../types/groupMemberTypes';
 import type { Group } from '../../types/groupTypes';
 
@@ -45,18 +45,9 @@ export function GroupMemberForm({
   onClose,
   onSubmit,
 }: GroupMemberFormProps) {
-  const [userId, setUserId] = useState('');
-  const [isActive, setIsActive] = useState(true);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    // Formularz uzupełnia użytkownika podczas edycji albo wybiera pierwsze dostępne konto przy tworzeniu
-    setUserId(initialMember?.userId ?? users[0]?.id ?? '');
-    setIsActive(initialMember?.isActive ?? true);
-  }, [initialMember, open, users]);
+  // Formularz jest montowany przy otwarciu, dlatego stan może bezpośrednio korzystać z danych początkowych
+  const [userId, setUserId] = useState(initialMember?.userId ?? users[0]?.id ?? '');
+  const [isActive, setIsActive] = useState(initialMember?.isActive ?? true);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,7 +70,7 @@ export function GroupMemberForm({
 
             {/* Konto użytkownika przypisywane do grupy */}
             <TextField
-              label="Klient"
+              label="Uczestnik"
               value={userId}
               onChange={(event) => setUserId(event.target.value)}
               required

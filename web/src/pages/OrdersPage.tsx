@@ -117,14 +117,14 @@ export function OrdersPage() {
   const canManageOrders = userRoles.includes(roles.admin) || userRoles.includes(roles.cateringEmployee);
   const isClient = userRoles.includes(roles.user);
   const isGroupCoordinator = userRoles.includes(roles.groupCoordinator);
-  const canCreateOrders = isClient && !canManageOrders;
+  const canCreateOrders = (isClient || isGroupCoordinator) && !canManageOrders;
   const canSeeOrderContext = canManageOrders || isGroupCoordinator;
 
   const pageDescription = canManageOrders
     ? 'Przeglądaj zamówienia i zarządzaj ich realizacją'
     : isGroupCoordinator
       ? canCreateOrders
-        ? 'Przeglądaj zamówienia swojej grupy i składaj własne zamówienia'
+        ? 'Przeglądaj zamówienia swojej grupy i składaj własne'
         : 'Przeglądaj zamówienia uczestników swojej grupy'
       : 'Składaj zamówienia i sprawdzaj ich status';
 
@@ -238,27 +238,19 @@ export function OrdersPage() {
       }
 
       if (isGroupCoordinator) {
-        if (canCreateOrders) {
-          // Koordynator z rolą klienta widzi zamówienia grupy oraz własne zamówienia bez duplikatów
-          const [coordinatorOrders, myOrders, optionsData] = await Promise.all([
-            getCoordinatorOrders(),
-            getMyOrders(),
-            getOrderOptions(),
-          ]);
-          const ordersById = new Map(
-            [...coordinatorOrders, ...myOrders].map((order) => [order.id, order]),
-          );
+        // Koordynator widzi zamówienia grupy oraz własne zamówienia bez duplikatów
+        const [coordinatorOrders, myOrders, optionsData] = await Promise.all([
+          getCoordinatorOrders(),
+          getMyOrders(),
+          getOrderOptions(),
+        ]);
+        const ordersById = new Map(
+          [...coordinatorOrders, ...myOrders].map((order) => [order.id, order]),
+        );
 
-          setOrders(Array.from(ordersById.values()));
-          setStatuses([]);
-          setOrderOptions(optionsData);
-          return;
-        }
-
-        const coordinatorOrders = await getCoordinatorOrders();
-        setOrders(coordinatorOrders);
+        setOrders(Array.from(ordersById.values()));
         setStatuses([]);
-        setOrderOptions(null);
+        setOrderOptions(optionsData);
         return;
       }
 
@@ -315,7 +307,7 @@ export function OrdersPage() {
   }
 
   async function handleSubmitOrderForm(values: OrderFormValues) {
-    // Zamówienie wymaga dodatkowego potwierdzenia, ponieważ klient nie może później samodzielnie zmienić wyboru
+    // Zamówienie wymaga potwierdzenia, ponieważ zamawiający nie może później samodzielnie zmienić wyboru
     setOrderToConfirm(values);
   }
 
@@ -387,7 +379,7 @@ export function OrdersPage() {
         </Typography>
       </Box>
 
-      {/* Główna akcja utworzenia zamówienia klienta */}
+      {/* Główna akcja utworzenia własnego zamówienia */}
       {canCreateOrders && (
         <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
           <Button
@@ -406,8 +398,8 @@ export function OrdersPage() {
       {canCreateOrders && !isLoading && !orderOptions?.groupMemberId && (
         <Alert severity="info" variant="outlined">
           {isGroupCoordinator
-            ? 'Aby złożyć własne zamówienie, konto musi być przypisane do grupy.'
-            : 'Twoje konto nie jest przypisane do grupy. Aby uzyskać dostęp do zamówień, skontaktuj się z pracownikiem cateringu'}
+            ? 'Aby złożyć własne zamówienie, konto musi mieć aktywne uczestnictwo w grupie'
+            : 'Twoje konto nie jest aktywnym uczestnikiem grupy. Aby uzyskać dostęp do zamówień, skontaktuj się z pracownikiem cateringu'}
         </Alert>
       )}
 

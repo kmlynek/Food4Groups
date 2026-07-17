@@ -68,7 +68,7 @@ export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMem
   }, [group, members]);
 
   const availableUsers = useMemo(() => {
-    // Jeden klient może należeć tylko do jednej grupy, więc lista pomija użytkowników przypisanych gdziekolwiek
+    // Jeden użytkownik może być uczestnikiem tylko jednej grupy, więc lista pomija już przypisane konta
     const assignedUserIds = new Set(members.map((member) => member.userId));
 
     return users.filter((user) => !assignedUserIds.has(user.id));
@@ -230,7 +230,7 @@ export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMem
 
           {availableUsers.length === 0 && !isLoading && (
             <Alert severity="info" variant="outlined">
-              Brak klientów dostępnych do przypisania do grupy
+              Brak użytkowników dostępnych do przypisania do grupy
             </Alert>
           )}
 
@@ -315,18 +315,20 @@ export function GroupMembersDialog({ open, group, onClose, onChanged }: GroupMem
         </Button>
       </DialogActions>
 
-      <GroupMemberForm
-        open={isFormOpen}
-        title={selectedMember ? 'Edytuj uczestnika' : 'Przypisz uczestnika'}
-        submitLabel={selectedMember ? 'Zapisz zmiany' : 'Przypisz do grupy'}
-        isSubmitting={isSubmitting}
-        canEditStatus={Boolean(selectedMember)}
-        group={group}
-        users={usersForForm}
-        initialMember={selectedMember}
-        onClose={closeForm}
-        onSubmit={handleSaveMember}
-      />
+      {isFormOpen && (
+        <GroupMemberForm
+          open
+          title={selectedMember ? 'Edytuj uczestnika' : 'Przypisz uczestnika'}
+          submitLabel={selectedMember ? 'Zapisz zmiany' : 'Przypisz do grupy'}
+          isSubmitting={isSubmitting}
+          canEditStatus={Boolean(selectedMember)}
+          group={group}
+          users={usersForForm}
+          initialMember={selectedMember}
+          onClose={closeForm}
+          onSubmit={handleSaveMember}
+        />
+      )}
 
       <Dialog open={Boolean(memberToDelete)} onClose={() => setMemberToDelete(null)}>
         <DialogTitle>Usuń uczestnika z grupy</DialogTitle>

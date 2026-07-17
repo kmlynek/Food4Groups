@@ -322,13 +322,13 @@ export function DashboardPage() {
   const orderDashboardTitle = canManageOrders
     ? 'Podsumowanie zamówień'
     : isGroupCoordinator
-      ? 'Zamówienia grupy'
+      ? 'Zamówienia grupy i własne'
       : 'Moje zamówienia';
 
   const orderDashboardDescription = canManageOrders
     ? 'Bieżący obraz realizacji zamówień'
     : isGroupCoordinator
-      ? 'Ostatnia aktywność uczestników grupy'
+      ? 'Bieżący stan zamówień grupy i Twoich zamówień'
       : 'Ostatnia aktywność na Twoim koncie';
 
   // Alert bezpieczeństwa dotyczy wyłącznie kont korzystających z hasła startowego
@@ -369,8 +369,8 @@ export function DashboardPage() {
           return;
         }
 
-        // Konto z rolą koordynatora i Klienta otrzymuje połączone listy zamówień
-        if (isGroupCoordinator && isClient) {
+        // Koordynator otrzymuje zamówienia swojej grupy oraz własne zamówienia bez duplikatów
+        if (isGroupCoordinator) {
           const [coordinatorOrders, myOrders] = await Promise.all([
             getCoordinatorOrders(),
             getMyOrders(),
@@ -380,17 +380,6 @@ export function DashboardPage() {
             setDashboardOrders(
               mergeOrders([...coordinatorOrders, ...myOrders]),
             );
-          }
-
-          return;
-        }
-
-        if (isGroupCoordinator) {
-          const coordinatorOrders =
-            await getCoordinatorOrders();
-
-          if (isActive) {
-            setDashboardOrders(coordinatorOrders);
           }
 
           return;

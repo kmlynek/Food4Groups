@@ -15,7 +15,7 @@ export async function getOrders() {
 }
 
 export async function getMyOrders() {
-  // Pobiera zamówienia aktualnie zalogowanego klienta
+  // Pobiera własne zamówienia aktualnie zalogowanego uczestnika
   const response = await httpClient.get<Order[]>('/orders/my');
 
   return response.data;
@@ -36,14 +36,14 @@ export async function getOrderStatuses() {
 }
 
 export async function getOrderOptions() {
-  // Pobiera dni menu, dania i dodatki dostępne dla aktualnie zalogowanego klienta
+  // Pobiera dni menu, dania i dodatki dostępne dla aktualnie zalogowanego uczestnika
   const response = await httpClient.get<OrderOptions>('/orders/options');
 
   return response.data;
 }
 
 export async function createOrder(request: CreateOrderRequest) {
-  // Tworzy zamówienie klienta w ramach jego aktywnego uczestnictwa w grupie
+  // Tworzy zamówienie użytkownika w ramach jego aktywnego uczestnictwa w grupie
   const response = await httpClient.post<Order>('/orders', request);
 
   return response.data;
