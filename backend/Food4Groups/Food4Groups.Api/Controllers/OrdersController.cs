@@ -27,7 +27,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("my")]
-    [Authorize(Roles = "User")]
+    [Authorize(Roles = "User, GroupCoordinator")]
     public async Task<IActionResult> GetMyOrders()
     {
         try
@@ -70,12 +70,12 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("options")]
-    [Authorize(Roles = "User")]
+    [Authorize(Roles = "User, GroupCoordinator")]
     public async Task<IActionResult> GetOptions()
     {
         try
         {
-            // Opcje zamówienia są wyliczane dla aktualnego klienta na podstawie jego grupy i aktywnego pakietu
+            // Opcje zamówienia są wyliczane dla aktywnego uczestnictwa użytkownika i pakietu jego grupy
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var options = await _orderService.GetOptionsAsync(currentUserId ?? string.Empty);
 
@@ -97,12 +97,12 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "User")]
+    [Authorize(Roles = "User, GroupCoordinator")]
     public async Task<IActionResult> Create([FromBody] CreateOrderRequest request)
     {
         try
         {
-            // Klient składa zamówienie wyłącznie w ramach własnego członkostwa w grupie
+            // Użytkownik składa zamówienie wyłącznie w ramach własnego uczestnictwa w grupie
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var order = await _orderService.CreateAsync(currentUserId ?? string.Empty, request);
 

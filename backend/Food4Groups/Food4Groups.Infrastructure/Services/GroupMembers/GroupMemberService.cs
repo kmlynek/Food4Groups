@@ -20,7 +20,7 @@ public class GroupMemberService : IGroupMemberService
 
     public async Task<List<GroupMemberResponse>> GetAllAsync()
     {
-        // Lista członków grupy jest przygotowana od razu pod widok administracyjny
+        // Lista uczestników grupy jest przygotowana od razu pod widok administracyjny
         return await GetGroupMembersQuery()
             .OrderBy(x => x.GroupName)
             .ThenBy(x => x.UserEmail)
@@ -29,10 +29,14 @@ public class GroupMemberService : IGroupMemberService
 
     public async Task<List<AvailableGroupMemberResponse>> GetAvailableUsersAsync()
     {
-        // Do grup są przypisywani klienci, stąd rola User dla listy pobranych użytkowników
-        var users = await _userManager.GetUsersInRoleAsync("User");
+        // Uczestnikiem grupy może zostać klient lub koordynator, który również korzysta z wyżywienia
+        var clients = await _userManager.GetUsersInRoleAsync("User");
+        var coordinators = await _userManager.GetUsersInRoleAsync("GroupCoordinator");
 
-        return users
+        return clients
+            .Concat(coordinators)
+            .GroupBy(x => x.Id)
+            .Select(x => x.First())
             .OrderBy(x => x.Email)
             .Select(x => new AvailableGroupMemberResponse
             {
@@ -64,7 +68,7 @@ public class GroupMemberService : IGroupMemberService
         _context.GroupMembers.Add(member);
         await _context.SaveChangesAsync();
 
-        // Po dodaniu członka aktualizowana jest liczba aktywnych osób w grupie
+        // Po dodaniu uczestnika aktualizowana jest liczba aktywnych osób w grupie
         await RecalculateMemberCountAsync(request.GroupId);
         await _context.SaveChangesAsync();
 
@@ -89,7 +93,7 @@ public class GroupMemberService : IGroupMemberService
 
         await _context.SaveChangesAsync();
 
-        // Jeżeli klient został przeniesiony do innej grupy, liczba członków zostaje ponownie przeliczona w obu grupach
+        // Po przeniesieniu uczestnika liczba osób zostaje ponownie przeliczona w obu grupach
         await RecalculateMemberCountAsync(previousGroupId);
         if (previousGroupId != request.GroupId)
             await RecalculateMemberCountAsync(request.GroupId);
@@ -112,7 +116,7 @@ public class GroupMemberService : IGroupMemberService
         _context.GroupMembers.Remove(member);
         await _context.SaveChangesAsync();
 
-        // Po usunięciu członka ponownie przeliczana jest liczba osób w grupie
+        // Po usunięciu uczestnika ponownie przeliczana jest liczba osób w grupie
         await RecalculateMemberCountAsync(groupId);
         await _context.SaveChangesAsync();
 
@@ -154,7 +158,7 @@ public class GroupMemberService : IGroupMemberService
             throw new ArgumentException("Wybierz grupę");
 
         if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException("Wybierz klienta");
+            throw new ArgumentException("Wybierz uczestnika");
 
         var trimmedUserId = userId.Trim();
 
@@ -163,27 +167,30 @@ public class GroupMemberService : IGroupMemberService
         if (!groupExists)
             throw new KeyNotFoundException("Nie znaleziono grupy");
 
-        // Przypisywany klient musi istnieć w systemie Identity
+        // Przypisywany użytkownik musi istnieć w systemie Identity
         var user = await _userManager.FindByIdAsync(trimmedUserId);
         if (user is null)
             throw new KeyNotFoundException("Nie znaleziono użytkownika");
 
-        var isClient = await _userManager.IsInRoleAsync(user, "User");
-        if (!isClient)
-            throw new ArgumentException("Do grupy można przypisać tylko użytkownika z rolą klienta");
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var canBeParticipant =
+            userRoles.Contains("User") || userRoles.Contains("GroupCoordinator");
 
-        // Jeden klient może należeć tylko do jednej grupy
+        if (!canBeParticipant)
+            throw new ArgumentException("Do grupy można przypisać tylko klienta lub koordynatora grupy");
+
+        // Jeden użytkownik może być uczestnikiem tylko jednej grupy
         var userAlreadyAssigned = await _context.GroupMembers.AnyAsync(x =>
             x.UserId == trimmedUserId &&
             (!currentMemberId.HasValue || x.Id != currentMemberId.Value));
 
         if (userAlreadyAssigned)
-            throw new InvalidOperationException("Ten klient należy już do grupy");
+            throw new InvalidOperationException("Ten użytkownik jest już przypisany do grupy");
 
         return trimmedUserId;
     }
 
-    private async Task RecalculateMemberCountAsync(Guid groupId) // Przelicza liczbę członków w grupie
+    private async Task RecalculateMemberCountAsync(Guid groupId) // Przelicza liczbę uczestników grupy
     {
         var group = await _context.Groups.FirstOrDefaultAsync(x => x.Id == groupId);
         if (group is null)

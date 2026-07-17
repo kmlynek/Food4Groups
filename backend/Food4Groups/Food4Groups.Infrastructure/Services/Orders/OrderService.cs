@@ -33,7 +33,7 @@ public class OrderService : IOrderService
         if (string.IsNullOrWhiteSpace(currentUserId))
             throw new UnauthorizedAccessException("Sesja użytkownika wygasła. Zaloguj się ponownie.");
 
-        // Klient widzi wyłącznie zamówienia powiązane z jego członkostwem w grupie
+        // Użytkownik widzi wyłącznie zamówienia powiązane z własnym uczestnictwem w grupie
         var orders = await GetOrdersQuery()
             .Where(x => x.GroupMember != null && x.GroupMember.UserId == currentUserId)
             .OrderByDescending(x => x.CreatedAt)
@@ -103,7 +103,7 @@ public class OrderService : IOrderService
             .Select(x => x.MenuDayId)
             .ToListAsync();
 
-        // Klient otrzymuje tylko aktywne dni menu swojej firmy, dla których nie złożył jeszcze zamówienia
+        // Uczestnik otrzymuje tylko aktywne dni menu swojej firmy, dla których nie złożył jeszcze zamówienia
         var menuDays = await _context.MenuDays
             .AsNoTracking()
             .Include(x => x.MenuPeriod)
