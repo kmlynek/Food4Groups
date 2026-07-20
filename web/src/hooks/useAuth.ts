@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../context/authContextDefinition';
 
 // Hook udostępnia komponentom stan uwierzytelnienia oraz operacje logowania i wylogowania
 export function useAuth() {

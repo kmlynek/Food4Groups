@@ -1,18 +1,9 @@
-import { createContext, useMemo, useState, type PropsWithChildren } from 'react';
+import { useMemo, useState, type PropsWithChildren } from 'react';
 import { loginRequest } from '../api/authApi';
 import { clearStoredAuth, getStoredAuth, setStoredAuth } from '../utils/authStorage';
 import { getUserFromToken } from '../utils/jwt';
 import type { AuthState } from '../types/authTypes';
-
-export type AuthContextValue = {
-  auth: AuthState | null;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-};
-
-// Context przechowuje stan uwierzytelnienia i udostępnia go wszystkim komponentom aplikacji
-export const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext, type AuthContextValue } from './authContextDefinition';
 
 export function AuthProvider({ children }: PropsWithChildren) {
     // Odczytuje zapisany stan logowania podczas uruchamiania aplikacji
