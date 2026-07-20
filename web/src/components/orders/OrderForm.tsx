@@ -13,10 +13,10 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
-import type { OrderOptionMenuDay, OrderOptions } from '../../types/orderTypes';
+import { type FormEvent, useState } from 'react';
+import type { OrderOptions } from '../../types/orderTypes';
 
-type OrderFormValues = {
+export type OrderFormValues = {
   menuDayId: string;
   dishId: string;
   addonIds: string[];
@@ -41,29 +41,15 @@ function formatDate(value?: string) {
 }
 
 export function OrderForm({ open, isSubmitting, options, onClose, onSubmit }: OrderFormProps) {
-  const [menuDayId, setMenuDayId] = useState('');
-  const [dishId, setDishId] = useState('');
+  const firstMenuDay = options?.menuDays[0];
+  const [menuDayId, setMenuDayId] = useState(firstMenuDay?.id ?? '');
+  const [dishId, setDishId] = useState(firstMenuDay?.dishes[0]?.id ?? '');
   const [addonIds, setAddonIds] = useState<string[]>([]);
 
   const menuDays = options?.menuDays ?? [];
-
-  const selectedMenuDay = useMemo<OrderOptionMenuDay | undefined>(
-    () => menuDays.find((menuDay) => menuDay.id === menuDayId),
-    [menuDayId, menuDays],
+  const selectedMenuDay = menuDays.find(
+    (menuDay) => menuDay.id === menuDayId,
   );
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const firstMenuDay = menuDays[0];
-
-    // Formularz startuje od pierwszego dostępnego dnia menu i pierwszego dania z tego dnia
-    setMenuDayId(firstMenuDay?.id ?? '');
-    setDishId(firstMenuDay?.dishes[0]?.id ?? '');
-    setAddonIds([]);
-  }, [menuDays, open]);
 
   function handleMenuDayChange(nextMenuDayId: string) {
     const nextMenuDay = menuDays.find((menuDay) => menuDay.id === nextMenuDayId);
