@@ -106,13 +106,14 @@ export function LoginPage() {
           sx={{
             display: { xs: 'none', md: 'flex' },
             flexDirection: 'column',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-start',
+            gap: 6,
             p: 6,
             background:
               'linear-gradient(135deg, rgba(4, 120, 87, 0.26), rgba(7, 18, 13, 0.96) 58%), radial-gradient(circle at top left, rgba(34, 197, 94, 0.28), transparent 36%)',
           }}
         >
-          <Stack spacing={1.5}>
+          <Stack spacing={4}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
               <Box
                 component="img"
@@ -129,13 +130,15 @@ export function LoginPage() {
               </Box>
             </Stack>
 
-            <Typography variant="h4" sx={{ maxWidth: 520, lineHeight: 1.15 }}>
-              System do organizacji posiłków dla grup
-            </Typography>
+            <Stack spacing={1.5}>
+              <Typography variant="h4" sx={{ maxWidth: 520, lineHeight: 1.15 }}>
+                System do organizacji posiłków dla grup
+              </Typography>
 
-            <Typography sx={{ maxWidth: 560, color: '#cbd5d1' }}>
-              Zarządzanie ofertą, menu, grupami i zamówieniami w jednym systemie
-            </Typography>
+              <Typography sx={{ maxWidth: 560, color: '#cbd5d1' }}>
+                Zarządzanie ofertą, menu, grupami i zamówieniami w jednym systemie
+              </Typography>
+            </Stack>
           </Stack>
 
           {/* Lista głównych obszarów, które system wspiera biznesowo */}
