@@ -48,18 +48,34 @@ export function AppLayout() {
                 to="/dashboard"
                 onClick={closeMobileDrawer}
                 sx={{
-                    display: 'block',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
                     px: 3,
                     py: 2.5,
                     textDecoration: 'none',
                 }}
             >
-                <Typography variant="h6" color="primary" sx={{ fontWeight: 800 }}>
-                    Food4Groups
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    System zarządzania cateringiem
-                </Typography>
+                <Box
+                    component="img"
+                    src="/favicon.svg"
+                    alt=""
+                    aria-hidden="true"
+                    sx={{ width: 44, height: 44, flexShrink: 0 }}
+                />
+
+                <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="h6" color="primary" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+                        Food4Groups
+                    </Typography>
+                    <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: 'block', lineHeight: 1.35 }}
+                    >
+                        Organizacja posiłków i zamówień grupowych
+                    </Typography>
+                </Box>
             </Box>
 
             <Divider />
@@ -149,11 +165,32 @@ export function AppLayout() {
                         </IconButton>
                     )}
 
-                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                        Food4Groups
-                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexGrow: 1 }}>
+                        <Box
+                            component="img"
+                            src="/favicon.svg"
+                            alt=""
+                            aria-hidden="true"
+                            sx={{ width: 34, height: 34 }}
+                        />
+                        <Typography variant="h6">Food4Groups</Typography>
+                    </Stack>
 
-                    <Button color="primary" startIcon={<LogoutOutlinedIcon />} onClick={logout}>
+                    <IconButton
+                        color="primary"
+                        onClick={logout}
+                        aria-label="Wyloguj"
+                        sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
+                    >
+                        <LogoutOutlinedIcon />
+                    </IconButton>
+
+                    <Button
+                        color="primary"
+                        startIcon={<LogoutOutlinedIcon />}
+                        onClick={logout}
+                        sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+                    >
                         Wyloguj
                     </Button>
                 </Toolbar>

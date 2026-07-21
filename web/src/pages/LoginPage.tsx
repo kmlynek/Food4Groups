@@ -114,10 +114,19 @@ export function LoginPage() {
         >
           <Stack spacing={1.5}>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              <Avatar sx={{ bgcolor: '#10b981', color: '#052e16' }}>
-                <RestaurantMenuIcon />
-              </Avatar>
-              <Typography variant="h5">Food4Groups</Typography>
+              <Box
+                component="img"
+                src="/favicon.svg"
+                alt=""
+                aria-hidden="true"
+                sx={{ width: 52, height: 52, flexShrink: 0 }}
+              />
+              <Box>
+                <Typography variant="h5">Food4Groups</Typography>
+                <Typography variant="body2" sx={{ color: '#a7b7af' }}>
+                  Organizacja posiłków i zamówień grupowych
+                </Typography>
+              </Box>
             </Stack>
 
             <Typography variant="h4" sx={{ maxWidth: 520, lineHeight: 1.15 }}>
