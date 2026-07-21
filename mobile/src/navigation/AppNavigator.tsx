@@ -1,24 +1,32 @@
 import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ClipboardList, UserRound } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import { useAuth } from '../auth';
 import { AccountScreen } from '../screens/AccountScreen';
 import { LoginScreen } from '../screens/LoginScreen';
+import { OrdersScreen } from '../screens/OrdersScreen';
 import { navigationTheme } from '../theme';
 
 type RootStackParamList = {
   Login: undefined;
+};
+
+type ClientTabParamList = {
+  Orders: undefined;
   Account: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<ClientTabParamList>();
 
-// Nawigator przełącza dostępne ekrany na podstawie bieżącego stanu sesji.
+// Nawigator przełącza dostępne ekrany na podstawie bieżącego stanu sesji
 export function AppNavigator() {
   const { session, isLoading } = useAuth();
 
-  // Ekran ładowania zapobiega pokazaniu formularza przed odczytaniem zapisanej sesji.
+  // Ekran ładowania zapobiega pokazaniu formularza przed odczytaniem zapisanej sesji
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -32,25 +40,53 @@ export function AppNavigator() {
 
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator>
-        {session ? (
-          <Stack.Screen
-            name="Account"
-            component={AccountScreen}
-            options={{
-              title: 'Moje konto',
-              headerShadowVisible: false,
-            }}
-          />
-        ) : (
+      {session ? (
+        <ClientTabs />
+      ) : (
+        <Stack.Navigator>
           <Stack.Screen
             name="Login"
             component={LoginScreen}
             options={{ headerShown: false }}
           />
-        )}
-      </Stack.Navigator>
+        </Stack.Navigator>
+      )}
     </NavigationContainer>
+  );
+}
+
+// Dolne zakładki ograniczają nawigację do funkcji dostępnych Klientowi
+function ClientTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShadowVisible: false,
+        tabBarActiveTintColor: navigationTheme.colors.primary,
+        tabBarInactiveTintColor: '#52605a',
+        tabBarHideOnKeyboard: true,
+      }}
+    >
+      <Tab.Screen
+        name="Orders"
+        component={OrdersScreen}
+        options={{
+          title: 'Zamówienia',
+          tabBarIcon: ({ color, size }) => (
+            <ClipboardList color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Account"
+        component={AccountScreen}
+        options={{
+          title: 'Konto',
+          tabBarIcon: ({ color, size }) => (
+            <UserRound color={color} size={size} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 }
 
