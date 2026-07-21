@@ -1,7 +1,13 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { ClipboardList } from 'lucide-react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ClipboardList, Plus } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import {
   ActivityIndicator,
   Button,
@@ -11,6 +17,7 @@ import {
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth';
+import type { OrdersStackParamList } from '../navigation/AppNavigator';
 import { getMyOrders, type Order } from '../orders';
 
 const orderStatusLabels: Record<string, string> = {
@@ -21,19 +28,68 @@ const orderStatusLabels: Record<string, string> = {
   Cancelled: 'Anulowane',
 };
 
+// Kolory statusów odpowiadają etapom realizacji użytym w aplikacji webowej
+const orderStatusColors: Record<
+  string,
+  { background: string; border: string; text: string }
+> = {
+  Created: {
+    background: '#d1fae5',
+    border: '#6ee7b7',
+    text: '#065f46',
+  },
+  Accepted: {
+    background: '#dbeafe',
+    border: '#93c5fd',
+    text: '#1e40af',
+  },
+  Prepared: {
+    background: '#fef3c7',
+    border: '#fcd34d',
+    text: '#92400e',
+  },
+  Completed: {
+    background: '#dcfce7',
+    border: '#86efac',
+    text: '#166534',
+  },
+  Cancelled: {
+    background: '#fee2e2',
+    border: '#fca5a5',
+    text: '#991b1b',
+  },
+};
+
+const fallbackStatusColors = {
+  background: '#f3f4f6',
+  border: '#d1d5db',
+  text: '#374151',
+};
+
+type OrdersScreenProps = NativeStackScreenProps<
+  OrdersStackParamList,
+  'OrdersList'
+>;
+
 // Ekran prezentuje historię oraz aktualne statusy zamówień Klienta
-export function OrdersScreen() {
+export function OrdersScreen({ navigation }: OrdersScreenProps) {
   const { session } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const loadOrders = useCallback(async () => {
+  const loadOrders = useCallback(async (isPullToRefresh = false) => {
     if (!session) {
       return;
     }
 
-    setIsLoading(true);
+    if (isPullToRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
+
     setErrorMessage('');
 
     try {
@@ -46,7 +102,11 @@ export function OrdersScreen() {
           : 'Nie udało się pobrać zamówień',
       );
     } finally {
-      setIsLoading(false);
+      if (isPullToRefresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   }, [session]);
 
@@ -59,7 +119,18 @@ export function OrdersScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        alwaysBounceVertical
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            tintColor="#047857"
+            colors={['#047857']}
+            onRefresh={() => void loadOrders(true)}
+          />
+        }
+      >
         <Text variant="titleLarge" style={styles.title}>
           Moje zamówienia
         </Text>
@@ -67,6 +138,18 @@ export function OrdersScreen() {
         <Text variant="bodyMedium" style={styles.description}>
           Sprawdzaj wybrane posiłki i ich aktualne statusy
         </Text>
+
+        <Button
+          mode="contained"
+          icon={({ color, size }) => (
+            <Plus color={color} size={size} />
+          )}
+          contentStyle={styles.createButtonContent}
+          style={styles.createButton}
+          onPress={() => navigation.navigate('CreateOrder')}
+        >
+          Złóż zamówienie
+        </Button>
 
         {isLoading ? <OrdersLoadingState /> : null}
 
@@ -147,6 +230,7 @@ function OrderCard({ order }: OrderCardProps) {
   const addonNames = order.addons
     .map((addon) => addon.addonName)
     .filter((name): name is string => Boolean(name));
+  const statusColors = getOrderStatusColors(order.orderStatusName);
 
   return (
     <Card mode="outlined" style={styles.orderCard}>
@@ -161,7 +245,18 @@ function OrderCard({ order }: OrderCardProps) {
             </Text>
           </View>
 
-          <Chip compact mode="outlined">
+          <Chip
+            compact
+            mode="outlined"
+            style={[
+              styles.statusChip,
+              {
+                backgroundColor: statusColors.background,
+                borderColor: statusColors.border,
+              },
+            ]}
+            textStyle={{ color: statusColors.text }}
+          >
             {getOrderStatusLabel(order.orderStatusName)}
           </Chip>
         </View>
@@ -189,6 +284,14 @@ function getOrderStatusLabel(statusName?: string) {
   }
 
   return orderStatusLabels[statusName] ?? statusName;
+}
+
+function getOrderStatusColors(statusName?: string) {
+  if (!statusName) {
+    return fallbackStatusColors;
+  }
+
+  return orderStatusColors[statusName] ?? fallbackStatusColors;
 }
 
 function formatDate(value?: string) {
@@ -235,8 +338,14 @@ const styles = StyleSheet.create({
   },
   description: {
     color: '#52605a',
-    marginBottom: 24,
     marginTop: 4,
+  },
+  createButton: {
+    marginBottom: 24,
+    marginTop: 20,
+  },
+  createButtonContent: {
+    minHeight: 48,
   },
   stateCard: {
     backgroundColor: '#ffffff',
@@ -272,6 +381,9 @@ const styles = StyleSheet.create({
   orderTitle: {
     color: '#12372a',
     fontWeight: '700',
+  },
+  statusChip: {
+    flexShrink: 0,
   },
   orderDetails: {
     gap: 4,

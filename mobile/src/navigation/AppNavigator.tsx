@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import { useAuth } from '../auth';
 import { AccountScreen } from '../screens/AccountScreen';
+import { CreateOrderScreen } from '../screens/CreateOrderScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { OrdersScreen } from '../screens/OrdersScreen';
 import { navigationTheme } from '../theme';
@@ -19,8 +20,14 @@ type ClientTabParamList = {
   Account: undefined;
 };
 
+export type OrdersStackParamList = {
+  OrdersList: undefined;
+  CreateOrder: undefined;
+};
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<ClientTabParamList>();
+const OrdersStack = createNativeStackNavigator<OrdersStackParamList>();
 
 // Nawigator przełącza dostępne ekrany na podstawie bieżącego stanu sesji
 export function AppNavigator() {
@@ -68,9 +75,10 @@ function ClientTabs() {
     >
       <Tab.Screen
         name="Orders"
-        component={OrdersScreen}
+        component={OrdersNavigator}
         options={{
           title: 'Zamówienia',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <ClipboardList color={color} size={size} />
           ),
@@ -87,6 +95,28 @@ function ClientTabs() {
         }}
       />
     </Tab.Navigator>
+  );
+}
+
+// Stos zamówień oddziela listę od procesu tworzenia nowego zamówienia
+function OrdersNavigator() {
+  return (
+    <OrdersStack.Navigator
+      screenOptions={{
+        headerShadowVisible: false,
+      }}
+    >
+      <OrdersStack.Screen
+        name="OrdersList"
+        component={OrdersScreen}
+        options={{ title: 'Zamówienia' }}
+      />
+      <OrdersStack.Screen
+        name="CreateOrder"
+        component={CreateOrderScreen}
+        options={{ title: 'Nowe zamówienie' }}
+      />
+    </OrdersStack.Navigator>
   );
 }
 

@@ -35,11 +35,11 @@ export function AccountScreen() {
     <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text variant="titleLarge" style={styles.title}>
-          Dane konta
+          Moje konto
         </Text>
 
         <Text variant="bodyMedium" style={styles.description}>
-          Podstawowe informacje o zalogowanym użytkowniku
+          Dane konta i wylogowanie
         </Text>
 
         <Card mode="outlined" style={styles.card}>
@@ -60,8 +60,7 @@ export function AccountScreen() {
             <Divider />
 
             <List.Item
-              title="Rola"
-              description="Klient"
+              title="Klient"              
               left={(props) => (
                 <List.Icon
                   {...props}
