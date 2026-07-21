@@ -1,25 +1,20 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Check } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import {
   ActivityIndicator,
   Button,
   Card,
-  Chip,
-  Dialog,
-  HelperText,
-  Portal,
   Text,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth';
+import {
+  OrderConfirmationDialog,
+  type OrderConfirmationDetails,
+} from '../components/orders/OrderConfirmationDialog';
+import { OrderSelectionOption } from '../components/orders/OrderSelectionOption';
 import type { OrdersStackParamList } from '../navigation/AppNavigator';
 import {
   createOrder,
@@ -58,6 +53,16 @@ export function CreateOrderScreen({ navigation }: CreateOrderScreenProps) {
         addonIds.includes(addon.id),
       ) ?? [],
     [addonIds, selectedMenuDay],
+  );
+  const confirmationDetails = useMemo<OrderConfirmationDetails>(
+    () => ({
+      menuDate: selectedMenuDay?.menuDate,
+      dishName: selectedDish?.name,
+      addonNames: selectedAddons
+        .map((addon) => addon.name)
+        .filter((name): name is string => Boolean(name)),
+    }),
+    [selectedAddons, selectedDish, selectedMenuDay],
   );
 
   const loadOptions = useCallback(async () => {
@@ -208,7 +213,7 @@ export function CreateOrderScreen({ navigation }: CreateOrderScreenProps) {
 
             <SelectionSection title="Dzień menu">
               {options.menuDays.map((menuDay) => (
-                <SelectionOption
+                <OrderSelectionOption
                   key={menuDay.id}
                   label={formatDate(menuDay.menuDate)}
                   description={menuDay.menuPeriodName}
@@ -220,7 +225,7 @@ export function CreateOrderScreen({ navigation }: CreateOrderScreenProps) {
 
             <SelectionSection title="Danie">
               {selectedMenuDay?.dishes.map((dish) => (
-                <SelectionOption
+                <OrderSelectionOption
                   key={dish.id}
                   label={dish.name ?? 'Brak nazwy dania'}
                   selected={dish.id === dishId}
@@ -232,7 +237,7 @@ export function CreateOrderScreen({ navigation }: CreateOrderScreenProps) {
             <SelectionSection title="Dodatki" optional>
               {selectedMenuDay?.addons.length ? (
                 selectedMenuDay.addons.map((addon) => (
-                  <SelectionOption
+                  <OrderSelectionOption
                     key={addon.id}
                     label={addon.name ?? 'Brak nazwy dodatku'}
                     selected={addonIds.includes(addon.id)}
@@ -259,71 +264,14 @@ export function CreateOrderScreen({ navigation }: CreateOrderScreenProps) {
         ) : null}
       </ScrollView>
 
-      <Portal>
-        <Dialog
-          visible={isConfirmationVisible}
-          dismissable={!isSubmitting}
-          onDismiss={() => setIsConfirmationVisible(false)}
-        >
-          <Dialog.Title>Potwierdź zamówienie</Dialog.Title>
-          <Dialog.Content>
-            <View style={styles.confirmationContent}>
-              <Text variant="bodyMedium">
-                Złożyć zamówienie na{' '}
-                <Text style={styles.confirmationEmphasis}>
-                  {selectedDish?.name ?? 'Brak nazwy dania'}
-                </Text>{' '}
-                w dniu{' '}
-                <Text style={styles.confirmationEmphasis}>
-                  {formatDate(selectedMenuDay?.menuDate)}
-                </Text>
-                {'?'}
-              </Text>
-              <Text variant="bodyMedium">
-                Po złożeniu zamówienia, nie będzie możliwości zmiany wybranego dania oraz dodatków.
-              </Text>
-              {selectedAddons.length > 0 ? (
-                <View style={styles.selectedAddons}>
-                  <Text variant="bodySmall" style={styles.secondaryText}>
-                    Wybrane dodatki
-                  </Text>
-                  <View style={styles.addonChips}>
-                    {selectedAddons.map((addon) => (
-                      <Chip key={addon.id} compact mode="outlined">
-                        {addon.name ?? 'Brak nazwy dodatku'}
-                      </Chip>
-                    ))}
-                  </View>
-                </View>
-              ) : (
-                <Text variant="bodyMedium" style={styles.secondaryText}>
-                  Zamówienie bez dodatków
-                </Text>
-              )}
-              {submitErrorMessage ? (
-                <HelperText type="error" visible>
-                  {submitErrorMessage}
-                </HelperText>
-              ) : null}
-            </View>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button
-              disabled={isSubmitting}
-              onPress={() => setIsConfirmationVisible(false)}
-            >
-              Anuluj
-            </Button>
-            <Button
-              loading={isSubmitting}
-              disabled={isSubmitting}
-              onPress={() => void handleConfirmOrder()}
-            >
-              {isSubmitting ? 'Zapisywanie…' : 'Złóż zamówienie'}
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      <OrderConfirmationDialog
+        visible={isConfirmationVisible}
+        details={confirmationDetails}
+        isSubmitting={isSubmitting}
+        errorMessage={submitErrorMessage}
+        onClose={() => setIsConfirmationVisible(false)}
+        onConfirm={() => void handleConfirmOrder()}
+      />
     </SafeAreaView>
   );
 }
@@ -409,53 +357,6 @@ function SelectionSection({
   );
 }
 
-type SelectionOptionProps = {
-  label: string;
-  description?: string;
-  selected: boolean;
-  multiple?: boolean;
-  onPress: () => void;
-};
-
-function SelectionOption({
-  label,
-  description,
-  selected,
-  multiple = false,
-  onPress,
-}: SelectionOptionProps) {
-  return (
-    <Pressable
-      accessibilityRole={multiple ? 'checkbox' : 'radio'}
-      accessibilityState={{ checked: selected }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.option,
-        selected && styles.selectedOption,
-        pressed && styles.pressedOption,
-      ]}
-    >
-      <View style={styles.optionText}>
-        <Text variant="bodyLarge">{label}</Text>
-        {description ? (
-          <Text variant="bodySmall" style={styles.secondaryText}>
-            {description}
-          </Text>
-        ) : null}
-      </View>
-      <View
-        style={[
-          styles.selectionIndicator,
-          !multiple && styles.radioIndicator,
-          selected && styles.selectedIndicator,
-        ]}
-      >
-        {selected ? <Check color="#ffffff" size={16} strokeWidth={3} /> : null}
-      </View>
-    </Pressable>
-  );
-}
-
 function formatDate(value?: string) {
   if (!value) {
     return 'Brak daty';
@@ -524,62 +425,8 @@ const styles = StyleSheet.create({
   optionsList: {
     gap: 10,
   },
-  option: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#cbd5cb',
-    borderRadius: 10,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 16,
-    justifyContent: 'space-between',
-    minHeight: 56,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  selectedOption: {
-    backgroundColor: '#ecfdf5',
-    borderColor: '#047857',
-  },
-  pressedOption: {
-    opacity: 0.8,
-  },
-  optionText: {
-    flex: 1,
-    gap: 2,
-  },
-  selectionIndicator: {
-    alignItems: 'center',
-    borderColor: '#82908a',
-    borderRadius: 4,
-    borderWidth: 2,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
-  },
-  radioIndicator: {
-    borderRadius: 12,
-  },
-  selectedIndicator: {
-    backgroundColor: '#047857',
-    borderColor: '#047857',
-  },
   submitButtonContent: {
     minHeight: 48,
-  },
-  confirmationContent: {
-    gap: 12,
-  },
-  confirmationEmphasis: {
-    fontWeight: '700',
-  },
-  selectedAddons: {
-    gap: 8,
-  },
-  addonChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
   },
   secondaryText: {
     color: '#52605a',
