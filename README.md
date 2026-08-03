@@ -1,138 +1,145 @@
 # Food4Groups
 
-Food4Groups to system wspierający organizację cateringu i składanie zamówień grupowych. Baza danych PostgreSQL, backend oraz aplikacja webowa są uruchamiane za pomocą Docker Compose. Aplikacja mobilna korzysta ze wspólnego kodu Expo/React Native i może zostać uruchomiona w emulatorze Androida lub symulatorze iOS.
+An end-to-end group catering management platform developed as an engineering thesis project.
 
-## Wymagania
+Food4Groups supports the entire catering workflow for organized groups. The system allows administrators, catering staff, dietitians, group coordinators, and customers to manage meal packages, menus, orders, and settlement reports within a single application ecosystem.
 
-Do uruchomienia bazy danych, backendu i aplikacji webowej wymagane są:
+The project demonstrates how business requirements can be translated into a layered software architecture consisting of a shared REST API, web and mobile clients, role-based authorization, and a relational database.
 
-- Docker Desktop z obsługą Docker Compose
-- dostęp do Internetu podczas pierwszego pobierania obrazów i budowania kontenerów
+---
 
-Aplikacja mobilna wymaga dodatkowo:
+## Technology Stack
 
-- Node.js 22 LTS wraz z npm
-- Android Studio i Android Emulator -> wariant domyślny dla Windows oraz macOS
-- albo komputera z macOS, Xcode i iOS Simulator -> wariant alternatywny
+| Area | Technologies |
+|------|--------------|
+| Backend | C#, .NET 10, ASP.NET Core, Entity Framework Core |
+| Web | React, TypeScript, Vite, Material UI |
+| Mobile | React Native, Expo, TypeScript |
+| Database | PostgreSQL |
+| Authentication | ASP.NET Core Identity, JWT |
+| Reporting | QuestPDF, ClosedXML |
+| Tooling | Docker Compose, Nginx, Swagger |
 
-Lokalna instalacja PostgreSQL, środowiska .NET ani zależności aplikacji webowej nie jest potrzebna.
+---
 
-## Uruchomienie bazy danych, backendu i aplikacji webowej
+## Architecture
 
-1. Uruchom Docker Desktop.
-2. Otwórz terminal w głównym katalogu projektu, czyli w katalogu zawierającym pliki `docker-compose.yml` i `.env`.
-3. Uruchom wszystkie usługi:
+```mermaid
+flowchart TD
+
+    Web --> API["ASP.NET Core REST API"]
+    Mobile --> API
+
+    API --> Auth["Authentication & Authorization"]
+    API --> App["Application"]
+
+    App --> Domain["Domain Model"]
+    App --> Infra["Infrastructure"]
+
+    Infra --> DB[("PostgreSQL")]
+    Infra --> Reports["QuestPDF & ClosedXML"]
+
+    Auth --> DB
+```
+
+## Features
+
+- Role-based workflows for five user roles:
+  - Administrator
+  - Catering Employee
+  - Dietitian
+  - Group Coordinator
+  - Customer
+- Shared ASP.NET Core REST API consumed by both web and mobile applications
+- Layered backend architecture (Domain, Application, Infrastructure, API)
+- Menu period and daily menu management
+- Catering package management
+- Group and participant management
+- Order creation and order status management
+- JWT authentication and role-based authorization
+- PDF pro-forma settlement reports
+- Excel daily order reports
+- Docker Compose configuration for local development
+
+---
+
+The application follows a layered architecture. Business rules, validation, and authorization are implemented in the backend, while both client applications consume the same REST API. Data persistence is handled by the Infrastructure layer using Entity Framework Core and PostgreSQL.
+
+---
+
+
+
+## Running the Project
+
+### Prerequisites
+
+- Docker Desktop
+- Git
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/kmlynek/Food4Groups.git
+cd Food4Groups
+```
+
+### 2. Create a `.env` file
+
+Create a `.env` file in the project root:
+
+```env
+API_PORT=8080
+WEB_PORT=5173
+
+POSTGRES_PORT=5433
+POSTGRES_DB=food4groups
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=food4groups_local_dev
+
+JWT_KEY=Food4Groups_LocalDevelopment_Key
+JWT_ISSUER=Food4Groups
+JWT_AUDIENCE=Food4Groups.Client
+```
+
+> These values are intended for local development only.
+
+### 3. Start the application
 
 ```bash
 docker compose up --build -d
 ```
 
-Pierwsze uruchomienie może potrwać kilka minut. Docker pobierze wymagane obrazy, zbuduje backend i aplikację webową, utworzy bazę danych, a następnie wykona kolejno skrypty `db/init/01_DB_schema.sql` oraz `db/init/02_seed_crud.sql`.
+The following services will be started automatically:
 
-4. Sprawdź stan kontenerów:
+- ASP.NET Core REST API
+- React web application
+- PostgreSQL database
+- Nginx reverse proxy
 
-```bash
-docker compose ps
-```
+### Application URLs
 
-Kontener `food4groups-db` powinien mieć stan `healthy`, a kontenery `food4groups-api` i `food4groups-web` powinny być uruchomione.
+| Service | URL |
+|---------|-----|
+| Web Application | http://localhost:5173 |
+| Swagger UI | http://localhost:8080/swagger |
 
-5. Otwórz aplikację webową w przeglądarce:
+---
 
-```text
-http://localhost:5173
-```
+## Demo Accounts
 
-API używane przez aplikację mobilną jest dostępne na porcie `8080`.
+| Role | Email | Password |
+|------|-------|----------|
+| Administrator | admin@food4groups.com | Admin123! |
+| Customer | user@food4groups.com | Test123! |
 
-## Konta demonstracyjne
+> Demo accounts are automatically seeded for local development and demonstration purposes.
 
-| Rola w aplikacji | Nazwa techniczna | Login | Hasło |
-| --- | --- | --- | --- |
-| Administrator | `Admin` | `admin@food4groups.com` | `Admin123!` |
-| Pracownik cateringu | `CateringEmployee` | `catering@food4groups.com` | `Test123!` |
-| Dietetyk | `Dietitian` | `dietitian@food4groups.com` | `Test123!` |
-| Koordynator grupy | `GroupCoordinator` | `coordinator@food4groups.com` | `Test123!` |
-| Klient | `User` | `user@food4groups.com` | `Test123!` |
+---
 
-Konta i hasła są przeznaczone wyłącznie do prezentacji lokalnej. Po pierwszym zalogowaniu zaleca się zmianę hasła w sekcji **Moje konto** aplikacji webowej.
+## Mobile Application
 
-Do aplikacji mobilnej należy zalogować się poprzez konto z przypisaną rolą Klient:
+The repository also contains a React Native mobile application built with Expo.
 
-```text
-user@food4groups.com
-Test123!
-```
+The mobile client focuses on the customer ordering workflow and communicates with the same ASP.NET Core REST API as the web application.
 
-## Aplikacja mobilna - Android Emulator
-
-Android jest domyślnie skonfigurowanym wariantem i może zostać uruchomiony zarówno na Windowsie, jak i na macOS.
-
-1. Otwórz Android Studio i uruchom emulator w narzędziu **Device Manager**.
-2. Jeżeli emulator nie został wcześniej utworzony, dodaj urządzenie wirtualne. Przetestowana konfiguracja projektu to **Pixel 8**, obraz systemu **API 36** z **Google APIs**.
-3. Poczekaj, aż emulator w pełni się uruchomi i wyświetli ekran główny Androida.
-4. Upewnij się, że w pliku `mobile/.env` aktywna jest domyślna konfiguracja:
-
-```env
-EXPO_PUBLIC_API_URL=http://10.0.2.2:8080/api
-```
-
-5. Otwórz drugi terminal w głównym katalogu projektu i wykonaj:
-
-```bash
-cd mobile
-npm ci
-npm run android
-```
-
-Terminal z serwerem Expo należy pozostawić uruchomiony podczas korzystania z aplikacji. Przy pierwszym uruchomieniu Expo może pobrać lub zainstalować aplikację Expo Go w emulatorze.
-
-Adres `10.0.2.2` wskazuje komputer uruchamiający Dockera z perspektywy standardowego Android Emulatora. Nie należy zastępować go adresem `localhost`, ponieważ wskazywałby on sam emulator.
-
-## Aplikacja mobilna - iOS Simulator
-
-Ten wariant wymaga systemu macOS oraz zainstalowanego Xcode i iOS Simulatora.
-
-1. W pliku `mobile/.env` zakomentuj adres dla Androida i odkomentuj adres dla iOS. Aktywny powinien pozostać tylko jeden wpis:
-
-```env
-# EXPO_PUBLIC_API_URL=http://10.0.2.2:8080/api
-EXPO_PUBLIC_API_URL=http://localhost:8080/api
-```
-
-2. Otwórz drugi terminal w głównym katalogu projektu i wykonaj:
-
-```bash
-cd mobile
-npm ci
-npm run ios
-```
-
-Terminal z serwerem Expo należy pozostawić uruchomiony podczas korzystania z aplikacji. Po każdej zmianie pliku `mobile/.env` zatrzymaj Expo skrótem `Ctrl+C` i uruchom je ponownie.
-
-## Zatrzymanie projektu
-
-Aby zatrzymać aplikację mobilną, użyj skrótu `Ctrl+C` w terminalu z Expo.
-
-Aby zatrzymać kontenery bez usuwania zapisanych danych, wykonaj w głównym katalogu projektu:
-
-```bash
-docker compose down
-```
-
-Przy kolejnym uruchomieniu wystarczy:
-
-```bash
-docker compose up -d
-```
-
-## Przywrócenie początkowych danych demonstracyjnych
-
-Skrypty SQL są wykonywane automatycznie tylko podczas tworzenia pustego wolumenu PostgreSQL. Aby usunąć bieżącą bazę i odtworzyć początkowe dane demonstracyjne, wykonaj:
-
-```bash
-docker compose down -v
-docker compose up --build -d
-```
-
-> **Uwaga:** polecenie `docker compose down -v` bezpowrotnie usuwa wszystkie dane zapisane w lokalnej bazie projektu, w tym zmienione hasła.
+---

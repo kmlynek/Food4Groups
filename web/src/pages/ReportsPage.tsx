@@ -437,7 +437,7 @@ export function ReportsPage() {
                     onClick={handleDownloadDailyOrdersReport}
                     disabled={isSubmitting || !selectedMenuDayId}
                   >
-                    {isSubmitting ? 'Generowanie…' : 'Pobierz XLSX'}
+                    {isSubmitting ? 'Generowanie…' : 'Pobierz Excel'}
                   </Button>
                 </Stack>
               </Stack>
