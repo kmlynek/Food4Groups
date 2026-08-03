@@ -1,10 +1,10 @@
 # Food4Groups
 
-An end-to-end group catering management platform developed as an engineering thesis project.
+Food4Groups is an end-to-end group catering management application developed as an engineering thesis project.
 
-Food4Groups supports the entire catering workflow for organized groups. The system allows administrators, catering staff, dietitians, group coordinators, and customers to manage meal packages, menus, orders, and settlement reports within a single application ecosystem.
+The application supports the entire catering workflow for organized groups. It allows administrators, catering staff, dietitians, group coordinators, and customers to manage meal packages, menus, orders, and settlement reports within a single application ecosystem.
 
-The project demonstrates how business requirements can be translated into a layered software architecture consisting of a shared REST API, web and mobile clients, role-based authorization, and a relational database.
+The application is built around a layered architecture with a shared ASP.NET Core REST API, web and mobile clients, authentication, role-based authorization, and a PostgreSQL database.
 
 ---
 
@@ -21,6 +21,17 @@ The project demonstrates how business requirements can be translated into a laye
 | Tooling | Docker Compose, Nginx, Swagger |
 
 ---
+
+## Project Structure
+
+```text
+Food4Groups.Api
+Food4Groups.Application
+Food4Groups.Domain
+Food4Groups.Infrastructure
+Food4Groups.Web
+Food4Groups.Mobile
+```
 
 ## Architecture
 
